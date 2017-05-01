@@ -19,6 +19,7 @@
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#include <stdafx.h>
 #include	<stdlib.h>
 #include	<string.h>
 #include	<assert.h>
@@ -32,7 +33,7 @@ SymTab *	SymTab_Create(void)
 {
 	SymTab *	st;
 
-	st = geRam_Allocate(sizeof(*st));
+	st = (struct SymTab *)geRam_Allocate(sizeof(*st));
 	memset(st, 0, sizeof(*st));
 	return st;
 }
@@ -65,7 +66,7 @@ SymTab_Symbol * SymTab_CreateSymbol(
 {
 	SymTab_Symbol *sym;
 
-	sym = geRam_Allocate(sizeof(*sym));
+	sym = (struct SymTab_Symbol *)geRam_Allocate(sizeof(*sym));
 	if	(!sym)
 		return sym;
 
@@ -92,7 +93,7 @@ SymTab_Scope *	SymTab_CreateScope(SymTab *st, SymTab_Scope *parent, unsigned sho
 {
 	SymTab_Scope *	scp;
 
-	scp = geRam_Allocate(sizeof(*scp));
+	scp = (struct SymTab_Scope *)geRam_Allocate(sizeof(*scp));
 	assert(scp);
 	memset(scp, 0, sizeof(*scp));
 

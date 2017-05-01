@@ -25,6 +25,7 @@ Code fragments from Chris Hecker's texture mapping articles used with
 permission.  http://www.d6.com/users/checker 
 */
 
+#include <stdafx.h>
 #include "render.h"
 #include "node.h"
 #include "basetype.h"
@@ -129,7 +130,7 @@ typedef struct ViewVarsTag
 geFloat Render_ComputeGridDist (const ViewVars *v, int GridType)
 {
 	geVec3d left, right;
-	float dist;
+	geFloat dist;
 
 	// determine grid size for minimum 10 pixels between grid lines
 	Render_ViewToWorld (v, 0, 0, &left);
@@ -160,7 +161,7 @@ geFloat Render_ComputeGridDist (const ViewVars *v, int GridType)
 			break;
 	}
 
-	dist = (float)fabs (dist);
+	dist = (geFloat)fabs (dist);
 	if (dist < 1.0f)
 		dist = 1.0f;
 	if (GridType == GRID_TYPE_METRIC)
@@ -177,7 +178,7 @@ static geFloat log2 (geFloat f)
 
 geFloat	Render_GetFineGrid(const ViewVars *v, int GridType)
 {
-	float dist;
+	geFloat dist;
 	double Interval;
 
 	assert(v);
@@ -296,12 +297,12 @@ void	Render_SetViewType(ViewVars *v, const int vt)
 	v->ViewType	=vt;
 }
 
-static geFloat Render_NormalizeAngle (float Rads)
+static geFloat Render_NormalizeAngle (geFloat Rads)
 {
 	geFloat NewAngle;
 	
 	// first make it in the range -2PI..2PI
-	NewAngle = (float)fmod (Rads, 2*M_PI);
+	NewAngle = (geFloat)fmod (Rads, 2*M_PI);
 
 	// and then convert to 0..2PI
 	if (NewAngle < 0.0f)
@@ -1074,12 +1075,12 @@ void	Render_3DTextureZBuffer(ViewVars *Cam, const geVec3d *pos, const geBitmap *
 //	WORD WorkingPalette[256];
 
 	//get the center position on the screen
-	float xPlus8  = (float)(pos->X + 8.0);
-	float xMinus8 = (float)(pos->X - 8.0);
-	float yPlus8  = (float)(pos->Y + 8.0);
-	float yMinus8 = (float)(pos->Y - 8.0);
-	float zPlus8  = (float)(pos->Z + 8.0);
-	float zMinus8 = (float)(pos->Z - 8.0);
+	geFloat xPlus8  = (geFloat)(pos->X + 8.0);
+	geFloat xMinus8 = (geFloat)(pos->X - 8.0);
+	geFloat yPlus8  = (geFloat)(pos->Y + 8.0);
+	geFloat yMinus8 = (geFloat)(pos->Y - 8.0);
+	geFloat zPlus8  = (geFloat)(pos->Z + 8.0);
+	geFloat zMinus8 = (geFloat)(pos->Z - 8.0);
 
 	geBitmap *LockedBitmap;
 
@@ -1134,7 +1135,7 @@ void	Render_3DTextureZBuffer(ViewVars *Cam, const geVec3d *pos, const geBitmap *
 	}
 	else
 	{
-		dxf	=(int)((((float)Width) / ((int)x1 - (int)x0)) * ((float)Width));
+		dxf	=(int)((((geFloat)Width) / ((int)x1 - (int)x0)) * ((geFloat)Width));
 	}
 	dyi	=Height / ((int)y1 - (int)y0);
 	if(dyi)
@@ -1143,7 +1144,7 @@ void	Render_3DTextureZBuffer(ViewVars *Cam, const geVec3d *pos, const geBitmap *
 	}
 	else
 	{
-		dyf	=(int)((((float)Height) / ((int)y1 - (int)y0)) * ((float)Height));
+		dyf	=(int)((((geFloat)Height) / ((int)y1 - (int)y0)) * ((geFloat)Height));
 	}
 	dyi	*=Width;
 
@@ -1208,12 +1209,12 @@ void	Render_3DTextureZBufferOutline(ViewVars *Cam, const geVec3d *pos, const geB
 //	geBoolean		Outlining	=GE_FALSE;
 
 	//get the center position on the screen
-	float xPlus8  = (float)(pos->X + 8.0);
-	float xMinus8 = (float)(pos->X - 8.0);
-	float yPlus8  = (float)(pos->Y + 8.0);
-	float yMinus8 = (float)(pos->Y - 8.0);
-	float zPlus8  = (float)(pos->Z + 8.0);
-	float zMinus8 = (float)(pos->Z - 8.0);
+	geFloat xPlus8  = (geFloat)(pos->X + 8.0);
+	geFloat xMinus8 = (geFloat)(pos->X - 8.0);
+	geFloat yPlus8  = (geFloat)(pos->Y + 8.0);
+	geFloat yMinus8 = (geFloat)(pos->Y - 8.0);
+	geFloat zPlus8  = (geFloat)(pos->Z + 8.0);
+	geFloat zMinus8 = (geFloat)(pos->Z - 8.0);
 	geBitmap *LockedBitmap;
 
 	x0=y0=z0	=99999.0f;
@@ -1267,7 +1268,7 @@ void	Render_3DTextureZBufferOutline(ViewVars *Cam, const geVec3d *pos, const geB
 	}
 	else
 	{
-		dxf	=(int)((((float)Width) / ((int)x1 - (int)x0)) * ((float)Width));
+		dxf	=(int)((((geFloat)Width) / ((int)x1 - (int)x0)) * ((geFloat)Width));
 	}
 	dyi	=Height / ((int)y1 - (int)y0);
 	if(dyi)
@@ -1276,7 +1277,7 @@ void	Render_3DTextureZBufferOutline(ViewVars *Cam, const geVec3d *pos, const geB
 	}
 	else
 	{
-		dyf	=(int)((((float)Height) / ((int)y1 - (int)y0)) * ((float)Height));
+		dyf	=(int)((((geFloat)Height) / ((int)y1 - (int)y0)) * ((geFloat)Height));
 	}
 	dyi	*=Width;
 
@@ -1363,7 +1364,7 @@ BOOL Render_PointInFrustum(ViewVars *Cam, geVec3d *v)
 geFloat Render_ViewDeltaToRadians
 (
 	const ViewVars *v, 
-	const float dx
+	const geFloat dx
 )
 {
 	return (dx)*(ONE_OVER_2PI/Render_GetXScreenScale (v));
@@ -1372,11 +1373,11 @@ geFloat Render_ViewDeltaToRadians
 void Render_ViewDeltaToRotation
 	(
 	  const ViewVars *v, 
-	  const float dx, 
+	  const geFloat dx, 
 	  geVec3d *VecRotate
 	)
 {
-	float RotationRads;
+	geFloat RotationRads;
 
 	assert (v != NULL);
 	assert (VecRotate != NULL);

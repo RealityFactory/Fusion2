@@ -36,10 +36,10 @@ public:
 	//{{AFX_DATA(CCreateConeDialog)
 	enum { IDD = IDD_CREATE_CONE };
 	int		m_Style;
-	float	m_Width;
-	float	m_Height;
+	geFloat	m_Width;
+	geFloat	m_Height;
 	int		m_VerticalStrips;
-	float	m_Thickness;
+	geFloat	m_Thickness;
 	BOOL	m_TCut;
 	//}}AFX_DATA
 

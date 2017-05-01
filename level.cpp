@@ -68,8 +68,8 @@ struct tag_Level
 
 	geVec3d TemplatePos;
 
-	float DrawScale;		// default draw scale
-	float LightmapScale;	// default lightmap scale
+	geFloat DrawScale;		// default draw scale
+	geFloat LightmapScale;	// default lightmap scale
 };
 
 
@@ -901,8 +901,8 @@ static geBoolean Level_WriteSky
 	(
 	  SkyFaceTexture const SkyFaces[],
 	  geVec3d const *Axis,
-	  const float Speed,
-	  const float Scale,
+	  const geFloat Speed,
+	  const geFloat Scale,
 	  FILE *ArFile
 	)
 {
@@ -1292,7 +1292,7 @@ void Level_CollapseModels (Level *pLevel, int StartingModel)
 	ModelList_Collapse (pLevel->ModelInfo.Models, StartingModel, pLevel->Brushes);
 }
 
-float Level_GetGridSnapSize (const Level *pLevel)
+geFloat Level_GetGridSnapSize (const Level *pLevel)
 {
 	const GridInfo *pGridInfo = &pLevel->GridSettings;
 
@@ -1304,7 +1304,7 @@ float Level_GetGridSnapSize (const Level *pLevel)
 		default :
 			assert (0);
 		case GridTexel :
-			return (float)pGridInfo->TexelSnapSize;
+			return (geFloat)pGridInfo->TexelSnapSize;
 			break;
 	}
 }
@@ -1382,22 +1382,22 @@ geVec3d *Level_GetTemplatePos (Level *pLevel)
 	return &pLevel->TemplatePos;
 }
 
-float Level_GetDrawScale (const Level *pLevel)
+geFloat Level_GetDrawScale (const Level *pLevel)
 {
 	return pLevel->DrawScale;
 }
 
-float Level_GetLightmapScale (const Level *pLevel)
+geFloat Level_GetLightmapScale (const Level *pLevel)
 {
 	return pLevel->LightmapScale;
 }
 
-void Level_SetDrawScale (Level *pLevel, float Scale)
+void Level_SetDrawScale (Level *pLevel, geFloat Scale)
 {
 	pLevel->DrawScale = Scale;
 }
 
-void Level_SetLightmapScale (Level *pLevel, float Scale)
+void Level_SetLightmapScale (Level *pLevel, geFloat Scale)
 {
 	pLevel->LightmapScale = Scale;
 }

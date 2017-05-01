@@ -36,10 +36,6 @@ typedef struct
 } TexInfo_Vectors;
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct NodeTag Node;
 
 typedef struct PlaneTag
@@ -141,9 +137,5 @@ void	Face_WriteToMap(const Face *f, FILE *wf);
 void	Face_WriteToQuakeMap(const Face *f, FILE *wf);
 geBoolean Face_Write(const Face *f, FILE *wf);
 Face	*Face_CreateFromFile(Parse3dt *Parser, int VersionMajor, int VersionMinor, const char **Expected);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

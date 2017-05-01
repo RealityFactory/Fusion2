@@ -71,7 +71,7 @@ Array *Array_Create (int InitialSize, int ItemSize)
 	assert (InitialSize >= 0);
 	assert (ItemSize > 0);
 
-	pArray = malloc (sizeof (Array));
+	pArray = (struct tag_Array *)malloc (sizeof (Array));
 	if (pArray != NULL)
 	{
 		if (Array_Init (pArray, InitialSize, ItemSize) == GE_FALSE)

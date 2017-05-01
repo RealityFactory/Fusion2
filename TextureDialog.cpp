@@ -68,6 +68,9 @@ void CTextureDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CTextureDialog)
+	DDX_Control(pDX, IDC_REMOVETEXTURE, m_RemoveTexture);
+	DDX_Control(pDX, IDC_NEWTEXTURE, m_NewTexture);
+	DDX_Control(pDX, IDC_EDITTEXTURE, m_EditTexture);
 	DDX_Control(pDX, IDC_SIZETEXT, m_SizeText);
 	DDX_Control(pDX, IDC_APPLYTEXTURE, m_ApplyButton);
 	DDX_Control(pDX, IDC_TEXTUREIMAGE, m_TextureImage);
@@ -153,6 +156,9 @@ BOOL CTextureDialog::OnInitDialog()
 
 	// put the button to the right of the listbox
 	m_ApplyButton.SetWindowPos (NULL, left, top, 0, 0, (SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOZORDER));
+	m_EditTexture.SetWindowPos (NULL, left, top+30, 0, 0, (SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOZORDER));
+	m_NewTexture.SetWindowPos (NULL, left, top+60, 0, 0, (SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOZORDER));
+	m_RemoveTexture.SetWindowPos (NULL, left, top+90, 0, 0, (SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOZORDER));
 
 	// and the size text at the bottom of the listbox
 	m_SizeText.GetClientRect (&rect2);

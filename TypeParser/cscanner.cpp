@@ -19,6 +19,7 @@
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#include <stdafx.h>
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
@@ -368,7 +369,7 @@ static	int	genFCON(Scanner *s, Scanner_Token *t, int c)
 {
 	t->tKind = TK_FCON;
 	*t->tTokenDataPtr = 0;
-	t->tFCONValue = (float)atof(t->tTokenData);
+	t->tFCONValue = (geFloat)atof(t->tTokenData);
 	return 1;
 }
 #pragma warning (default:4100)

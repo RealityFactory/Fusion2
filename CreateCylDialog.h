@@ -34,20 +34,20 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CCreateCylDialog)
 	enum { IDD = IDD_CREATE_CYL };
-	float	m_BotXOffset;
-	float	m_BotXSize;
-	float	m_BotZOffset;
-	float	m_BotZSize;
+	geFloat	m_BotXOffset;
+	geFloat	m_BotXSize;
+	geFloat	m_BotZOffset;
+	geFloat	m_BotZSize;
 	int		m_Solid;
-	float	m_TopXOffset;
-	float	m_TopXSize;
-	float	m_TopZOffset;
-	float	m_TopZSize;
-	float	m_YSize;
-	float	m_RingLength;
+	geFloat	m_TopXOffset;
+	geFloat	m_TopXSize;
+	geFloat	m_TopZOffset;
+	geFloat	m_TopZSize;
+	geFloat	m_YSize;
+	geFloat	m_RingLength;
 	BOOL	m_TCut;
 	int		m_VerticalStripes;
-	float	m_Thickness;
+	geFloat	m_Thickness;
 	//}}AFX_DATA
 
 

@@ -48,26 +48,11 @@ static const char PROJECTDIR_KEY[]		= "ProjectDir";
 
 static const char DEFAULT_TXLNAME[]		= "gedit.txl";
 static const char DEFAULT_TXLSEARCH[]	= ".\\";
-static const char DEFAULT_PREVIEW[]		= "gpreview.exe";
+static const char DEFAULT_PREVIEW[]		= "RealityFactory.exe";
 static const char DEFAULT_HEADERS[]		= ".\\Headers";
 static const char DEFAULT_OBJECTSDIR[]	= ".\\Objects";
 static const char DEFAULT_PROJECTDIR[]	= ".\\Levels";
 
-
-/*
-#define FUSION_SECTION_NAME "GEdit"
-
-#define FUSION_TXLPATH_ENTRY "DefaultTxLib"
-#define FUSION_DEFAULT_TXL "GEdit.Txl"
-
-#define FUSION_PREVIEWPATH_ENTRY "GPreviewPath"
-#define FUSION_DEFAULT_PREVIEW "GPreview.exe"
-
-#define FUSION_PROJECTDIR_ENTRY "ProjectDir"
-#define FUSION_DEFAULT_PROJECTDIR ""
-
-#define FUSION_EXTPATH_ENTRY "ExtensionsPath"
-*/
 
 struct tag_PathPrefs
 {

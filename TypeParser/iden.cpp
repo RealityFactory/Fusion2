@@ -21,6 +21,8 @@
 /****************************************************************************************/
 #pragma hdrstop
 
+#include <stdafx.h>
+
 #include	<stdlib.h>
 #include	<string.h>
 #include	<assert.h>
@@ -40,7 +42,7 @@ Iden_HashTable *	Iden_CreateHashTable(void)
 {
 	Iden_HashTable *	ht;
 
-	ht = geRam_Allocate(sizeof(*ht));
+	ht = (struct Iden_HashTable *)geRam_Allocate(sizeof(*ht));
 	if	(!ht)
 		return 0;
 
@@ -68,13 +70,13 @@ Iden *	Iden_HashName(Iden_HashTable *ht, const char *s, int len)
 
 	if	(!id)
 	{
-		id = geRam_Allocate(sizeof(*id));
+		id = (struct Iden *)geRam_Allocate(sizeof(*id));
 		if	(!id)
 			return 0;
 		
 		memset(id, 0, sizeof(*id));
 
-		id->idenSpelling = geRam_Allocate(len + 1);
+		id->idenSpelling = (char *)geRam_Allocate(len + 1);
 		if	(!id->idenSpelling)
 		{
 			geRam_Free (id);

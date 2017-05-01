@@ -50,8 +50,8 @@ class CEntity
 // Construction
 public:
 	void UpdateOriginFirst(const EntityTable *pEntityDefs);
-	float RayDistance (CPoint point, ViewVars *v);
-	float DistanceFrom (geVec3d const *pPoint);
+	geFloat RayDistance (CPoint point, ViewVars *v);
+	geFloat DistanceFrom (geVec3d const *pPoint);
 	void Export (FILE *OutFile);
 	void Move (geVec3d const *v);
 	void DoneMove (double GridSize, const EntityTable *pEntityDefs);

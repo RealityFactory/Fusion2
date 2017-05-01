@@ -24,10 +24,6 @@
 
 #include "basetype.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 #define LIST_INVALID_NODE NULL
 
 typedef struct tag_List List;
@@ -106,11 +102,5 @@ int List_ForEach (List *pList, List_ForEachCallback CallbackFcn, void *lParam);
 // *pli is initialized to reference the found item.
 // Returns GE_FALSE if the search is not successful.
 geBoolean List_Search (List *pList, List_SearchCallback SearchFcn, void *lParam, void **ppData, ListIterator *pli);
-
-#ifdef __cplusplus
-	}
-#endif
-
-
 
 #endif

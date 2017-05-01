@@ -35,9 +35,9 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CCreateStaircaseDialog)
 	enum { IDD = IDD_STAIRCASEDIALOG };
-	float	m_Height;
-	float	m_Length;
-	float	m_Width;
+	geFloat	m_Height;
+	geFloat	m_Length;
+	geFloat	m_Width;
 	BOOL	m_MakeRamp;
 	BOOL	m_TCut;
 	int		m_NumberOfStairs;

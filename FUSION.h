@@ -43,7 +43,7 @@
 #define TEMPLATE_CHILD_FRAME_CLASS		RUNTIME_CLASS( CChildFrame )
 #define TEMPLATE_VIEW_CLASS				RUNTIME_CLASS( CFusionView )
 
-#define FUSION_INIFILE_NAME "Gedit.ini"
+#define FUSION_INIFILE_NAME "rfEdit.ini"
 
 class CFusionApp : public CWinApp
 {
@@ -101,6 +101,7 @@ private:
 	BOOL IsFirstInstance();
 	CFusionDoc* pFusionDoc;
 	void ResolvePreferencesPaths ();
+	bool bAutosaveActive;
 };
 
 /////////////////////////////////////////////////////////////////////////////

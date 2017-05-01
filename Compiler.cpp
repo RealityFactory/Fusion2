@@ -61,70 +61,6 @@ CompilerErrorEnum Compiler_RunPreview
 	}
 
 
-	// we're going to copy the preview file to the "levels" subdirectory
-	// of the GPreviewPath directory...
-	//
-	// So, if the PreviewFilename is "C:\MyStuff\MyLevel.bsp",
-	// and GPreviewPath is "C:\Editor\GPreview.exe", then the resulting
-	// file name is "C:\Editor\levels\MyLevel.bsp"
-	//
-	{
-		char PreviewDrive[_MAX_PATH];
-		char PreviewDir[_MAX_PATH];
-		char Name[_MAX_PATH];
-		char Ext[_MAX_PATH];
-
-		_splitpath (PreviewFilename, NULL, NULL, Name, Ext);
-		_splitpath (GPreviewPath, PreviewDrive, PreviewDir, NULL, NULL);
-
-		strcat (PreviewDir, "levels\\");
-		_makepath (DestBspName, PreviewDrive, PreviewDir, Name, Ext);
-	}
-
-
-	// if source and destination are the same, then don't copy...
-	if (stricmp (DestBspName, PreviewFilename) != 0)
-	{
-		if(!CopyFile (PreviewFilename, DestBspName, FALSE))
-		{
-			int LastError;
-
-			LastError = GetLastError();
-			if (LastError != ERROR_FILE_EXISTS)
-			{
-				ConPrintf("GPreviewPath: %s \n", GPreviewPath);
-				ConPrintf("CopyFile (%s, %s)\nGetLastError()==%d\n", PreviewFilename, DestBspName, LastError);
-				return COMPILER_ERROR_BSPCOPY;
-			}
-		}
-	}
-
-	{
-		// copy the motion file if it exists
-		char DestName[_MAX_PATH];
-
-		// check to see if the file exists
-		FilePath_SetExt (DestBspName, ".mot", DestName);
-		if (_access (MotionFilename, 0) == 0)  // _access returns 0 on success...of course!
-		{
-			if (stricmp (MotionFilename, DestName) != 0)
-			{
-				if (!CopyFile (MotionFilename, DestName, FALSE))
-				{
-					if(GetLastError() != ERROR_FILE_EXISTS)
-					{
-						ConPrintf ("%s", "Unable to copy the motion file.\n");
-						ConPrintf ("%s", "Continuing with preview.\n");
-					}
-				}
-			}
-		}
-		else
-		{
-			_unlink (DestName);
-		}
-	}
-
 	{
 		SHELLEXECUTEINFO	shx;
 		char Params[_MAX_PATH];
@@ -132,8 +68,9 @@ CompilerErrorEnum Compiler_RunPreview
 		char NoExtName[_MAX_PATH];
 
 		FilePath_GetDriveAndDir (GPreviewPath, DefaultDir);
-		FilePath_GetName (DestBspName, NoExtName);
+		FilePath_GetName(PreviewFilename, NoExtName);
 		sprintf (Params, "-map %s", NoExtName);
+		ConPrintf("Previewing %s\n", NoExtName);
 
 		shx.fMask		= 0;
 		shx.hwnd		= NULL; //(HWND)AfxGetMainWnd();

@@ -44,6 +44,9 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CTextureDialog)
 	enum { IDD = IDD_TEXTUREDIALOG };
+	CButton	m_RemoveTexture;
+	CButton	m_NewTexture;
+	CButton	m_EditTexture;
 	CStatic	m_SizeText;
 	CButton	m_ApplyButton;
 	CStatic	m_TextureImage;

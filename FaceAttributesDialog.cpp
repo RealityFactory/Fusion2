@@ -266,7 +266,7 @@ void CFaceAttributesDialog::OnResetAll()
 	AssignCurrentToViews();
 }
 
-float CFaceAttributesDialog::DoIncrement (float v, float incr, float vMin, float vMax, int nSBCode)
+geFloat CFaceAttributesDialog::DoIncrement (geFloat v, geFloat incr, geFloat vMin, geFloat vMax, int nSBCode)
 {
 	if (nSBCode == SB_LINEUP)
 	{
@@ -289,7 +289,7 @@ float CFaceAttributesDialog::DoIncrement (float v, float incr, float vMin, float
 }
 
 
-float CFaceAttributesDialog::GetIncrement (CComboBox &combo)
+geFloat CFaceAttributesDialog::GetIncrement (CComboBox &combo)
 {
 	int CurSel;
 	DWORD d;
@@ -300,7 +300,7 @@ float CFaceAttributesDialog::GetIncrement (CComboBox &combo)
 		return 1.0f;
 	}
 	d = combo.GetItemData (CurSel);
-	return *((float *)&d);
+	return *((geFloat *)&d);
 }
 
 
@@ -318,13 +318,13 @@ void CFaceAttributesDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScro
 			//	First we deal with all of the Unit scrolling bars...
 			//	X Offset...
 		case IDC_SBXOFFSET_UNIT:
-			m_TextureXOffset = (int)DoIncrement ((float)m_TextureXOffset, UNIT_OFFSET_INCR, MIN_TEX_OFF, MAX_TEX_OFF, nSBCode);
+			m_TextureXOffset = (int)DoIncrement ((geFloat)m_TextureXOffset, UNIT_OFFSET_INCR, MIN_TEX_OFF, MAX_TEX_OFF, nSBCode);
 			UpdateData (FALSE);
 			OnKillfocusXOffset ();
 			break;
 			//	Y Offset...
 		case IDC_SBYOFFSET_UNIT:
-			m_TextureYOffset = (int)DoIncrement ((float)m_TextureYOffset, UNIT_OFFSET_INCR, MIN_TEX_OFF, MAX_TEX_OFF, nSBCode);
+			m_TextureYOffset = (int)DoIncrement ((geFloat)m_TextureYOffset, UNIT_OFFSET_INCR, MIN_TEX_OFF, MAX_TEX_OFF, nSBCode);
 			UpdateData (FALSE);
 			OnKillfocusYOffset ();
 			break;
@@ -362,13 +362,13 @@ void CFaceAttributesDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScro
 			//	Now deal with all of the increment scrollers...
 			//	X Offset...
 		case IDC_SBXOFFSET_INCR:
-			m_TextureXOffset = (int)DoIncrement ((float)m_TextureXOffset, GetIncrement (m_ComboXOffset), MIN_TEX_OFF, MAX_TEX_OFF, nSBCode);
+			m_TextureXOffset = (int)DoIncrement ((geFloat)m_TextureXOffset, GetIncrement (m_ComboXOffset), MIN_TEX_OFF, MAX_TEX_OFF, nSBCode);
 			UpdateData (FALSE);
 			OnKillfocusXOffset ();
 			break;
 			//	Y Offset...
 		case IDC_SBYOFFSET_INCR:
-			m_TextureYOffset = (int)DoIncrement ((float)m_TextureYOffset, GetIncrement (m_ComboYOffset), MIN_TEX_OFF, MAX_TEX_OFF, nSBCode);
+			m_TextureYOffset = (int)DoIncrement ((geFloat)m_TextureYOffset, GetIncrement (m_ComboYOffset), MIN_TEX_OFF, MAX_TEX_OFF, nSBCode);
 			UpdateData (FALSE);
 			OnKillfocusYOffset ();
 			break;
@@ -563,7 +563,7 @@ static void OnIntKillFocus (CEdit &Edit, int *val, int DefaultVal, const char *D
 	}
 }
 
-static BOOL OnFloatEditChange (CEdit &Edit, float *val, float DefaultVal)
+static BOOL OnFloatEditChange (CEdit &Edit, geFloat *val, geFloat DefaultVal)
 {
 	CString Text;
 
@@ -576,7 +576,7 @@ static BOOL OnFloatEditChange (CEdit &Edit, float *val, float DefaultVal)
 	return TRUE;
 }
 
-static void OnFloatKillFocus (CEdit &Edit, float *val, float DefaultVal, const char *Defstr)
+static void OnFloatKillFocus (CEdit &Edit, geFloat *val, geFloat DefaultVal, const char *Defstr)
 {
 	if (!OnFloatEditChange (Edit, val, DefaultVal))
 	{
@@ -657,8 +657,8 @@ void CFaceAttributesDialog::OnKillfocusYOffset()
 
 static geBoolean ChangeTextureXScale (Face *pFace, void *lParam)
 {
-	float *pXScale = (float *)lParam;
-	float xScale, yScale;
+	geFloat *pXScale = (geFloat *)lParam;
+	geFloat xScale, yScale;
 
 	Face_GetTextureScale (pFace, &xScale, &yScale);
 	Face_SetTextureScale (pFace, *pXScale, yScale);
@@ -675,8 +675,8 @@ void CFaceAttributesDialog::OnKillfocusXScale()
 
 static geBoolean ChangeTextureYScale (Face *pFace, void *lParam)
 {
-	float *pYScale = (float *)lParam;
-	float xScale, yScale;
+	geFloat *pYScale = (geFloat *)lParam;
+	geFloat xScale, yScale;
 
 	Face_GetTextureScale (pFace, &xScale, &yScale);
 	Face_SetTextureScale (pFace, xScale, *pYScale);
@@ -693,8 +693,8 @@ void CFaceAttributesDialog::OnKillfocusYScale()
 
 static geBoolean ChangeLightXScale (Face *pFace, void *lParam)
 {
-	float *pXScale = (float *)lParam;
-	float xScale, yScale;
+	geFloat *pXScale = (geFloat *)lParam;
+	geFloat xScale, yScale;
 
 	Face_GetLightScale (pFace, &xScale, &yScale);
 	Face_SetLightScale (pFace, *pXScale, yScale);
@@ -712,8 +712,8 @@ void CFaceAttributesDialog::OnKillfocusEditxlightscale()
 
 static geBoolean ChangeLightYScale (Face *pFace, void *lParam)
 {
-	float *pYScale = (float *)lParam;
-	float xScale, yScale;
+	geFloat *pYScale = (geFloat *)lParam;
+	geFloat xScale, yScale;
 
 	Face_GetLightScale (pFace, &xScale, &yScale);
 	Face_SetLightScale (pFace, xScale, *pYScale);
@@ -730,7 +730,7 @@ void CFaceAttributesDialog::OnKillfocusEditylightscale()
 
 static geBoolean ChangeTextureAngle (Face *pFace, void *lParam)
 {
-	float *pAngle = (float *)lParam;
+	geFloat *pAngle = (geFloat *)lParam;
 
 	Face_SetTextureRotate (pFace, *pAngle);
 	return GE_TRUE;
@@ -762,7 +762,7 @@ void CFaceAttributesDialog::OnKillfocusFacelightintensity()
 
 static geBoolean ChangeMipMapBias (Face *pFace, void *lParam)
 {
-	float *pMipMapBias = (float *)lParam;
+	geFloat *pMipMapBias = (geFloat *)lParam;
 
 	Face_SetMipMapBias (pFace, *pMipMapBias);
 	return GE_TRUE;
@@ -778,7 +778,7 @@ void CFaceAttributesDialog::OnKillfocusMipmapbias()
 
 static geBoolean ChangeReflectivity (Face *pFace, void *lParam)
 {
-	float *pReflectivity = (float *)lParam;
+	geFloat *pReflectivity = (geFloat *)lParam;
 
 	Face_SetReflectivity (pFace, *pReflectivity);
 	return GE_TRUE;
@@ -804,7 +804,7 @@ void CFaceAttributesDialog::OnKillfocusReflectivity()
 
 static geBoolean ChangeTranslucency (Face *pFace, void *lParam)
 {
-	float *pTranslucency = (float *)lParam;
+	geFloat *pTranslucency = (geFloat *)lParam;
 
 	Face_SetTranslucency (pFace, *pTranslucency);
 	return GE_TRUE;
@@ -829,7 +829,7 @@ void CFaceAttributesDialog::OnKillfocusFacetranslucency()
 
 static geBoolean FlipVertical (Face *pFace, void *)
 {
-	float xScale, yScale;
+	geFloat xScale, yScale;
 
 	Face_GetTextureScale (pFace, &xScale, &yScale);
 	Face_SetTextureScale (pFace, xScale, -yScale);
@@ -852,7 +852,7 @@ void CFaceAttributesDialog::OnFlipvertical()
 
 static geBoolean FlipHorizontal (Face *pFace, void *)
 {
-	float xScale, yScale;
+	geFloat xScale, yScale;
 
 	Face_GetTextureScale (pFace, &xScale, &yScale);
 	Face_SetTextureScale (pFace, -xScale, yScale);
@@ -1032,7 +1032,7 @@ BOOL CFaceAttributesDialog::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDH
 typedef struct
 {
 	char *Text;
-	float val; 
+	geFloat val; 
 } ComboBoxItem;
 
 static void FillComboBox (CComboBox &Combo, const ComboBoxItem Items[], int nItems)
@@ -1047,7 +1047,7 @@ static void FillComboBox (CComboBox &Combo, const ComboBoxItem Items[], int nIte
 		Index = Combo.AddString (Items[i].Text);
 		if ((Index != CB_ERR) && (Index != CB_ERRSPACE))
 		{
-			// this big ugly cast lets us store a float in a DWORD.
+			// this big ugly cast lets us store a geFloat in a DWORD.
 			Combo.SetItemData (Index, *((DWORD *)&(Items[i].val)));
 		}
 	}

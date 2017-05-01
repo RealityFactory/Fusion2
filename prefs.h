@@ -24,11 +24,6 @@
 
 #include "basetype.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
-
 typedef struct tag_PathPrefs PathPrefs;
 typedef struct tag_Prefs Prefs;
 
@@ -64,10 +59,6 @@ geBoolean Prefs_SetObjectsDir (Prefs *pPrefs, const char *NewDir);
 
 const char *Prefs_GetProjectDir (const Prefs *pPrefs);
 geBoolean Prefs_SetProjectDir (Prefs *pPrefs, const char *NewDir);
-
-#ifdef __cplusplus
-	}
-#endif
 
 
 #endif

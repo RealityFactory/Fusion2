@@ -29,10 +29,6 @@
 #include "list.h"
 #include "selbrushlist.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 typedef List ModelList;
 typedef struct tag_Model Model;
 typedef ListIterator ModelIterator;
@@ -353,9 +349,5 @@ void ModelList_Collapse
 	  int StartingModel,
 	  BrushList *Brushes
 	);
-
-#ifdef __cplusplus
-	}
-#endif
 
 #endif  // __MODEL_H

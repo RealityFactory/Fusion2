@@ -30,10 +30,6 @@
 #include "box3d.h"
 #include "parse3dt.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum LastBrushAction
 {
 	BRUSH_MOVE,
@@ -138,7 +134,7 @@ geBoolean	Brush_Write(const Brush *b, FILE *ofile);
 Brush		*Brush_CreateFromFile(Parse3dt *Parser, int VersionMajor, int VersionMinor, const char **Expected);
 
 //operations
-void		Brush_Resize(Brush *b, float dx, float dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum);
+void		Brush_Resize(Brush *b, geFloat dx, geFloat dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum);
 void		Brush_ResizeFinal(Brush *b, int sides, int inidx, geVec3d *fnscale);
 //void		Brush_SnapNearest(Brush *b, geFloat gsize, int sides, int inidx);
 void		Brush_SnapShearNearest(Brush *b, geFloat gsize, int sides, int inidx, int snapside);
@@ -148,9 +144,9 @@ void		Brush_Move(Brush *b, const geVec3d *trans);
 void		Brush_Scale3d(Brush *b, const geVec3d *scalevec);
 void		Brush_Transform (Brush *b, const geXForm3d *pXfm);
 void		Brush_Rotate (Brush *b, const geXForm3d *pXfmRotate, const geVec3d *pCenter);
-void		Brush_Scale (Brush *b, float ScaleFactor);
+void		Brush_Scale (Brush *b, geFloat ScaleFactor);
 void		Brush_Shear(Brush *b, const geVec3d *ShearVec, const geVec3d *ShearAxis);
-void		Brush_ShearFixed(Brush *b, float dx, float dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum);
+void		Brush_ShearFixed(Brush *b, geFloat dx, geFloat dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum);
 void		Brush_Bound(Brush *b);
 geBoolean	Brush_TestBoundsIntersect(const Brush *b, const Box3d *pBox);
 void		Brush_SealFaces(Brush **b);
@@ -218,7 +214,7 @@ void	BrushList_RebuildHollowFaces(BrushList *inList, int mid, Brush_CSGCallback 
 void	BrushList_ClearAllCSG (BrushList *pList);
 void	BrushList_ClearCSGAndHollows(BrushList *inList, int mid);
 void	BrushList_Move(BrushList *pList, const geVec3d *trans);
-void	BrushList_Scale (BrushList *pList, float ScaleFactor);
+void	BrushList_Scale (BrushList *pList, geFloat ScaleFactor);
 void	BrushList_Scale3d(BrushList *pList, const geVec3d *trans);
 void	BrushList_Transform(BrushList *pList, const geXForm3d *pXfm);
 void	BrushList_Rotate(BrushList *pList, const geXForm3d *pXfmRotate, const geVec3d *pCenter);
@@ -232,9 +228,5 @@ void	Brush_Center(const Brush *b, geVec3d *center);
 typedef geBoolean (*Brush_FaceCallback)(Face *pFace, void *lParam);
 
 void	Brush_EnumFaces (Brush *b, void *lParam, Brush_FaceCallback Callback);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

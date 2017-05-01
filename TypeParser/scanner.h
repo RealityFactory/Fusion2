@@ -26,10 +26,6 @@
 #include "iden.h"
 #include <stdio.h>
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 typedef struct	Scanner	Scanner;
 
 #define SCANNER_MAXDATA	1024
@@ -40,7 +36,7 @@ typedef struct	Scanner_Token
 	char				tTokenData[SCANNER_MAXDATA];
 	char *				tTokenDataPtr;
 	int					tICONValue;
-	float				tFCONValue;
+	geFloat				tFCONValue;
 	Iden *				tIden;
 }	Scanner_Token;
 
@@ -100,10 +96,5 @@ int				Scanner_GetLineNo(const Scanner *s);
 const char *	Scanner_GetFileName(const Scanner *s);
 FILE *			Scanner_GetFile (Scanner *s);
 int				Scanner_GetOffset (Scanner *s);
-
-#ifdef __cplusplus
-	}
-#endif
-
 
 #endif

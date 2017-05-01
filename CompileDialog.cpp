@@ -150,11 +150,11 @@ void CCompileDialog::OnOK()
 	pParms->Light.FastPatch = FastPatch;
 	pParms->Light.ExtraSamples = ExtraSamp;
 	pParms->Light.NumBounce = BounceLimit;
-	pParms->Light.PatchSize = (float)PatchSize;
-	pParms->Light.ReflectiveScale = (float)atof (ReflectScale);
-	pParms->Light.LightScale = (float)atof (LightScale);
+	pParms->Light.PatchSize = (geFloat)PatchSize;
+	pParms->Light.ReflectiveScale = (geFloat)atof (ReflectScale);
+	pParms->Light.LightScale = (geFloat)atof (LightScale);
 	{
-		float x, y, z;
+		geFloat x, y, z;
 		if (sscanf (MinLight, "%f %f %f", &x, &y, &z) == 3)
 		{
 			geVec3d_Set (&(pParms->Light.MinLight), x, y, z);

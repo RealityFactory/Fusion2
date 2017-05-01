@@ -19,6 +19,7 @@
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#include <stdafx.h>
 #include "scanner.h"
 #include <assert.h>
 #include "ram.h"
@@ -72,7 +73,7 @@ Scanner *		Scanner_Create
 	assert (nInitializers > 0);
 	assert (NullState != NULL);
 
-	res = geRam_Allocate(sizeof(*res));
+	res = (struct Scanner *)geRam_Allocate(sizeof(*res));
 	if	(!res)
 		return res;
 

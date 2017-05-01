@@ -24,6 +24,7 @@
 #else
 #define	MAXPATH	_MAX_PATH
 #endif
+#include <stdafx.h>
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
@@ -48,7 +49,7 @@ static	char *	KeywordNames[] =
 	"struct",
 	"int",
 	"char",
-	"float",
+	"geFloat",
 	"geFloat",
 	"GE_RGBA",
 	"geWorld_Model",
@@ -148,7 +149,7 @@ CParser *	CParser_Init(CParser_ErrFunc errFunc)
 	CParser *	p;
 	int			i;
 
-	p = geRam_Allocate(sizeof(*p));
+	p = (struct CParser *)geRam_Allocate(sizeof(*p));
 	if	(!p)
 		return p;
 
@@ -765,7 +766,7 @@ static	void	CParser_ParseContentsEnum(CParser *p)
 				CParser_Error(p, ERR_VALUEUSEDTWICE);
 		}
 
-		NewValues = geRam_Realloc(p->cpBrushContents,
+		NewValues = (struct CParser_BrushEnumValue *)geRam_Realloc(p->cpBrushContents,
 								  sizeof(*p->cpBrushContents) * (p->cpBrushContentsCount + 1));
 		if	(!NewValues)
 			CParser_Error(p, ERR_OUTOFMEMORY);
@@ -998,7 +999,7 @@ const char *CParser_GetTypeName(const Type *tp)
 static	char *	topTypeNames[] =
 {
 	"int",
-	"float",
+	"geFloat",
 	"color",
 	"point",
 	"string",
@@ -1152,7 +1153,7 @@ const char *	CParser_GetIconName (Type *pType)
 static	char *	topTypeNames[] =
 {
 	"int",
-	"float",
+	"geFloat",
 	"color",
 	"point",
 	"string",

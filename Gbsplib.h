@@ -248,12 +248,12 @@ typedef struct
 {
 	BOOL	Verbose;
 	BOOL	ExtraSamples;
-	float	LightScale;
+	geFloat	LightScale;
 	BOOL	Radiosity;
 	int		NumBounce;
-	float	PatchSize;
+	geFloat	PatchSize;
 	BOOL	FastPatch;
-	float	ReflectiveScale;
+	geFloat	ReflectiveScale;
 
 	geVec3d	MinLight;			// R,G,B (XYZ) min color for each faces lightmap
 

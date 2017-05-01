@@ -26,18 +26,11 @@
 	Okay, this is really ugly.  For the moment we want to have the console functions
 	avalailable from C programs.  So we do that stupid #ifdef __cplusplus trick...
 */
-#ifdef __cplusplus
-	extern "C" {
-#endif
 //console stuff
 //char *TranslateString(char *);
 void ConClear(void);
 void ConPrintf(char *, ...);
 void ConError(char *, ...);	//wanna do this red eventually
-
-#ifdef __cplusplus
-	}
-#endif
 
 
 #ifdef __cplusplus

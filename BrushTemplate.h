@@ -25,11 +25,6 @@
 #include "basetype.h"
 #include "brush.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
-
 typedef struct
 {
 	int			NumSlits;
@@ -186,8 +181,5 @@ geBoolean BrushTemplate_LoadStaircase
 	);
 
 
-#ifdef __cplusplus
-	}
-#endif
 
 #endif

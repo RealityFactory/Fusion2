@@ -22,9 +22,6 @@
 #ifndef ENTTYPENAME_H
 #define ENTTYPENAME_H
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
 
 //typedef struct tag_EntTypeName EntTypeName;
 typedef struct tag_List EntTypeNameList;
@@ -33,10 +30,6 @@ typedef struct tag_List EntTypeNameList;
 EntTypeNameList *EntTypeNameList_Create (void);
 void EntTypeNameList_Destroy (EntTypeNameList **ppList);
 int EntTypeNameList_UpdateCount (EntTypeNameList *pList, const char *pTypeName);
-
-#ifdef __cplusplus
-	}
-#endif
 
 
 #endif

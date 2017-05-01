@@ -103,8 +103,10 @@ BEGIN_MESSAGE_MAP(CFusionView, CView)
 	ON_COMMAND(ID_VIEW_ZOOMOUT, OnViewZoomout)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ZOOMOUT, OnUpdateViewZoomout)
 	ON_COMMAND(ID_CENTERTHING, OnCenterthing)
-	ON_WM_MBUTTONUP()
 	ON_UPDATE_COMMAND_UI(ID_CENTERTHING, OnUpdateCenterthing)
+	ON_COMMAND(ID_QUICK_BACKUP, OnQuickBackup)
+	ON_WM_MBUTTONUP()
+	ON_COMMAND(ID_QUICK_RESTORE, OnQuickRestore)
 	//}}AFX_MSG_MAP
 	ON_COMMAND_RANGE( ID_VIEW_3DWIREFRAME, ID_VIEW_TEXTUREVIEW, OnViewType)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_VIEW_3DWIREFRAME, ID_VIEW_TEXTUREVIEW, OnViewTypeCmdUi)
@@ -421,21 +423,21 @@ void CFusionView::Pan
 
 		if(LButtonIsDown && RButtonIsDown)
 		{
-			geVec3d_Set (&MoveVec, (float)-dx, (float)-dy, 0.0f);
+			geVec3d_Set (&MoveVec, (geFloat)-dx, (geFloat)-dy, 0.0f);
 			Render_MoveCamPos( VCam, &MoveVec ) ;
 			pDoc->UpdateCameraEntity( VCam ) ;
 		}
 		else if (LButtonIsDown)
 		{
-			geVec3d_Set (&MoveVec, 0.0f, 0.0f, (float)-dy);
+			geVec3d_Set (&MoveVec, 0.0f, 0.0f, (geFloat)-dy);
 			Render_MoveCamPos( VCam, &MoveVec ) ;
 			if (Render_UpIsDown (VCam))
 			{
-				Render_IncrementYaw (VCam, (float)(-dx));
+				Render_IncrementYaw (VCam, (geFloat)(-dx));
 			}
 			else
 			{
-				Render_IncrementYaw(VCam, (float)dx);
+				Render_IncrementYaw(VCam, (geFloat)dx);
 			}
 			pDoc->UpdateCameraEntity( VCam ) ;
 		}
@@ -443,13 +445,13 @@ void CFusionView::Pan
 		{
 			if (Render_UpIsDown (VCam))
 			{
-				Render_IncrementYaw (VCam, (float)(-dx));
+				Render_IncrementYaw (VCam, (geFloat)(-dx));
 			}
 			else
 			{
-				Render_IncrementYaw(VCam, (float)dx);
+				Render_IncrementYaw(VCam, (geFloat)dx);
 			}
-			Render_IncrementPitch(VCam, (float)dy);
+			Render_IncrementPitch(VCam, (geFloat)dy);
 			pDoc->UpdateCameraEntity( VCam ) ;
 		}
 	}
@@ -464,7 +466,7 @@ void CFusionView::Pan
 		}
 		else if (RButtonIsDown)
 		{
-			Render_ZoomChange(VCam, -(((float)dy) * 0.001f));
+			Render_ZoomChange(VCam, -(((geFloat)dy) * 0.001f));
 			pDoc->UpdateGridInformation ();
 		}
 	}
@@ -473,22 +475,22 @@ void CFusionView::Pan
 void CFusionView::ScaleSelected (CFusionDoc *pDoc, int dx, int dy)
 {
 	//smooth out the zoom scale curve with a scalar
-	float	ZoomInv	=Render_GetZoom(VCam);
+	geFloat	ZoomInv	=Render_GetZoom(VCam);
 
 	ZoomInv	=(ZoomInv > .5)? 0.5f / ZoomInv : 1.0f;
 
 	// negated here because Brush_Resize is still thinking weird
-	pDoc->ResizeSelected (-(((float)dx)*ZoomInv), -(((float)dy)*ZoomInv), sides, Render_GetInidx(VCam));
+	pDoc->ResizeSelected (-(((geFloat)dx)*ZoomInv), -(((geFloat)dy)*ZoomInv), sides, Render_GetInidx(VCam));
 }
 
 void CFusionView::ShearSelected (CFusionDoc *pDoc, int dx, int dy)
 {
 	//smooth out the zoom scale curve with a scalar
-	float	ZoomInv	=Render_GetZoom(VCam);
+	geFloat	ZoomInv	=Render_GetZoom(VCam);
 
 	ZoomInv	=(ZoomInv > .5)? 0.5f / ZoomInv : 1.0f;
 
-	pDoc->ShearSelected(-(((float)dy)*ZoomInv), -(((float)dx)*ZoomInv), sides, Render_GetInidx(VCam));
+	pDoc->ShearSelected(-(((geFloat)dy)*ZoomInv), -(((geFloat)dx)*ZoomInv), sides, Render_GetInidx(VCam));
 }
 
 #pragma warning (disable:4100)
@@ -523,8 +525,8 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 	*/
 	ShiftHeld = IsKeyDown (VK_SHIFT);
 	ControlHeld = IsKeyDown (VK_CONTROL);
-	LButtonIsDown = IsKeyDown (VK_LBUTTON);
-	RButtonIsDown = IsKeyDown (VK_RBUTTON);
+	LButtonIsDown = LMouseButtonDown; //IsKeyDown (VK_LBUTTON);
+	RButtonIsDown = RMouseButtonDown; //IsKeyDown (VK_RBUTTON);
 	SpaceHeld	= IsKeyDown (VK_SPACE);
 
 	IsPanning	=((SpaceHeld || IsPanning) &&
@@ -659,11 +661,11 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 							{
 								if( !ShiftHeld && !ControlHeld )
 								{
-									pDoc->AdjustEntityAngle( VCam, (float)dx ) ;
+									pDoc->AdjustEntityAngle( VCam, (geFloat)dx ) ;
 								}
 								else if( ShiftHeld && !ControlHeld )
 								{
-									pDoc->AdjustEntityArc( VCam, (float)dx ) ;
+									pDoc->AdjustEntityArc( VCam, (geFloat)dx ) ;
 								}
 								else if( !ShiftHeld && ControlHeld )
 								{
@@ -672,7 +674,7 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 							}
 							else
 							{			
-								Render_ViewDeltaToRotation (VCam, (float)dx, &dv);
+								Render_ViewDeltaToRotation (VCam, (geFloat)dx, &dv);
 								pDoc->RotateSelectedBrushes(&dv);
 							}
 						}// RButtonDown
@@ -712,7 +714,7 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 						}
 						else if (RButtonIsDown)
 						{
-							Render_ViewDeltaToRotation (VCam, (float)dx, &dv);
+							Render_ViewDeltaToRotation (VCam, (geFloat)dx, &dv);
 							pDoc->RotateTemplateBrush(&dv);
 						}
 						break;
@@ -757,14 +759,14 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 #pragma warning (default:4100)
 
 // Snaps the closest edge to SnapSize.
-static float ComputeSnap (float Cur, float Delta, float SnapSize)
+static geFloat ComputeSnap (geFloat Cur, geFloat Delta, geFloat SnapSize)
 {
-	float Target;
-	float SnapDelta;
-	float Remainder;
+	geFloat Target;
+	geFloat SnapDelta;
+	geFloat Remainder;
 
 	Target = Cur + Delta;
-	Remainder = (float)fmod (Target, SnapSize);
+	Remainder = (geFloat)fmod (Target, SnapSize);
 	if (fabs (Remainder) < (SnapSize / 2.0f))
 	{
 		SnapDelta = -Remainder;
@@ -783,9 +785,9 @@ static float ComputeSnap (float Cur, float Delta, float SnapSize)
 	return SnapDelta;
 }
 
-static float SnapSide (float CurMin, float CurMax, float Delta, float SnapSize)
+static geFloat SnapSide (geFloat CurMin, geFloat CurMax, geFloat Delta, geFloat SnapSize)
 {
-	float MinDelta, MaxDelta;
+	geFloat MinDelta, MaxDelta;
 
 	MinDelta = ComputeSnap (CurMin, Delta, SnapSize);
 	MaxDelta = ComputeSnap (CurMax, Delta, SnapSize);
@@ -2131,7 +2133,7 @@ void CFusionView::OnToolsScaleworld()
 	CString szVal;
 	int		ModalResult;
 	CDialog	*pEditDialog;
-	float scf;
+	geFloat scf;
 	CFusionDoc* pDoc = GetDocument();
 	
 	pEditDialog = new CFloatKeyEditDlg(this, szKey, &szVal);
@@ -2157,7 +2159,7 @@ void CFusionView::OnToolsBrushMakenewest()
 void CFusionView::OnToolsSettexturescale() 
 {
 	CFusionDoc* pDoc = GetDocument();
-	float	scf;
+	geFloat	scf;
 	CString	szKey, szVal;
 	int		ModalResult;
 	CDialog	*pEditDialog;
@@ -2363,7 +2365,7 @@ void CFusionView::OnUpdateToolsAddtolevel(CCmdUI* pCmdUI)
 	
 }
 
-void CFusionView::DoZoom (float ZoomInc)
+void CFusionView::DoZoom (geFloat ZoomInc)
 {
 	if (!mViewIs3d)
 	{
@@ -2411,4 +2413,36 @@ void CFusionView::ShowTheCursor (void)
 	{
 		;
 	}
+}
+
+
+//	OnQuickBackup
+//
+//	Do a quick backup of the current document
+
+void CFusionView::OnQuickBackup() 
+{
+	CFusionDoc *pDoc = GetDocument ();
+
+  if(pDoc != NULL)
+	  pDoc->OnFileFastBackup();				// Do it!
+		
+	return;	
+}
+
+//	OnQuickRestore
+//
+//	Do a fast reload of the previously fast backed-up doc
+
+void CFusionView::OnQuickRestore() 
+{
+	CFusionDoc *pDoc = GetDocument ();
+
+  if(pDoc != NULL)
+	  pDoc->OnFileFastRestore();				// Do it!
+
+  OnInitialUpdate();
+			
+	return;	
+	
 }

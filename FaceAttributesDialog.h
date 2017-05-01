@@ -58,25 +58,25 @@ public:
 	CComboBox	m_ComboXScale;
 	CComboBox	m_ComboYScale;
 	CComboBox	m_ComboAngle;
-	float m_TextureYScale;
-	float m_TextureXScale;
+	geFloat m_TextureYScale;
+	geFloat m_TextureXScale;
 	int m_TextureYOffset;
 	int m_TextureXOffset;
 	CString m_TextureName;
-	float	m_TextureAngle;
+	geFloat	m_TextureAngle;
 	BOOL	m_FullBright;
 	BOOL	m_Light;
 	BOOL	m_Mirror;
 	BOOL	m_Sky;
-	float	m_LightXScale;
-	float	m_LightYScale;
+	geFloat	m_LightXScale;
+	geFloat	m_LightYScale;
 	int		m_LightIntensity;
 	BOOL	m_Flat;
 	BOOL	m_Gouraud;
-	float	m_MipMapBias;
+	geFloat	m_MipMapBias;
 	BOOL	m_TextureLock;
-	float	m_Reflectivity;
-	float	m_Translucency;
+	geFloat	m_Reflectivity;
+	geFloat	m_Translucency;
 	BOOL	m_Transparent;
 	//}}AFX_DATA
 
@@ -135,8 +135,8 @@ private:
 	CFusionDoc		*m_pDoc;
 
 	void	OnFacelight( void );
-	float	DoIncrement (float v, float incr, float vMin, float vMax, int nSBCode);
-	float	GetIncrement (CComboBox &combo);
+	geFloat	DoIncrement (geFloat v, geFloat incr, geFloat vMin, geFloat vMax, int nSBCode);
+	geFloat	GetIncrement (CComboBox &combo);
 	void	SetShadingChecks ();
 };
 

@@ -35,13 +35,13 @@ public:
 	//{{AFX_DATA(CCreateArchDialog)
 	enum { IDD = IDD_CREATE_ARCH };
 	int		m_NumSlits;
-	float	m_Thickness;
-	float	m_Width;
-	float	m_Radius;
-	float	m_WallSize;
+	geFloat	m_Thickness;
+	geFloat	m_Width;
+	geFloat	m_Radius;
+	geFloat	m_WallSize;
 	int		m_Style;
-	float	m_EndAngle;
-	float	m_StartAngle;
+	geFloat	m_EndAngle;
+	geFloat	m_StartAngle;
 	BOOL	m_TCut;
 	//}}AFX_DATA
 

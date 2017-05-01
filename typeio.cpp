@@ -83,7 +83,7 @@ geBoolean TypeIO_WriteUintText
 geBoolean TypeIO_WriteFloat
 	(
 	  FILE *f,
-	  float n
+	  geFloat n
 	)
 {
 	return TypeIO_WriteBlock (f, &n, sizeof (n));
@@ -92,7 +92,7 @@ geBoolean TypeIO_WriteFloat
 geBoolean TypeIO_WriteFloatText
 	(
 	  FILE *f,
-	  float n
+	  geFloat n
 	)
 {
 	assert (f != NULL);
@@ -301,7 +301,7 @@ geBoolean TypeIO_ReadUintText
 geBoolean TypeIO_ReadFloat
 	(
 	  FILE *f,
-	  float * pf
+	  geFloat * pf
 	)
 {
 	assert (f != NULL);
@@ -313,7 +313,7 @@ geBoolean TypeIO_ReadFloat
 geBoolean TypeIO_ReadFloatText
 	(
 	  FILE *f,
-	  float * pf
+	  geFloat * pf
 	)
 {
 	assert (f != NULL);

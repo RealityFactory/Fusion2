@@ -43,19 +43,20 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /MT /W4 /GX /Ot /Oa /X /I "." /I ".\GenesisSDK\include" /I ".\TypeParser" /I "..\..\msdev60\include" /I "..\..\msdev60\mfc\include" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /YX"stdafx.h" /FD /c
-# SUBTRACT CPP /Ox /Og /Fr
+# ADD CPP /nologo /G5 /MT /W4 /GX /Ot /Ow /Og /Oi /Op /Oy- /Ob2 /I "." /I ".." /I ".\TypeParser" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /FD /c
+# SUBTRACT CPP /Ox /Oa /X /Fr /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
-# ADD RSC /l 0x409 /x /i "..\..\msdev60\include" /i "..\..\msdev60\mfc\include" /d "NDEBUG"
+# ADD RSC /l 0x409 /d "NDEBUG"
+# SUBTRACT RSC /x
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 nafxcw.lib libcmt.lib .\GenesisSDK\lib\genesis.lib advapi32.lib ctl3d32.lib comctl32.lib comdlg32.lib gdi32.lib kernel32.lib oldnames.lib ole32.lib oleaut32.lib oledlg.lib shell32.lib urlmon.lib user32.lib uuid.lib winmm.lib winspool.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib /libpath:"..\..\msdev60\lib" /libpath:"..\..\msdev60\mfc\lib"
-# SUBTRACT LINK32 /incremental:yes /debug
+# ADD LINK32 advapi32.lib ctl3d32.lib comctl32.lib comdlg32.lib gdi32.lib kernel32.lib oldnames.lib ole32.lib oleaut32.lib oledlg.lib shell32.lib urlmon.lib user32.lib uuid.lib winmm.lib winspool.lib genesis.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:".\Release/rfEdit.exe"
+# SUBTRACT LINK32 /debug /nodefaultlib
 
 !ELSEIF  "$(CFG)" == "FUSION - Win32 Debug"
 
@@ -71,19 +72,19 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /MTd /W4 /Gm /Gi /GX /ZI /Od /X /I "." /I ".\GenesisSDK\include" /I ".\TypeParser" /I "..\..\msdev60\include" /I "..\..\msdev60\mfc\include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /YX"stdafx.h" /FD /c
-# SUBTRACT CPP /Fr
+# ADD CPP /nologo /G5 /MTd /W4 /Gm /Gi /GX /ZI /Od /I ".." /I "." /I ".\TypeParser" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /FD /TP /c
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
-# ADD RSC /l 0x409 /x /i "..\..\msdev60\include" /i "..\..\msdev60\mfc\include" /d "_DEBUG"
+# ADD RSC /l 0x409 /d "_DEBUG"
+# SUBTRACT RSC /x
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386
-# ADD LINK32 nafxcwd.lib libcmtd.lib .\GenesisSDK\lib\genesisd.lib advapi32.lib ctl3d32.lib comctl32.lib comdlg32.lib gdi32.lib kernel32.lib oldnames.lib ole32.lib oleaut32.lib oledlg.lib shell32.lib urlmon.lib user32.lib uuid.lib winmm.lib winspool.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcd.lib" /nodefaultlib /libpath:"..\..\msdev60\lib" /libpath:"..\..\msdev60\mfc\lib"
-# SUBTRACT LINK32 /incremental:no
+# ADD LINK32 advapi32.lib ctl3d32.lib comctl32.lib comdlg32.lib gdi32.lib kernel32.lib oldnames.lib ole32.lib oleaut32.lib oledlg.lib shell32.lib urlmon.lib user32.lib uuid.lib winmm.lib winspool.lib genesisd.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcd.lib" /out:".\Debug/rfEdit.exe"
+# SUBTRACT LINK32 /incremental:no /nodefaultlib
 
 !ENDIF 
 
@@ -99,16 +100,7 @@ LINK32=link.exe
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\TypeParser\cparser.c
-
-!IF  "$(CFG)" == "FUSION - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "FUSION - Win32 Debug"
-
-# ADD CPP /I "..\..\msdev60\include" /I "..\..\msdev60\mfc\include"
-
-!ENDIF 
-
+SOURCE=.\TypeParser\cparser.cpp
 # End Source File
 # Begin Source File
 
@@ -116,7 +108,7 @@ SOURCE=.\TypeParser\cparser.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\TypeParser\cscanner.c
+SOURCE=.\TypeParser\cscanner.cpp
 # End Source File
 # Begin Source File
 
@@ -124,7 +116,7 @@ SOURCE=.\TypeParser\cscanner.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\TypeParser\Hash.c
+SOURCE=.\TypeParser\HASH.cpp
 # End Source File
 # Begin Source File
 
@@ -132,7 +124,7 @@ SOURCE=.\TypeParser\Hash.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\TypeParser\iden.C
+SOURCE=.\TypeParser\iden.cpp
 # End Source File
 # Begin Source File
 
@@ -140,7 +132,7 @@ SOURCE=.\TypeParser\iden.H
 # End Source File
 # Begin Source File
 
-SOURCE=.\TypeParser\scanner.c
+SOURCE=.\TypeParser\scanner.cpp
 # End Source File
 # Begin Source File
 
@@ -148,7 +140,7 @@ SOURCE=.\TypeParser\scanner.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\TypeParser\symtab.c
+SOURCE=.\TypeParser\symtab.cpp
 # End Source File
 # Begin Source File
 
@@ -156,7 +148,7 @@ SOURCE=.\TypeParser\symtab.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\TypeParser\type.c
+SOURCE=.\TypeParser\type.cpp
 # End Source File
 # Begin Source File
 
@@ -173,15 +165,15 @@ SOURCE=.\ActivationWatch.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\array.c
+SOURCE=.\array.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\box3d.c
+SOURCE=.\box3d.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\brush.c
+SOURCE=.\brush.cpp
 # End Source File
 # Begin Source File
 
@@ -197,7 +189,7 @@ SOURCE=.\BrushGroupDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\BrushTemplate.c
+SOURCE=.\BrushTemplate.cpp
 # End Source File
 # Begin Source File
 
@@ -261,7 +253,7 @@ SOURCE=.\EntityVisDlg.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\EntTypeName.c
+SOURCE=.\EntTypeName.cpp
 # End Source File
 # Begin Source File
 
@@ -269,7 +261,7 @@ SOURCE=.\EntView.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\face.c
+SOURCE=.\face.cpp
 # End Source File
 # Begin Source File
 
@@ -277,11 +269,11 @@ SOURCE=.\FaceAttributesDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\FaceList.c
+SOURCE=.\FaceList.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\FilePath.c
+SOURCE=.\FilePath.cpp
 # End Source File
 # Begin Source File
 
@@ -325,7 +317,7 @@ SOURCE=.\LevelOptions.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\List.c
+SOURCE=.\List.cpp
 # End Source File
 # Begin Source File
 
@@ -333,7 +325,7 @@ SOURCE=.\MainFrm.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\model.c
+SOURCE=.\model.cpp
 # End Source File
 # Begin Source File
 
@@ -341,11 +333,11 @@ SOURCE=.\ModelDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\node.c
+SOURCE=.\node.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\Parse3dt.c
+SOURCE=.\Parse3dt.cpp
 # End Source File
 # Begin Source File
 
@@ -353,19 +345,19 @@ SOURCE=.\PreferencesDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\Prefs.c
+SOURCE=.\Prefs.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\render.c
+SOURCE=.\render.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\SelBrushList.c
+SOURCE=.\SelBrushList.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\SelFaceList.c
+SOURCE=.\SelFaceList.cpp
 # End Source File
 # Begin Source File
 
@@ -373,7 +365,7 @@ SOURCE=.\SkyDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\stack.c
+SOURCE=.\stack.cpp
 # End Source File
 # Begin Source File
 
@@ -381,7 +373,7 @@ SOURCE=.\TextureDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\typeio.c
+SOURCE=.\typeio.cpp
 # End Source File
 # Begin Source File
 
@@ -389,7 +381,7 @@ SOURCE=.\undostack.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\util.c
+SOURCE=.\util.cpp
 # End Source File
 # Begin Source File
 

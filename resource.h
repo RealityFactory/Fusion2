@@ -224,6 +224,9 @@
 #define IDD_TEXTUREDIALOG               1132
 #define IDC_TEXTUREIMAGE                1133
 #define IDC_APPLYTEXTURE                1134
+#define IDC_NEWTEXTURE                  1135
+#define IDC_REMOVETEXTURE               1136
+#define IDC_EDITTEXTURE                 1137
 #define IDC_CUBE_PRIMITIVE              1138
 #define IDC_SPHEROID_PRIMITIVE          1139
 #define IDC_CYLINDER_PRIMITIVE          1140
@@ -512,6 +515,9 @@
 #define IDM_LEVELOPTIONS                32966
 #define IDS_CANTLOADTXL                 32967
 #define IDS_ENTITY_WARNING              32968
+#define ID_QUICK_BACKUP                 32968
+#define ID_QUICK_RESTORE                32969
+#define IDM_AUTOSAVE                    32970
 
 // Next default values for new objects
 // 
@@ -519,7 +525,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        234
-#define _APS_NEXT_COMMAND_VALUE         32967
+#define _APS_NEXT_COMMAND_VALUE         32971
 #define _APS_NEXT_CONTROL_VALUE         1291
 #define _APS_NEXT_SYMED_VALUE           112
 #endif

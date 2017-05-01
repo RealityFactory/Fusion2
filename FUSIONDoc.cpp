@@ -160,11 +160,13 @@ BEGIN_MESSAGE_MAP(CFusionDoc, CDocument)
 	ON_COMMAND(ID_TOOLS_TOGGLEADJUSTMODE, OnToolsToggleadjustmode)
 	ON_UPDATE_COMMAND_UI(ID_TOOLS_TOGGLEADJUSTMODE, OnUpdateToolsToggleadjustmode)
 	ON_COMMAND(IDM_LEVELOPTIONS, OnLeveloptions)
+	ON_COMMAND(IDM_AUTOSAVE, OnAutosaveOption)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_SPHEROID, OnUpdateBrushPrimitives)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_CYLINDER, OnUpdateBrushPrimitives)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_STAIRCASE, OnUpdateBrushPrimitives)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_ARCH, OnUpdateBrushPrimitives)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_CONE, OnUpdateBrushPrimitives)
+	ON_UPDATE_COMMAND_UI(IDM_AUTOSAVE, OnUpdateAutosave)
 	//}}AFX_MSG_MAP
 	ON_UPDATE_COMMAND_UI_RANGE(  ID_BRUSH_SELECTED_DELETE, ID_BRUSH_SELECTED_COPYTOCURRENT, OnSelectedTypeCmdUI)
 END_MESSAGE_MAP()
@@ -178,6 +180,120 @@ void CFusionDoc::Serialize(CArchive& ar)
 }
 #pragma warning (default:4100)
 
+//	OnFileAutoSave
+//
+//	Saves the currently loaded level to an AUTOSAVE file.
+
+void CFusionDoc::OnFileAutoSave(int nSaveCount)
+{
+	char NewFileName[MAX_PATH];
+
+  nSaveCount;					// To kill 'Unreferenced formal parm' warning
+
+  if(bDoAutoSave == false)
+	  return;						// Autosave is DISABLED
+
+	if(IsNewDocument)
+	  {
+	  sprintf(NewFileName,"noname.3dt.autosave");
+	  Save(NewFileName);							// Sucker saved out!
+	  }
+	else
+	  {
+		CString titl = GetTitle ();
+		sprintf(NewFileName, "%s%s.autosave", LastPath, titl);
+		strlwr (NewFileName);
+		Save(NewFileName);
+	  }
+
+  ConPrintf("Autosaved %s\n", NewFileName);
+
+  return;
+}
+
+//	AutoSaveEnable
+//
+//	Enable/disable AutoSave
+
+void CFusionDoc::AutoSaveEnable(bool bFlag)
+{
+	bDoAutoSave = bFlag;
+
+  return;
+}
+
+//	OnFileFastBackup
+//
+//	Saves the current level to a <name>.fastsave file.
+
+void CFusionDoc::OnFileFastBackup()
+{
+	char NewFileName[MAX_PATH];
+
+	if(IsNewDocument)
+	  {
+	  sprintf(NewFileName,"noname.3dt.fastsave");
+	  Save(NewFileName);							// Sucker saved out!
+	  }
+	else
+	  {
+		CString titl = GetTitle ();
+		sprintf(NewFileName, "%s%s.fastsave", LastPath, titl);
+		strlwr (NewFileName);
+		Save(NewFileName);
+	  }
+
+  ConPrintf("Fastsaved %s\n", NewFileName);
+
+  return;
+}
+
+//	OnFileFastRestore
+//
+//	Restore the current level from the most recent fast backup.
+
+void CFusionDoc::OnFileFastRestore()
+{
+	char NewFileName[MAX_PATH];
+
+	if(IsNewDocument)
+	  {
+	  sprintf(NewFileName,"noname.3dt.fastsave");
+		Load(NewFileName);
+	  }
+	else
+	  {
+		CString titl = GetTitle ();
+		sprintf(NewFileName, "%s%s.fastsave", LastPath, titl);
+		strlwr (NewFileName);
+		char szTemp[256], OldFileName[256], SavedOldFile[256];
+		sprintf(OldFileName,"%s%s", LastPath, titl);
+		sprintf(SavedOldFile,"%s%s.old", LastPath, titl);
+		sprintf(szTemp,"Restore %s?", NewFileName);
+		if(_access(NewFileName, 0) != 0)
+		  {
+			AfxMessageBox("No quicksave file to restore!", MB_ICONSTOP | MB_OK);
+			return;
+			}
+		if(AfxMessageBox(szTemp, MB_ICONEXCLAMATION | MB_OKCANCEL) == IDOK)
+		  {
+			if(_access(SavedOldFile, 0) != 0)
+			  rename(OldFileName, SavedOldFile);		// Save old as .OLD
+			_unlink(OldFileName);
+			rename(NewFileName, OldFileName);
+			sprintf(szTemp,"%s%s.autosave", LastPath, titl);			// Need to kill...
+			_unlink(szTemp);											// ..old autosave file
+			Level_Destroy(&pLevel);
+			pLevel = NULL;
+			Load(OldFileName);
+			UpdateAllViews(UAV_ALL3DVIEWS | REBUILD_QUICK, NULL, TRUE);
+			}
+	  }
+
+  ConPrintf("Fastloaded %s\n", NewFileName);
+
+  return;
+}
 
 WadFileEntry* CFusionDoc::GetDibBitmap(const char *Name)
 {
@@ -220,6 +336,7 @@ CFusionDoc::CFusionDoc() : CDocument (),
 	const char *DefaultWadName;
 	const Prefs  *pPrefs = GetPrefs ();
 
+  bDoAutoSave = false;
 
 	DefaultWadName = Prefs_GetTxlName (pPrefs);
 
@@ -335,10 +452,10 @@ static void fdocDrawEntity
 	POINT TopLeft, BottomRight;
 	POINT TopRight, BottomLeft;
 
-	static const float COS45	= (float)cos (M_PI/4.0f);
-	static const float SIN45	= (float)sin (M_PI/4.0f);
-	static const float MCOS45	= (float)cos (-(M_PI/4.0f));
-	static const float MSIN45	= (float)sin (-(M_PI/4.0f));
+	static const geFloat COS45	= (geFloat)cos (M_PI/4.0f);
+	static const geFloat SIN45	= (geFloat)sin (M_PI/4.0f);
+	static const geFloat MCOS45	= (geFloat)cos (-(M_PI/4.0f));
+	static const geFloat MSIN45	= (geFloat)sin (-(M_PI/4.0f));
 
 	// compute entity size in view coordinates
 	geVec3d_Set (&EntSizeWorld, ENTITY_SIZE, ENTITY_SIZE, ENTITY_SIZE);
@@ -384,15 +501,15 @@ static void fdocDrawEntity
 		POINT		ptMinus45 ;			// Final Arrowhead point
 		POINT		ptStart ;			// Start point for Arc
 		POINT		ptEnd ;				// End point of Arc
-		float		fPercentIntoLine ;	// Distance into Direction line for rotation point
-		float		fDirLength ;		// Direction line length
-		float		fEntityLength ;		// Entity length
-		float		fAngleToTarget ;	// Radians of arc midpoint
+		geFloat		fPercentIntoLine ;	// Distance into Direction line for rotation point
+		geFloat		fDirLength ;		// Direction line length
+		geFloat		fEntityLength ;		// Entity length
+		geFloat		fAngleToTarget ;	// Radians of arc midpoint
 		geFloat		fRadius ;
 		geVec3d		Angles ;
 		geXForm3d	Xfm ;
 		geVec3d		VecTarg ;
-		float		fArc ;
+		geFloat		fArc ;
 		POINT		LineEndView;
 		geBoolean	bUIAvailable ;
 
@@ -433,8 +550,8 @@ static void fdocDrawEntity
 		ptDirSlope.x = LineEndView.x - EntPosView.x ;	// Slope of Direction line
 		ptDirSlope.y = LineEndView.y - EntPosView.y ;
 				
-		fDirLength = (float)sqrt( (ptDirSlope.x*ptDirSlope.x) + (ptDirSlope.y*ptDirSlope.y)) ;	// Length of Direction line
-		fEntityLength = (float)sqrt( (EntSizeView.x*EntSizeView.x)+(EntSizeView.y*EntSizeView.y)) ;
+		fDirLength = (geFloat)sqrt( (ptDirSlope.x*ptDirSlope.x) + (ptDirSlope.y*ptDirSlope.y)) ;	// Length of Direction line
+		fEntityLength = (geFloat)sqrt( (EntSizeView.x*EntSizeView.x)+(EntSizeView.y*EntSizeView.y)) ;
 		fEntityLength *= 2 ;	// Arrow 2x entity size
 		fPercentIntoLine = 1.0f - (fEntityLength / fDirLength ) ;
 		ptRotationPoint.x = (long)(ptDirSlope.x * fPercentIntoLine) ;
@@ -477,7 +594,7 @@ static void fdocDrawEntity
 			ArcBottomRight.x	= EntPosView.x + EntSizeView.x;
 			ArcBottomRight.y	= EntPosView.y + EntSizeView.y;
 		
-			fAngleToTarget = (float)atan2( ptDirSlope.y, ptDirSlope.x ) ;	// Angle line leaves
+			fAngleToTarget = (geFloat)atan2( ptDirSlope.y, ptDirSlope.x ) ;	// Angle line leaves
 			fAngleToTarget += M_PI ;	// The other side is where the angle starts
 			
 			ptStart.x = (long)((EntWidthHeight.x) * cos( fAngleToTarget + fArc )) ;
@@ -775,7 +892,19 @@ geBoolean CFusionDoc::Save(const char *FileName)
 	}
 
 	// and then write the level info to the file
-	return Level_WriteToFile (pLevel, FileName);
+	geBoolean fResult = Level_WriteToFile (pLevel, FileName);
+
+  if(fResult == GE_TRUE)
+	  {
+		// Ok, the save was successful.  Gun any ".old" files we
+		// ..have laying around for this file.
+		char szTemp[512];
+		sprintf(szTemp,"%s.old", FileName);
+		_unlink(szTemp);
+		ConPrintf("Removed file %s\n", szTemp);
+		}
+
+	return fResult;
 }
 
 static geBoolean fdocSetEntityVisibility (CEntity &Ent, void *lParam)
@@ -792,6 +921,7 @@ static geBoolean fdocSetEntityVisibility (CEntity &Ent, void *lParam)
 /*
 	Load file versions later than 1.0
 */
+
 geBoolean CFusionDoc::Load(const char *FileName)
 {
 	const char		*Errmsg, *WadPath;
@@ -806,6 +936,25 @@ geBoolean CFusionDoc::Load(const char *FileName)
 		FilePath_GetDriveAndDir (FileName, WorkingDir);
 		::SetCurrentDirectory (WorkingDir);
 	}
+
+  // eaa3 Let's check to see if there's a leftover autosave file,
+	// ..and if so, ask the user if they'd like to load THAT
+	// ..instead.
+	char szTemp[512];
+
+	strcpy(szTemp, FileName);
+	strcat(szTemp, ".autosave");
+
+	if(_access(szTemp, 0) == 0)
+	  {
+		// Uh-oh, an undeleted AUTOSAVE file.  Ask the user if
+		// ..they want to autorecover.
+		if(AfxMessageBox("AUTOSAVE file exists. Auto-recover?",	MB_ICONEXCLAMATION || MB_OKCANCEL) == IDOK)
+			{
+			_unlink(FileName);				// Delete the original
+			rename(szTemp, FileName);	// Rename old to new!
+		  }
+		}
 
 	NewLevel = Level_CreateFromFile (FileName, &Errmsg, Prefs_GetHeadersList (pPrefs));
 	if (NewLevel == NULL)
@@ -871,8 +1020,8 @@ LoadError:
 
 struct fdocFaceScales
 {
-	float DrawScale;
-	float LightmapScale;
+	geFloat DrawScale;
+	geFloat LightmapScale;
 };
 
 static geBoolean fdocSetFaceScales (Face *pFace, void *lParam)
@@ -1960,7 +2109,7 @@ void CFusionDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 	CPen * const oldpen = pDC->SelectObject (&BlackPen);
 
 	{
-		float GridSize, GridSnapSize;
+		geFloat GridSize, GridSnapSize;
 		const Prefs *pPrefs = GetPrefs ();
 
 		CPen	PenGrid (PS_SOLID, 1, Prefs_GetGridColor (pPrefs));
@@ -2849,7 +2998,7 @@ void CFusionDoc::SelectOrthoRect(CPoint ptStart, CPoint ptEnd, ViewVars *v)
 
 }/* CFusionDoc::SelectOrthoRect */
 
-void CFusionDoc::ResizeSelected(float dx, float dy, int sides, int inidx)
+void CFusionDoc::ResizeSelected(geFloat dx, geFloat dy, int sides, int inidx)
 {
 	mLastOp				=BRUSH_SCALE;
 
@@ -2903,7 +3052,7 @@ static geBoolean SelectBrush3DCB(Brush *b, void * lParam)
 		if(!(Brush_IsSubtract(b)))
 		{
 			Face *HitFace;
-			float CurDist;
+			geFloat CurDist;
 
 			HitFace	=Brush_RayCast(b, &pData->vp, &pData->wp, &CurDist);
 			if (HitFace != NULL)
@@ -4162,10 +4311,10 @@ void CFusionDoc::DoneRotate(void)
 
 	if((SelState & NOENTITIES) && Level_UseGrid (pLevel))
 	{
-		RSnap		=Units_DegreesToRadians ((float)Level_GetRotationSnap (pLevel));
-		FinalRot.X	=((float)((int)(FinalRot.X / RSnap))) * RSnap;
-		FinalRot.Y	=((float)((int)(FinalRot.Y / RSnap))) * RSnap;
-		FinalRot.Z	=((float)((int)(FinalRot.Z / RSnap))) * RSnap;
+		RSnap		=Units_DegreesToRadians ((geFloat)Level_GetRotationSnap (pLevel));
+		FinalRot.X	=((geFloat)((int)(FinalRot.X / RSnap))) * RSnap;
+		FinalRot.Y	=((geFloat)((int)(FinalRot.Y / RSnap))) * RSnap;
+		FinalRot.Z	=((geFloat)((int)(FinalRot.Z / RSnap))) * RSnap;
 	}
 
 	geXForm3d_SetEulerAngles(&rm, &FinalRot);
@@ -4340,7 +4489,7 @@ void CFusionDoc::DoneMove (void)
 void CFusionDoc::DoneMoveEntity(void)
 {
 	int		i;
-	float	SnapSize;
+	geFloat	SnapSize;
 	CEntityArray *Entities = Level_GetEntities (pLevel);
 	CEntity *pEnt;
 
@@ -4861,6 +5010,23 @@ void CFusionDoc::SetAdjustmentMode( fdocAdjustEnum nCmdIDMode )
 
 void CFusionDoc::OnCloseDocument() 
 {
+	char NewFileName[MAX_PATH];
+
+	if(IsNewDocument)
+	  {
+	  sprintf(NewFileName,"noname.3dt.autosave");
+	  _unlink(NewFileName);							// Sucker saved out!
+	  }
+	else
+	  {
+		CString titl = GetTitle ();
+		sprintf(NewFileName, "%s%s.autosave", LastPath, titl);
+		strlwr (NewFileName);
+		_unlink(NewFileName);
+	  }
+
+  ConPrintf("%s removed.\n", NewFileName);
+
 	CDocument::OnCloseDocument();
 }
 
@@ -4928,7 +5094,7 @@ void CFusionDoc::OnUpdateEditCut(CCmdUI* pCmdUI)
 }
 
 
-void CFusionDoc::ShearSelected(float dx, float dy, int sides, int inidx)
+void CFusionDoc::ShearSelected(geFloat dx, geFloat dy, int sides, int inidx)
 {
 	mLastOp				=BRUSH_SHEAR;
 
@@ -5414,7 +5580,7 @@ void CFusionDoc::CompileDone (CompilerErrorEnum CompileRslt)
 struct ScaleEntityInfo
 {
 	const EntityTable *pEntityDefs;
-	float ScaleValue;
+	geFloat ScaleValue;
 };
 
 static geBoolean fdocScaleEntityCallback (CEntity &Ent, void *lParam)
@@ -6226,7 +6392,7 @@ void CFusionDoc::OnFileOpen()
 	static const char	FDTitle[]	="Open";
 
 	CFileDialog dlg(TRUE, "3dt", NULL, OFN_HIDEREADONLY	| OFN_OVERWRITEPROMPT,
-		"GEDIT Files (*.3DT)|*.3DT|MAP Files (*.MAP)|*.MAP|Leak Files (*.PNT)|*.PNT||");
+		"rfEDIT Files (*.3DT)|*.3DT|MAP Files (*.MAP)|*.MAP|Leak Files (*.PNT)|*.PNT||");
 
 	dlg.m_ofn.lpstrTitle	=FDTitle;
 	dlg.m_ofn.lpstrInitialDir = LastPath;
@@ -6252,7 +6418,7 @@ void CFusionDoc::OnFileOpen()
 void CFusionDoc::OnFileImport() 
 {
 	static const char FDTitle[] = "Import";
-	CFileDialog dlg(TRUE, "3dt", NULL, OFN_OVERWRITEPROMPT,	"GEDIT Files (*.3DT)|*.3DT||");
+	CFileDialog dlg(TRUE, "3dt", NULL, OFN_OVERWRITEPROMPT,	"rfEDIT Files (*.3DT)|*.3DT||");
 
 	dlg.m_ofn.lpstrTitle = FDTitle;	
 	if (dlg.DoModal () == IDOK)
@@ -6439,7 +6605,7 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 							Face_SetTextureName(f, sp);
 							Face_SetTextureScale(f, scx, scy);
 							Face_SetTextureShift(f, sx, sy);
-							Face_SetTextureRotate(f, (float)rot);
+							Face_SetTextureRotate(f, (geFloat)rot);
 						}
 						//look for flags
 						for(bc=fgetc(mf);bc!=EOF && bc <=32 && bc && bc!='\n';bc=fgetc(mf));
@@ -6633,7 +6799,7 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 									Face_SetTextureName(f, sp);
 									Face_SetTextureScale(f, scx, scy);
 									Face_SetTextureShift(f, sx, sy);
-									Face_SetTextureRotate(f, (float)rot);
+									Face_SetTextureRotate(f, (geFloat)rot);
 
 									//look for flags
 									for(bc=fgetc(mf);bc!=EOF && bc <=32 && bc && bc!='\n';bc=fgetc(mf));
@@ -6959,4 +7125,16 @@ void CFusionDoc::OnLeveloptions()
 		}
 
 	}
+}
+
+void CFusionDoc::OnAutosaveOption() 
+{
+  bDoAutoSave = !bDoAutoSave;
+	
+}
+
+void CFusionDoc::OnUpdateAutosave(CCmdUI* pCmdUI) 
+{
+	pCmdUI->SetCheck(bDoAutoSave);
+
 }

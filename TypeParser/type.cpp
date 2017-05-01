@@ -19,6 +19,7 @@
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#include <stdafx.h>
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
@@ -33,7 +34,7 @@ Type *	Type_CreatePtrType(Type **tl, Type *tp)
 {
 	Type *	ptrTp;
 
-	ptrTp = geRam_Allocate(sizeof(*ptrTp));
+	ptrTp = (struct Type *)geRam_Allocate(sizeof(*ptrTp));
 
 	if	(!ptrTp)
 		return ptrTp;
@@ -52,7 +53,7 @@ Type *	Type_CreateType(Type **tl, Iden *name, unsigned short flags)
 {
 	Type *	tp;
 
-	tp = geRam_Allocate(sizeof(*tp));
+	tp = (struct Type *)geRam_Allocate(sizeof(*tp));
 
 	memset(tp, 0, sizeof(*tp));
 
@@ -157,7 +158,7 @@ Type *	Type_InitTypeList(Iden_HashTable *ht)
 	}
 	tp->tpTopType = T_POINT;
 
-	tp = Type_CreateType(&tl, Iden_HashName(ht, "float", 5), F_TYPE_READONLY);
+	tp = Type_CreateType(&tl, Iden_HashName(ht, "geFloat", 5), F_TYPE_READONLY);
 	if	(!tp)
 	{
 		Type_DestroyTypeList(tl);
@@ -319,7 +320,7 @@ static	void	dumpStruct(const Type *tp, int descend)
 static	char *	topTypeNames[] =
 {
 	"int",
-	"float",
+	"geFloat",
 	"color",
 	"point",
 	"string",

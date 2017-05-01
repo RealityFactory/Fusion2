@@ -146,7 +146,7 @@ static ListIterator List_Insert
 
 
 	// set up the new node...
-	NewNode = malloc (sizeof (ListNode));
+	NewNode = (ListNode *)malloc (sizeof (ListNode));
 	if (NewNode != LIST_INVALID_NODE)
 	{
 		NewNode->Data = pData;

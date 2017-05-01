@@ -205,7 +205,7 @@ void CFloatKeyEditDlg::OnOK
 	)
 {
 	CString Text;
-	float TheFloat;
+	geFloat TheFloat;
 
 	this->m_ValueEdit.GetWindowText (Text);
 
@@ -225,7 +225,7 @@ static BOOL ValidateFloat
 	  CEdit &EditControl
 	)
 {
-	float TheFloat;
+	geFloat TheFloat;
 	CString Text;
 
 	EditControl.GetWindowText (Text);

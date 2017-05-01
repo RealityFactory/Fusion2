@@ -41,13 +41,13 @@ FaceList	*FaceList_Create(int NumFaces)
 	assert (NumFaces > 0);
 
 	// allocate the structure
-	pList = geRam_Allocate(sizeof (FaceList));
+	pList = (FaceList *)geRam_Allocate(sizeof (FaceList));
 	if (pList != NULL)
 	{
 		pList->NumFaces = 0;
 		pList->Limit = NumFaces;
 		// allocate space for NumFaces pointers
-		pList->Faces = geRam_Allocate(NumFaces * sizeof (Face *));
+		pList->Faces = (struct FaceTag **)geRam_Allocate(NumFaces * sizeof (Face *));
 		if (pList->Faces != NULL)
 		{
 			int i;

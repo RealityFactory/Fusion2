@@ -39,14 +39,14 @@ public:
 	CButton	m_CutBtn;
 	CButton	m_SheetBtn;
 	CStatic	m_Picture;
-	float	m_YSize;
+	geFloat	m_YSize;
 	int		m_Solid;
-	float	m_XSizeBot;
-	float	m_XSizeTop;
-	float	m_ZSizeBot;
-	float	m_ZSizeTop;
+	geFloat	m_XSizeBot;
+	geFloat	m_XSizeTop;
+	geFloat	m_ZSizeBot;
+	geFloat	m_ZSizeTop;
 	BOOL	m_TCut;
-	float	m_Thickness;
+	geFloat	m_Thickness;
 	BOOL	m_TSheet;
 	//}}AFX_DATA
 

@@ -39,9 +39,9 @@ public:
 	CStatic	m_Picture;
 	int		m_HorizontalBands;
 	int		m_VerticalBands;
-	float	m_YSize;
+	geFloat	m_YSize;
 	int		m_Solid;
-	float	m_Thickness;
+	geFloat	m_Thickness;
 	BOOL	m_TCut;
 	//}}AFX_DATA
 

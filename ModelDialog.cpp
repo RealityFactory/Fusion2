@@ -159,7 +159,7 @@ void CEventKeyEdit::OnOK()
 {
     CString EditTime;
     CString EditText;
-    float Time;
+    geFloat Time;
     
     m_EventTime.GetWindowText (EditTime);
     if (Util_IsValidFloat (EditTime, &Time))
@@ -745,7 +745,7 @@ void CModelDialog::UpdateKeysList
 				// Xfm isn't used here, just time for display
 				gePath_GetKeyframe (pPath, i, GE_PATH_ROTATION_CHANNEL, &Time, &Xfm);
 
-				sprintf (Text, "K %.2f", (float)Time);
+				sprintf (Text, "K %.2f", (geFloat)Time);
 				pEntry = &pKeyEventsList[ListItemNo];
 				pEntry->Time = Time;
 				pEntry->pString = Util_Strdup (Text);
@@ -761,7 +761,7 @@ void CModelDialog::UpdateKeysList
 					int len;
 					char Text[20];
 										
-					sprintf (Text, "E %.2f ()", (float)EventTime);
+					sprintf (Text, "E %.2f ()", (geFloat)EventTime);
 					if (EventString == NULL)
 					{
 						EventString = "";
@@ -772,7 +772,7 @@ void CModelDialog::UpdateKeysList
 					pEntry->pString = (char *)geRam_Allocate(len);
 					if (pEntry->pString != NULL)
 					{
-						sprintf (pEntry->pString, "E %.2f (%s)", (float)EventTime, EventString);
+						sprintf (pEntry->pString, "E %.2f (%s)", (geFloat)EventTime, EventString);
 					}
 					++ListItemNo;
 				}
@@ -899,7 +899,7 @@ void CModelDialog::AddKey()
 	  o Add the key to the model's motion.
 	  o Update list box and focus new item.
 	*/
-	float Time;
+	geFloat Time;
 	Model *pModel;
 	CString const Prompt = "Enter key time";
 	CString Value;
@@ -1215,7 +1215,7 @@ int CModelDialog::GetCurrentLbKey
 
 	lbData = m_KeysList.GetItemData (CurSel);
 	// ugly cast.
-	// The item returned is a float that's stored in a long.
+	// The item returned is a geFloat that's stored in a long.
 	*pTime = *((geFloat *)&lbData);
 
 	// now iterate the listbox items counting the keys until we get here...

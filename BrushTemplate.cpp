@@ -70,8 +70,8 @@ Brush *BrushTemplate_CreateArch (const BrushTemplate_Arch *pTemplate)
 		EndAngle	=Temp;
 	}
 
-	geVec3d_Set(&TopInnerPoint, (float)InnerRadius, 0.0, (float)(Width / 2));
-	geVec3d_Set(&TopOuterPoint, (float)(InnerRadius + Thickness), 0.0, (float)(Width / 2));
+	geVec3d_Set(&TopInnerPoint, (geFloat)InnerRadius, 0.0, (geFloat)(Width / 2));
+	geVec3d_Set(&TopOuterPoint, (geFloat)(InnerRadius + Thickness), 0.0, (geFloat)(Width / 2));
 
 	AngleDelta	=(EndAngle - StartAngle)/(NumCrossSections - 1);
 	CurAngle	=StartAngle + AngleDelta;
@@ -80,15 +80,15 @@ Brush *BrushTemplate_CreateArch (const BrushTemplate_Arch *pTemplate)
 	geVec3d_Set
 	(
 		&FinalTopInnerPoint,
-		(float)(( TopInnerPoint.X * cos( StartAngle ) ) - ( TopInnerPoint.Y * sin( StartAngle ) )),
-		(float)(( TopInnerPoint.X * sin( StartAngle ) ) + ( TopInnerPoint.Y * cos( StartAngle ) )),
+		(geFloat)(( TopInnerPoint.X * cos( StartAngle ) ) - ( TopInnerPoint.Y * sin( StartAngle ) )),
+		(geFloat)(( TopInnerPoint.X * sin( StartAngle ) ) + ( TopInnerPoint.Y * cos( StartAngle ) )),
 		TopInnerPoint.Z
 	);
 	geVec3d_Set
 	(
 		&FinalTopOuterPoint,
-		(float)(( TopOuterPoint.X * cos( StartAngle ) ) - ( TopInnerPoint.Y * sin( StartAngle ) )),
-		(float)(( TopOuterPoint.X * sin( StartAngle ) ) + ( TopInnerPoint.Y * cos( StartAngle ) )),
+		(geFloat)(( TopOuterPoint.X * cos( StartAngle ) ) - ( TopInnerPoint.Y * sin( StartAngle ) )),
+		(geFloat)(( TopOuterPoint.X * sin( StartAngle ) ) + ( TopInnerPoint.Y * cos( StartAngle ) )),
 		TopOuterPoint.Z
 	);
 	FinalBottomInnerPoint	=FinalTopInnerPoint;
@@ -106,15 +106,15 @@ Brush *BrushTemplate_CreateArch (const BrushTemplate_Arch *pTemplate)
 		geVec3d_Set
 		(
 			&FinalTopInnerPoint,
-			(float)(( TopInnerPoint.X * cos( CurAngle ) ) - ( TopInnerPoint.Y * sin( CurAngle ) )),
-			(float)(( TopInnerPoint.X * sin( CurAngle ) ) + ( TopInnerPoint.Y * cos( CurAngle ) )),
+			(geFloat)(( TopInnerPoint.X * cos( CurAngle ) ) - ( TopInnerPoint.Y * sin( CurAngle ) )),
+			(geFloat)(( TopInnerPoint.X * sin( CurAngle ) ) + ( TopInnerPoint.Y * cos( CurAngle ) )),
 			TopInnerPoint.Z
 		);
 		geVec3d_Set
 		(
 			&FinalTopOuterPoint,
-			(float)(( TopOuterPoint.X * cos( CurAngle ) ) - ( TopInnerPoint.Y * sin( CurAngle ) )),
-			(float)(( TopOuterPoint.X * sin( CurAngle ) ) + ( TopInnerPoint.Y * cos( CurAngle ) )),
+			(geFloat)(( TopOuterPoint.X * cos( CurAngle ) ) - ( TopInnerPoint.Y * sin( CurAngle ) )),
+			(geFloat)(( TopOuterPoint.X * sin( CurAngle ) ) + ( TopInnerPoint.Y * cos( CurAngle ) )),
 			TopOuterPoint.Z
 		);
 		FinalBottomInnerPoint = FinalTopInnerPoint;
@@ -296,16 +296,16 @@ Brush *BrushTemplate_CreateBox (const BrushTemplate_Box *pTemplate)
 	fl	=FaceList_Create(6);
 
 	// Vertices 0 to 3 are the 4 corners of the top face
-	geVec3d_Set (&Verts[0], (float)-(pTemplate->XSizeTop/2), (float)(pTemplate->YSize/2), (float)-(pTemplate->ZSizeTop/2));
-	geVec3d_Set (&Verts[1], (float)-(pTemplate->XSizeTop/2), (float)(pTemplate->YSize/2), (float)(pTemplate->ZSizeTop/2));
-	geVec3d_Set (&Verts[2], (float)(pTemplate->XSizeTop/2), (float)(pTemplate->YSize/2), (float)(pTemplate->ZSizeTop/2));
-	geVec3d_Set (&Verts[3], (float)(pTemplate->XSizeTop/2), (float)(pTemplate->YSize/2), (float)-(pTemplate->ZSizeTop/2));
+	geVec3d_Set (&Verts[0], (geFloat)-(pTemplate->XSizeTop/2), (geFloat)(pTemplate->YSize/2), (geFloat)-(pTemplate->ZSizeTop/2));
+	geVec3d_Set (&Verts[1], (geFloat)-(pTemplate->XSizeTop/2), (geFloat)(pTemplate->YSize/2), (geFloat)(pTemplate->ZSizeTop/2));
+	geVec3d_Set (&Verts[2], (geFloat)(pTemplate->XSizeTop/2), (geFloat)(pTemplate->YSize/2), (geFloat)(pTemplate->ZSizeTop/2));
+	geVec3d_Set (&Verts[3], (geFloat)(pTemplate->XSizeTop/2), (geFloat)(pTemplate->YSize/2), (geFloat)-(pTemplate->ZSizeTop/2));
 
 	// Vertices 4 to 7 are the 4 corners of the bottom face
-	geVec3d_Set (&Verts[4], (float)-(pTemplate->XSizeBot/2), (float)-(pTemplate->YSize/2), (float)-(pTemplate->ZSizeBot/2));
-	geVec3d_Set (&Verts[5], (float)(pTemplate->XSizeBot/2), (float)-(pTemplate->YSize/2), (float)-(pTemplate->ZSizeBot/2));
-	geVec3d_Set (&Verts[6], (float)(pTemplate->XSizeBot/2), (float)-(pTemplate->YSize/2), (float)(pTemplate->ZSizeBot/2));
-	geVec3d_Set (&Verts[7], (float)-(pTemplate->XSizeBot/2), (float)-(pTemplate->YSize/2), (float)(pTemplate->ZSizeBot/2));
+	geVec3d_Set (&Verts[4], (geFloat)-(pTemplate->XSizeBot/2), (geFloat)-(pTemplate->YSize/2), (geFloat)-(pTemplate->ZSizeBot/2));
+	geVec3d_Set (&Verts[5], (geFloat)(pTemplate->XSizeBot/2), (geFloat)-(pTemplate->YSize/2), (geFloat)-(pTemplate->ZSizeBot/2));
+	geVec3d_Set (&Verts[6], (geFloat)(pTemplate->XSizeBot/2), (geFloat)-(pTemplate->YSize/2), (geFloat)(pTemplate->ZSizeBot/2));
+	geVec3d_Set (&Verts[7], (geFloat)-(pTemplate->XSizeBot/2), (geFloat)-(pTemplate->YSize/2), (geFloat)(pTemplate->ZSizeBot/2));
 
 	FaceVerts[3]	=Verts[0];
 	FaceVerts[2]	=Verts[1];
@@ -393,7 +393,7 @@ Brush *BrushTemplate_CreateBox (const BrushTemplate_Box *pTemplate)
 		if(b)
 		{
 			Brush_SetHollow(b, GE_TRUE);
-			Brush_SetHullSize(b, (float)pTemplate->Thickness);
+			Brush_SetHullSize(b, (geFloat)pTemplate->Thickness);
 			bh	=Brush_CreateHollowFromBrush(b);
 			if(bh)
 			{
@@ -406,7 +406,7 @@ Brush *BrushTemplate_CreateBox (const BrushTemplate_Box *pTemplate)
 				{
 					Brush_SetHollow(bm, GE_TRUE);
 					Brush_SetSubtract(bm, pTemplate->TCut);
-					Brush_SetHullSize(bm, (float)pTemplate->Thickness);
+					Brush_SetHullSize(bm, (geFloat)pTemplate->Thickness);
 					return	bm;
 				}
 			}
@@ -436,14 +436,14 @@ Brush *BrushTemplate_CreateCone (const BrushTemplate_Cone *pTemplate)
 	Brush		*b;
 
 	double CurAngle;
-	double AngleDeltaDegrees = 360.0f/(float)pTemplate->VerticalStrips;
+	double AngleDeltaDegrees = 360.0f/(geFloat)pTemplate->VerticalStrips;
 	double AngleDelta = UNITS_DEGREES_TO_RADIANS (AngleDeltaDegrees);
 
 
 	fl	=FaceList_Create(pTemplate->VerticalStrips + 1);
 	
-	geVec3d_Set (&OuterFocus, 0, (float)(pTemplate->Height/2), 0);
-	geVec3d_Set (&StartPoint, (float)(pTemplate->Width/2), (float)-(pTemplate->Height/2), 0);
+	geVec3d_Set (&OuterFocus, 0, (geFloat)(pTemplate->Height/2), 0);
+	geVec3d_Set (&StartPoint, (geFloat)(pTemplate->Width/2), (geFloat)-(pTemplate->Height/2), 0);
 
 	CurPoint		=OldPoint	=StartPoint;
 	BottomVerts		=(geVec3d *)geRam_Allocate (sizeof(geVec3d) * pTemplate->VerticalStrips);
@@ -458,9 +458,9 @@ Brush *BrushTemplate_CreateCone (const BrushTemplate_Cone *pTemplate)
 		geVec3d_Set
 		(
 			&CurPoint,
-			(float)(( StartPoint.X * cos( CurAngle ) ) +( StartPoint.Z * sin( CurAngle ) )),
+			(geFloat)(( StartPoint.X * cos( CurAngle ) ) +( StartPoint.Z * sin( CurAngle ) )),
 			StartPoint.Y,
-			(float)(( StartPoint.Z * cos( CurAngle ) ) -( StartPoint.X * sin( CurAngle ) ))
+			(geFloat)(( StartPoint.Z * cos( CurAngle ) ) -( StartPoint.X * sin( CurAngle ) ))
 		);
 
 		FaceVerts[2]	=OuterFocus;
@@ -482,9 +482,9 @@ Brush *BrushTemplate_CreateCone (const BrushTemplate_Cone *pTemplate)
 	geVec3d_Set
 	(
 		&CurPoint,
-		(float)(( StartPoint.X * cos( CurAngle ) ) + ( StartPoint.Z * sin( CurAngle ) )),
+		(geFloat)(( StartPoint.X * cos( CurAngle ) ) + ( StartPoint.Z * sin( CurAngle ) )),
 		StartPoint.Y,
-		(float)(( StartPoint.Z * cos( CurAngle ) ) - ( StartPoint.X * sin( CurAngle ) ))
+		(geFloat)(( StartPoint.Z * cos( CurAngle ) ) - ( StartPoint.X * sin( CurAngle ) ))
 	);
 
 	FaceVerts[2]	=OuterFocus;
@@ -527,7 +527,7 @@ Brush *BrushTemplate_CreateCone (const BrushTemplate_Cone *pTemplate)
 		if(b)
 		{
 			Brush_SetHollow(b, GE_TRUE);
-			Brush_SetHullSize(b, (float)pTemplate->Thickness);
+			Brush_SetHullSize(b, (geFloat)pTemplate->Thickness);
 			bh	=Brush_CreateHollowFromBrush(b);
 			if(bh)
 			{
@@ -540,7 +540,7 @@ Brush *BrushTemplate_CreateCone (const BrushTemplate_Cone *pTemplate)
 				{
 					Brush_SetHollow(bm, GE_TRUE);
 					Brush_SetSubtract(bm, pTemplate->TCut);
-					Brush_SetHullSize(bm, (float)pTemplate->Thickness);
+					Brush_SetHullSize(bm, (geFloat)pTemplate->Thickness);
 					return	bm;
 				}
 			}
@@ -607,8 +607,8 @@ Brush *BrushTemplate_CreateCylinder (const BrushTemplate_Cylinder *pTemplate)
 	DeltaZOffset	=(pTemplate->BotZOffset - pTemplate->TopZOffset);
 
 	// Get the band positions and deltas
-	geVec3d_Set(&Current, (float)(pTemplate->TopXSize / 2), (float)(pTemplate->YSize / 2), 0.0);
-	geVec3d_Set(&Delta, (float)((pTemplate->BotXSize / 2) - Current.X), (float)(-(pTemplate->YSize/2) - Current.Y), 0.0);
+	geVec3d_Set(&Current, (geFloat)(pTemplate->TopXSize / 2), (geFloat)(pTemplate->YSize / 2), 0.0);
+	geVec3d_Set(&Delta, (geFloat)((pTemplate->BotXSize / 2) - Current.X), (geFloat)(-(pTemplate->YSize/2) - Current.Y), 0.0);
 
 	for(HBand = 0;HBand <= 1;HBand++)
 	{
@@ -632,9 +632,9 @@ Brush *BrushTemplate_CreateCylinder (const BrushTemplate_Cylinder *pTemplate)
 			geVec3d_Set
 			(
 				&Verts[VertexCount],
-				(float)(Final.X + CurrentXOffset),
+				(geFloat)(Final.X + CurrentXOffset),
 				Final.Y,
-				(float)(EllipseZ + CurrentZOffset)
+				(geFloat)(EllipseZ + CurrentZOffset)
 			);
 			VertexCount++;
 
@@ -716,7 +716,7 @@ Brush *BrushTemplate_CreateCylinder (const BrushTemplate_Cylinder *pTemplate)
 		if(b)
 		{
 			Brush_SetHollow(b, GE_TRUE);
-			Brush_SetHullSize(b, (float)pTemplate->Thickness);
+			Brush_SetHullSize(b, (geFloat)pTemplate->Thickness);
 			bh	=Brush_CreateHollowFromBrush(b);
 			if(bh)
 			{
@@ -729,7 +729,7 @@ Brush *BrushTemplate_CreateCylinder (const BrushTemplate_Cylinder *pTemplate)
 				{
 					Brush_SetHollow(bm, GE_TRUE);
 					Brush_SetSubtract(bm, pTemplate->TCut);
-					Brush_SetHullSize(bm, (float)pTemplate->Thickness);
+					Brush_SetHullSize(bm, (geFloat)pTemplate->Thickness);
 					return	bm;
 				}
 			}
@@ -777,13 +777,13 @@ Brush	*BrushTemplate_CreateSpheroid (const BrushTemplate_Spheroid *pTemplate)
 		dt			=PI2 /(double)(pTemplate->VerticalBands);
 		for(t=0.0;t < PI2-(dt*0.5);t+=dt)
 		{
-			sv[vcnt].X	=(float)(sin(t) * ring_radius);
-			sv[vcnt].Z	=(float)(cos(t) * ring_radius);
-			sv[vcnt++].Y=(float)(-z);
+			sv[vcnt].X	=(geFloat)(sin(t) * ring_radius);
+			sv[vcnt].Z	=(geFloat)(cos(t) * ring_radius);
+			sv[vcnt++].Y=(geFloat)(-z);
 		}
 	}
 	sv[vcnt].X	=0.0f;
-	sv[vcnt].Y	=(float)(-pTemplate->YSize);
+	sv[vcnt].Y	=(geFloat)(-pTemplate->YSize);
 	sv[vcnt++].Z=0.0f;
 
 	for(VBand=0;VBand < pTemplate->VerticalBands;VBand++)
@@ -848,7 +848,7 @@ Brush	*BrushTemplate_CreateSpheroid (const BrushTemplate_Spheroid *pTemplate)
 		if(b)
 		{
 			Brush_SetHollow(b, GE_TRUE);
-			Brush_SetHullSize(b, (float)pTemplate->Thickness);
+			Brush_SetHullSize(b, (geFloat)pTemplate->Thickness);
 			bh	=Brush_CreateHollowFromBrush(b);
 			if(bh)
 			{
@@ -861,7 +861,7 @@ Brush	*BrushTemplate_CreateSpheroid (const BrushTemplate_Spheroid *pTemplate)
 				{
 					Brush_SetHollow(bm, GE_TRUE);
 					Brush_SetSubtract(bm, pTemplate->TCut);
-					Brush_SetHullSize(bm, (float)pTemplate->Thickness);
+					Brush_SetHullSize(bm, (geFloat)pTemplate->Thickness);
 					return	bm;
 				}
 			}
@@ -951,9 +951,9 @@ Brush	*BrushTemplate_CreateStaircase (const BrushTemplate_Staircase *pTemplate)
 	}
 	else
 	{
-		float	StairYSize	=(geFloat)pTemplate->Height/(geFloat)pTemplate->NumberOfStairs;
-		float	DZ			=(geFloat)pTemplate->Length/(geFloat)pTemplate->NumberOfStairs;
-		float	ZSize		=(geFloat)pTemplate->Length;
+		geFloat	StairYSize	=(geFloat)pTemplate->Height/(geFloat)pTemplate->NumberOfStairs;
+		geFloat	DZ			=(geFloat)pTemplate->Length/(geFloat)pTemplate->NumberOfStairs;
+		geFloat	ZSize		=(geFloat)pTemplate->Length;
 		BrushTemplate_Box BoxTemplate;
 
 		BoxTemplate.Solid = 0;

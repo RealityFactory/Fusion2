@@ -25,9 +25,6 @@
 
 #include "basetype.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
 
 // Extract drive (d:\) from pPath and place in pDrive
 geBoolean FilePath_GetDrive (char const *pPath, char *pDrive);
@@ -70,10 +67,5 @@ geBoolean FilePath_SearchForFile (const char *Filename, const char *SearchPath, 
 geBoolean FilePath_AppendSearchDir (char *SearchList, const char *NewDir);
 geBoolean FilePath_ResolveRelativePath (const char *Relative, char *Resolved);
 geBoolean FilePath_ResolveRelativePathList (const char *RelativeList, char *ResolvedList);
-
-#ifdef __cplusplus
-	}
-#endif
-
 
 #endif

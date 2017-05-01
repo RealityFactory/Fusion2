@@ -264,7 +264,7 @@ static	int	genFCON(Scanner *s, Scanner_Token *t, int c)
 {
 	t->tKind = P3TK_FCON;
 	*t->tTokenDataPtr = 0;
-	t->tFCONValue = (float)atof(t->tTokenData);
+	t->tFCONValue = (geFloat)atof(t->tTokenData);
 	return 1;
 }
 
@@ -316,7 +316,7 @@ Parse3dt *Parse3dt_Create (const char *Filename)
 		}
 	}
 
-	Parser = geRam_Allocate (sizeof (Parse3dt));
+	Parser = (struct tag_Parse3dt *)geRam_Allocate (sizeof (Parse3dt));
 	if (Parser != NULL)
 	{
 		geBoolean NoErrors;
@@ -487,7 +487,7 @@ geBoolean Parse3dt_GetInt (Parse3dt *Parser, char const *Tag, int *Value)
 	return GE_FALSE;
 }
 
-geBoolean Parse3dt_GetFloat (Parse3dt *Parser, char const *Tag, float *Value)
+geBoolean Parse3dt_GetFloat (Parse3dt *Parser, char const *Tag, geFloat *Value)
 {
 	Scanner_Token t;
 
@@ -508,7 +508,7 @@ geBoolean Parse3dt_GetFloat (Parse3dt *Parser, char const *Tag, float *Value)
 			*Value = t.tFCONValue;
 			return GE_TRUE;
 		case P3TK_ICON :
-			*Value = (float)t.tICONValue;
+			*Value = (geFloat)t.tICONValue;
 			return GE_TRUE;
 		default :
 			break;
@@ -597,7 +597,7 @@ geBoolean Parse3dt_GetVersion (Parse3dt *Parser, int *VersionMajor, int *Version
 	{
 		case P3TK_FCON :
 		{
-			// If it's a float, then parse the token data to get
+			// If it's a geFloat, then parse the token data to get
 			// major and minor version numbers.
 			char *c;
 

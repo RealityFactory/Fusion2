@@ -62,16 +62,16 @@ void Box3d_Set
 	geVec3d_Set 
 	(
 		&b->Min, 
-		min (x1, x2),
-		min (y1, y2),
-		min (z1, z2)
+		__min (x1, x2),
+		__min (y1, y2),
+		__min (z1, z2)
 	);
 	geVec3d_Set
 	(
 		&b->Max,
-		max (x1, x2),
-		max (y1, y2),
-		max (z1, z2)
+		__max (x1, x2),
+		__max (y1, y2),
+		__max (z1, z2)
 	);
 }
 
@@ -155,12 +155,12 @@ geBoolean Box3d_Intersection
 		Box3d_Set
 		(
 			bResult,
-			max (b1->Min.X, b2->Min.X),
-			max (b1->Min.Y, b2->Min.Y),
-			max (b1->Min.Z, b2->Min.Z),
-			min (b1->Max.X, b2->Max.X),
-			min (b1->Max.Y, b2->Max.Y),
-			min (b1->Max.Z, b2->Max.Z)
+			__max (b1->Min.X, b2->Min.X),
+			__max (b1->Min.Y, b2->Min.Y),
+			__max (b1->Min.Z, b2->Min.Z),
+			__min (b1->Max.X, b2->Max.X),
+			__min (b1->Max.Y, b2->Max.Y),
+			__min (b1->Max.Z, b2->Max.Z)
 		);
 	}
 	return rslt;
@@ -180,12 +180,12 @@ void Box3d_Union
 	Box3d_Set
 	(
 		bResult,
-		min (b1->Min.X, b2->Min.X),
-		min (b1->Min.Y, b2->Min.Y),
-		min (b1->Min.Z, b2->Min.Z),
-		max (b1->Max.X, b2->Max.X),
-		max (b1->Max.Y, b2->Max.Y),
-		max (b1->Max.Z, b2->Max.Z)
+		__min (b1->Min.X, b2->Min.X),
+		__min (b1->Min.Y, b2->Min.Y),
+		__min (b1->Min.Z, b2->Min.Z),
+		__max (b1->Max.X, b2->Max.X),
+		__max (b1->Max.Y, b2->Max.Y),
+		__max (b1->Max.Z, b2->Max.Z)
 	);
 }
 

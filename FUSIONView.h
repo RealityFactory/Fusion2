@@ -135,11 +135,13 @@ protected:
 	afx_msg void OnUpdateViewZoomout(CCmdUI* pCmdUI);
 	afx_msg void OnCenterthing();
 	afx_msg void OnUpdateCenterthing(CCmdUI* pCmdUI);
+	afx_msg void OnQuickBackup();
+	afx_msg void OnQuickRestore();
 	//}}AFX_MSG
 public:
 	afx_msg void OnViewType(UINT nID);
 	BOOL IsPanning;
-	void DoZoom (float ZoomInc);
+	void DoZoom (geFloat ZoomInc);
 protected:
 	afx_msg void OnViewTypeCmdUi(CCmdUI* pCmdUI);
 	DECLARE_MESSAGE_MAP()

@@ -40,8 +40,8 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CLevelOptions)
 	enum { IDD = IDD_LEVELOPTIONS };
-	float	m_DrawScale;
-	float	m_LightmapScale;
+	geFloat	m_DrawScale;
+	geFloat	m_LightmapScale;
 	CString	m_TextureLib;
 	bool	m_TxlChanged;
 	CString	m_HeadersDir;

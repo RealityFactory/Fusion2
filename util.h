@@ -23,15 +23,12 @@
 #define UTIL_H
 
 #include "basetype.h"
-#ifdef __cplusplus
-	extern "C" {
-#endif
 
 char *Util_Strdup (const char *s);
 geBoolean Util_SetString (char **ppString, const char *NewValue);
 
 geBoolean Util_IsValidInt (char const *Text, int *TheVal);
-geBoolean Util_IsValidFloat (const char *Text, float *TheFloat);
+geBoolean Util_IsValidFloat (const char *Text, geFloat *TheFloat);
 unsigned int Util_htoi (const char *s);
 void Util_QuoteString (const char *s, char *d);
 
@@ -39,9 +36,5 @@ void Util_QuoteString (const char *s, char *d);
 // For example, foo123 will return the value 123 in *pVal
 // pLastChar points to the last non-numeric character (possibly end of string)
 geBoolean Util_GetEndStringValue( const char *psz, int32 *pVal, int32 *pLastChar) ;
-
-#ifdef __cplusplus
-	}
-#endif
 
 #endif

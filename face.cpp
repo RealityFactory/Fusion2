@@ -19,6 +19,7 @@
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#include <stdafx.h>
 #include "face.h"
 #include <assert.h>
 #include <string.h>
@@ -275,7 +276,7 @@ Face	*Face_Create(int NumPnts, const geVec3d *pnts, int DibId)
 	assert(NumPnts < MAX_POINTS);
 	assert(pnts != NULL);
 
-	f	=geRam_Allocate(sizeof(Face));
+	f	= (Face *)geRam_Allocate(sizeof(Face));
 	if(f)
 	{
 		memset(f, 0, sizeof(Face));
@@ -290,7 +291,7 @@ Face	*Face_Create(int NumPnts, const geVec3d *pnts, int DibId)
 
 		Face_SetVisible(f, GE_TRUE);
 
-		f->Points	=geRam_Allocate(sizeof(geVec3d) * NumPnts);
+		f->Points	= (geVec3d *)geRam_Allocate(sizeof(geVec3d) * NumPnts);
 		if(f->Points)
 		{
 			memcpy(f->Points, pnts, sizeof(geVec3d) * NumPnts);
@@ -522,8 +523,8 @@ static void Face_UpdateLockedTextureVecs
 		uOffset = geVec3d_DotProduct (&t->TVecs.uVec, &f->Tex.Pos);
 		vOffset = geVec3d_DotProduct (&t->TVecs.vVec, &f->Tex.Pos);
 
-		t->TVecs.uOffset = (float)(t->xShift - uOffset);
- 		t->TVecs.vOffset = (float)(t->yShift - vOffset);
+		t->TVecs.uOffset = (geFloat)(t->xShift - uOffset);
+ 		t->TVecs.vOffset = (geFloat)(t->yShift - vOffset);
 	}
 }
 
@@ -1177,7 +1178,7 @@ void	Face_WriteToMap(const Face *f, FILE *wf)
 
 	TypeIO_WriteFloat (wf, f->MipMapBias);
 	TypeIO_WriteFloat (wf, f->Translucency);
-	TypeIO_WriteFloat (wf, (geFloat)f->LightIntensity);	//engine expects float
+	TypeIO_WriteFloat (wf, (geFloat)f->LightIntensity);	//engine expects geFloat
 	TypeIO_WriteFloat (wf, f->Reflectivity);
 
 	strcpy(szTemp, Face_GetTextureName (f));
@@ -1381,7 +1382,7 @@ Face	*Face_CreateFromFile
 		Reflectivity = FACE_DEFAULT_REFLECTIVITY;
 	}
 
-	tmpPnts	=geRam_Allocate(sizeof(geVec3d) * NumPnts);
+	tmpPnts	= (geVec3d *)geRam_Allocate(sizeof(geVec3d) * NumPnts);
 	if(tmpPnts)
 	{
 		geFloat	LightXScale = 1.0f;

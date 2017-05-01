@@ -41,7 +41,7 @@ public:
 	CEdit	m_EditHullsize;
 	CStatic	m_LblHullsize;
 	CString	m_Name;
-	float	m_HullSize;
+	geFloat	m_HullSize;
 	BOOL	m_Wavy;
 	BOOL	m_Area;
 	BOOL	m_Translucent;

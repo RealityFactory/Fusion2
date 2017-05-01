@@ -122,6 +122,7 @@ public:
 	int mShowSelectedBrushes;
 	int mLockAxis;
 	geBoolean	mConstrainHollows ;
+	bool bDoAutoSave;
 	BOOL SelectLock, TempEnt;
     BOOL PlaceObjectFlag;	// this flag signifies to place an object rather than putting
 							// down an entity when enter is pressed
@@ -215,8 +216,8 @@ public:
 	void UpdateAllViews(int Mode, CView* pSender, BOOL Override = FALSE );
 	int SubtractBrushFromList(Brush& Brush);
 	void ResetSelectedFaceAttributes ();
-	void ResizeSelected(float dx, float dy, int sides, int inidx);
-	void ShearSelected(float dx, float dy, int sides, int inidx);
+	void ResizeSelected(geFloat dx, geFloat dy, int sides, int inidx);
+	void ShearSelected(geFloat dx, geFloat dy, int sides, int inidx);
 	void MoveSelectedBrushes (geVec3d const *v);
 	void MoveSelectedClone (geVec3d const *v);
 	void MoveTemplateBrush (geVec3d *);
@@ -289,6 +290,10 @@ public:
 	void	RebuildTrees(void);
 	void	InvalidateDrawTreeOriginalFaces(void);
 public:
+  void OnFileAutoSave(int nSaveCount);		// eaa3 06/23/2000
+  void OnFileFastBackup();								// eaa3 06/24/2000
+	void OnFileFastRestore();								// eaa3 06/24/2000
+  void AutoSaveEnable(bool bFlag);				// eaa3 06/26/2000
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CFusionDoc)
@@ -378,6 +383,8 @@ protected:
 	afx_msg void OnToolsToggleadjustmode();
 	afx_msg void OnUpdateToolsToggleadjustmode(CCmdUI* pCmdUI);
 	afx_msg void OnLeveloptions();
+	afx_msg void OnAutosaveOption();
+	afx_msg void OnUpdateAutosave(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:

@@ -19,6 +19,7 @@
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#include <stdafx.h>
 #include "brush.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -139,7 +140,7 @@ typedef struct BrushTag
 
 typedef void (*BrushList_FlagCB)(Brush *pBrush, const geBoolean bState);
 typedef void (*BrushList_IntCB)(Brush *pBrush, const int iVal);
-typedef void (*BrushList_FloatCB)(Brush *pBrush, const float fVal);
+typedef void (*BrushList_FloatCB)(Brush *pBrush, const geFloat fVal);
 typedef void (*BrushList_Uint32CB)(Brush *pBrush, const uint32 uVal);
 
 static void	BrushList_SetFlag(BrushList *bl, const geBoolean bState, BrushList_FlagCB cbSetFlag)
@@ -194,7 +195,7 @@ Brush	*Brush_Create(int Type, const FaceList *fl, const BrushList *BList)
 {
 	Brush	*pBrush;
 
-	pBrush	=geRam_Allocate(sizeof (Brush));
+	pBrush	= (Brush *)geRam_Allocate(sizeof (Brush));
 	if(pBrush != NULL)
 	{
 		pBrush->Prev	=NULL;
@@ -244,7 +245,7 @@ static Brush	*Brush_CreateFromParent(const Brush *ParentBrush, const FaceList *f
 	assert(fl != NULL);
 	assert(ParentBrush->Type!=BRUSH_MULTI);
 
-	pBrush	=geRam_Allocate(sizeof (Brush));
+	pBrush	= (Brush *)geRam_Allocate(sizeof (Brush));
 	if(pBrush != NULL)
 	{
 		pBrush->Prev	=NULL;
@@ -1045,7 +1046,7 @@ Brush	*Brush_CreateFromFile
 	{
 		if(fl)
 		{
-			FaceList_SetTranslucency(fl, (float)tmpTranslucency);
+			FaceList_SetTranslucency(fl, (geFloat)tmpTranslucency);
 		}
 	}
 
@@ -1084,7 +1085,7 @@ DoneLoad:
 	return	b;
 }
 
-void	Brush_Resize(Brush *b, float dx, float dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum)
+void	Brush_Resize(Brush *b, geFloat dx, geFloat dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum)
 {
 	int		i;
 	geVec3d	FixOrg, BrushOrg, ScaleVec;
@@ -1594,7 +1595,7 @@ void	Brush_Center(const Brush *b, geVec3d *center)
 	Box3d_GetCenter (&b->BoundingBox, center);
 }
 
-void	Brush_Scale (Brush *b, float ScaleFactor)
+void	Brush_Scale (Brush *b, geFloat ScaleFactor)
 {
 
 	assert (b != NULL);
@@ -1751,7 +1752,7 @@ BrushList *BrushList_Create
 {
 	BrushList *pList;
 
-	pList = geRam_Allocate (sizeof (BrushList));
+	pList = (BrushList *)geRam_Allocate (sizeof (BrushList));
 	if (pList != NULL)
 	{
 		pList->First = NULL;
@@ -3436,7 +3437,7 @@ void	BrushList_Transform(BrushList *pList, const geXForm3d *pXfm)
 	}
 }
 
-void	BrushList_Scale (BrushList *pList, float ScaleFactor)
+void	BrushList_Scale (BrushList *pList, geFloat ScaleFactor)
 {
 	Brush *b;
 	for (b = pList->First; b != NULL; b=b->Next)
@@ -3704,7 +3705,7 @@ void	Brush_SetTextureScale (Brush *b, geFloat ScaleVal)
 
 
 //keeps opposite corner fixed
-void	Brush_ShearFixed(Brush *b, float dx, float dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum)
+void	Brush_ShearFixed(Brush *b, geFloat dx, geFloat dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum)
 {
 	geVec3d	FixOrg, BrushOrg, ScaleVec, ShearAxis;
 

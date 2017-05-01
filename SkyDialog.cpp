@@ -60,7 +60,6 @@ void CSkyDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CSkyDialog)
-	DDX_Control(pDX, IDC_EDITSPEED, m_EditSpeed);
 	DDX_Control(pDX, IDC_SKYTOP, m_SkyTop);
 	DDX_Control(pDX, IDC_SKYRIGHT, m_SkyRight);
 	DDX_Control(pDX, IDC_SKYLEFT, m_SkyLeft);
@@ -75,9 +74,7 @@ void CSkyDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CBSKYBACK, m_SkyBackCombo);
 	DDX_Radio(pDX, IDC_AXISX, m_RotationAxis);
 	DDX_Text(pDX, IDC_EDITSPEED, m_RotationSpeed);
-	DDV_MinMaxFloat(pDX, m_RotationSpeed, 0.f, 3600.f);
 	DDX_Text(pDX, IDC_EDITSCALE, m_TextureScale);
-	DDV_MinMaxFloat(pDX, m_TextureScale, 0.f, 255.f);
 	//}}AFX_DATA_MAP
 }
 
@@ -98,9 +95,9 @@ BEGIN_MESSAGE_MAP(CSkyDialog, CDialog)
 	ON_CBN_SELCHANGE(IDC_CBSKYBACK, OnSelchangeCbskyback)
 	ON_EN_KILLFOCUS(IDC_EDITSPEED, OnKillfocusEditspeed)
 	ON_BN_CLICKED(IDC_AXISX, OnAxisButton)
+	ON_EN_KILLFOCUS(IDC_EDITSCALE, OnKillfocusEditscale)
 	ON_BN_CLICKED(IDC_AXISY, OnAxisButton)
 	ON_BN_CLICKED(IDC_AXISZ, OnAxisButton)
-	ON_EN_KILLFOCUS(IDC_EDITSCALE, OnKillfocusEditscale)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -149,6 +146,7 @@ void CSkyDialog::Update (CFusionDoc *pDoc)
 	m_pFusionDoc = pDoc;
 	geVec3d Axis;
 //	SkyFaceTexture *SkyInfo = 
+
 	Level_GetSkyInfo (m_pFusionDoc->pLevel, &Axis, &m_RotationSpeed, &m_TextureScale);
 
 	if (Axis.X != 0.0f) 
@@ -170,6 +168,7 @@ void CSkyDialog::Update (CFusionDoc *pDoc)
 	UpdateSkyFaceInfo (m_SkyBottom, m_SkyBottomCombo, SkyFace_Bottom);
 	UpdateSkyFaceInfo (m_SkyFront, m_SkyFrontCombo, SkyFace_Front);
 	UpdateSkyFaceInfo (m_SkyBack, m_SkyBackCombo, SkyFace_Back);
+
 	UpdateData (FALSE);
 }
 
@@ -334,7 +333,8 @@ void CSkyDialog::OnKillfocusEditspeed()
 
 void CSkyDialog::OnKillfocusEditscale() 
 {
-	UpdateData (TRUE);
+	int nFoo = UpdateData(TRUE);
 
-	Level_SetSkyTextureScale(m_pFusionDoc->pLevel, m_RotationSpeed);
+	Level_SetSkyTextureScale(m_pFusionDoc->pLevel, m_TextureScale);
 }
+

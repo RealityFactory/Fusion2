@@ -25,11 +25,6 @@
 #include "basetype.h"
 #include "vec3d.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
-
 
 struct tag_Box3d
 {
@@ -170,11 +165,6 @@ void Box3d_Inflate
 	  geFloat dy,
 	  geFloat dz
 	);
-
-#ifdef __cplusplus
-	}
-#endif
-
 
 
 #endif

@@ -181,7 +181,7 @@ BOOL CFusionApp::InitInstance()
 		// set up the help file
 		char HelpFilePath[MAX_PATH];
 
-		FilePath_AppendName (AppPath, "GEDIT.HLP", HelpFilePath);
+		FilePath_AppendName (AppPath, "RFEDIT.HLP", HelpFilePath);
 		//First free the string allocated by MFC at CWinApp startup.
 		//The string is allocated before InitInstance is called.
 		free ((void *)m_pszHelpFilePath);
@@ -214,7 +214,7 @@ BOOL CFusionApp::InitInstance()
 
 		FilePath_AppendName (AppPath, FUSION_INIFILE_NAME, IniFilePath);
 
-		// Set our INI file to GEDIT.INI
+		// Set our INI file to RFEDIT.INI
 		free( (void*)m_pszProfileName ) ;
 		m_pszProfileName = _tcsdup( IniFilePath ) ;
 
@@ -325,6 +325,10 @@ BOOL CFusionApp::InitInstance()
 	//	Setup user preferences...
 	InitUserPreferences(pMainFrame);
 
+	bAutosaveActive = false;					// Autosave disabled for now
+
+	if(pFusionDoc != NULL)
+	  pFusionDoc->AutoSaveEnable(bAutosaveActive);		// Set autosave
 	
 	//	CHANGE!	04/01/97	John Moore
 	//	We don't care about the app right now...
@@ -351,10 +355,6 @@ BOOL CFusionApp::InitInstance()
 /////////////////////////////////////////////////////////////////////////////
 // CFusionApp commands
 
-BOOL CFusionApp::PreTranslateMessage(MSG* pMsg)
-{
-	return CWinApp::PreTranslateMessage(pMsg);
-}
 
 // App command to run the dialog
 void CFusionApp::OnAppAbout()
@@ -382,6 +382,9 @@ void CFusionApp::InitUserPreferences(CMainFrame* pMainFrame)
 
 BOOL CFusionApp::OnIdle(LONG lCount) 
 {
+  static int nLastSave = GetTickCount();			// Prime save timer
+  static int nAutoSaveNumber = 0;							// Auto-save sequencer
+
 	// TODO: Add your specialized code here and/or call the base class
 
 	//	Let's grab the active document and save it...
@@ -408,7 +411,19 @@ BOOL CFusionApp::OnIdle(LONG lCount)
 		pMainFrame->m_wndTabControls->UpdateTabs();
 		pMainFrame->LoadComboBox() ;
 	}
-	
+
+//	Ok, check how much time has passed.  If 60 seconds have gone
+//	..by, let's save the document!
+
+  if(GetTickCount() > (nLastSave + 60000))
+	  {
+		nAutoSaveNumber++;
+		if(nAutoSaveNumber > 20)
+		  nAutoSaveNumber = 0;			// No more than 20 autosaves
+    pFusionDoc->OnFileAutoSave(nAutoSaveNumber);
+		nLastSave = GetTickCount();
+		}
+
 	return CWinApp::OnIdle(lCount);
 }
 
@@ -622,3 +637,12 @@ void CFusionApp::OnHelpHowdoi()
 	// TODO: Add your command handler code here
 	
 }
+
+
+BOOL CFusionApp::PreTranslateMessage(MSG* pMsg) 
+{
+	// TODO: Add your specialized code here and/or call the base class
+	
+	return CWinApp::PreTranslateMessage(pMsg);
+}
+

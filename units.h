@@ -25,11 +25,6 @@
 #include "basetype.h"
 #include <math.h>
  
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
-
 #ifndef M_PI
 	#define	M_PI		((geFloat)3.14159265358979323846f)
 #endif
@@ -45,8 +40,8 @@
 #define Units_RadiansToDegrees(r) ((((geFloat)(r)) * 180.0f) / M_PI)
 
 // Engine <--> Centimeter conversions
-#define Units_CentimetersToEngine(c) (((float)(c)) / 2.54f)
-#define Units_EngineToCentimeters(i) (((float)(i)) * 2.54f)
+#define Units_CentimetersToEngine(c) (((geFloat)(c)) / 2.54f)
+#define Units_EngineToCentimeters(i) (((geFloat)(i)) * 2.54f)
 
 
 #define CENTIMETERS_TO_ENGINE(c) Units_CentimetersToEngine(c)
@@ -55,10 +50,6 @@
 #define Units_Round(n) ((int)Units_FRound((n)))
 #define Units_Trunc(n) ((int)(n))
 #define Units_FRound(n)	((geFloat)floor((n)+0.5f))
-
-#ifdef __cplusplus
-	}
-#endif
 
 #endif
  

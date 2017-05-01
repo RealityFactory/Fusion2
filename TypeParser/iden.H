@@ -22,11 +22,6 @@
 #ifndef IDEN_H
 #define	IDEN_H
 
-#ifdef __cplusplus
-    extern "C" {
-#endif
-
-
 typedef struct	Iden_HashTable Iden_HashTable;
 
 typedef struct	Iden
@@ -39,10 +34,6 @@ typedef struct	Iden
 Iden_HashTable *	Iden_CreateHashTable(void);
 Iden *		Iden_HashName(Iden_HashTable *ht, const char *s, int len);
 void	Iden_DestroyHashTable(Iden_HashTable *ht);
-
-#ifdef __cplusplus
-    }
-#endif
 
 #endif
 

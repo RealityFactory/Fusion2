@@ -26,10 +26,6 @@
 #include "vec3d.h"
 #include "xform3d.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 typedef struct tag_Parse3dt Parse3dt;
 
 typedef enum
@@ -60,16 +56,12 @@ geBoolean Parse3dt_ScanExpectingText (Parse3dt *Parser, char const *idText);
 geBoolean Parse3dt_GetIdentifier (Parse3dt *Parser, char const *Tag, char *idText);
 geBoolean Parse3dt_GetPath (Parse3dt *Parser, char const *Tag, char *Path);
 geBoolean Parse3dt_GetInt (Parse3dt *Parser, char const *Tag, int *Value);
-geBoolean Parse3dt_GetFloat (Parse3dt *Parser, char const *Tag, float *Value);
+geBoolean Parse3dt_GetFloat (Parse3dt *Parser, char const *Tag, geFloat *Value);
 geBoolean Parse3dt_GetLiteral (Parse3dt *Parser, char const *Tag, char *idText);
 geBoolean Parse3dt_GetVec3d (Parse3dt *Parser, char const *Tag, geVec3d *pVec);
 geBoolean Parse3dt_GetXForm3d (Parse3dt *Parser, char const *Tag, geXForm3d *pXfm);
 
 geBoolean Parse3dt_GetVersion (Parse3dt *Parser, int *VersionMajor, int *VersionMinor);
-
-#ifdef __cplusplus
-	}
-#endif
 
 
 #endif

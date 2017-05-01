@@ -25,10 +25,6 @@
 #include "basetype.h"
 #include <string.h>
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 
 typedef struct tag_Array Array;
 struct tag_Array
@@ -87,10 +83,6 @@ int Array_Resize (Array *pArray, int NewSize);
 		 memcpy(Array_ItemPtr((a),(i)),(d),(s)))
 	#define Array_DeleteAt(a,i) \
 		(memcpy (Array_ItemPtr((a),(i)),Array_ItemPtr((a),(i+1)),((a)->ItemsAllocated-(i)-1)*(a)->ItemSize))
-#endif
-
-#ifdef __cplusplus
-	}
 #endif
 
 #endif

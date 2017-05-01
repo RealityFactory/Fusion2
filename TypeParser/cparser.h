@@ -22,10 +22,6 @@
 #ifndef	CPARSER_H
 #define	CPARSER_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include	"iden.h"
 #include	"type.h"
 
@@ -78,8 +74,5 @@ int				CParser_GetContentsCount(const CParser *p);
 void			CParser_GetContentsNameAndValue(const CParser *p, int idx, const char **Name, unsigned long *Value);
 const char *	CParser_GetIconName (Type *pType);
 
-#ifdef	__cplusplus
-}
-#endif
 #endif
 

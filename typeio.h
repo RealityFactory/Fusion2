@@ -22,10 +22,6 @@
 #ifndef __TypeIO_H
 #define __TypeIO_H
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 #include <stdio.h>
 #include "basetype.h"
 #include "XForm3d.h"
@@ -70,13 +66,13 @@ geBoolean TypeIO_WriteUintText
 geBoolean TypeIO_WriteFloat
 	(
 	  FILE *f,
-	  float n
+	  geFloat n
 	);
 
 geBoolean TypeIO_WriteFloatText
 	(
 	  FILE *f,
-	  float n
+	  geFloat n
 	);
 
 geBoolean TypeIO_WriteString
@@ -150,13 +146,13 @@ geBoolean TypeIO_ReadUintText
 geBoolean TypeIO_ReadFloat
 	(
 	  FILE *f,
-	  float * pf
+	  geFloat * pf
 	);
 
 geBoolean TypeIO_ReadFloatText
 	(
 	  FILE *f,
-	  float * pf
+	  geFloat * pf
 	);
 
 /*
@@ -231,9 +227,5 @@ geBoolean TypeIO_ReadXForm3dText
 	  FILE *f,
 	  geXForm3d *pXfm
 	);
-
-#ifdef __cplusplus
-	}
-#endif
 
 #endif

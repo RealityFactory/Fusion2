@@ -24,10 +24,6 @@
 
 #include "brush.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 typedef struct tag_SelBrushList SelBrushList;
 typedef geBoolean (*SelBrushList_Callback)(Brush *pBrush, void *lParam);
 
@@ -42,11 +38,6 @@ int SelBrushList_GetSize (SelBrushList *pList);
 Brush *SelBrushList_GetBrush (SelBrushList *pList, int BrushIndex);
 
 void SelBrushList_Enum (SelBrushList *pList, SelBrushList_Callback Callback, void *lParam);
-
-
-#ifdef __cplusplus
-	}
-#endif
 
 
 #endif

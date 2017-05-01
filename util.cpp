@@ -31,7 +31,7 @@ char *Util_Strdup (const char *s)
 
 	assert (s != NULL);
 
-	rslt = geRam_Allocate (strlen (s) + 1);
+	rslt = (char *)geRam_Allocate (strlen (s) + 1);
 	if (rslt != NULL)
 	{
 		strcpy (rslt, s);
@@ -112,12 +112,12 @@ geBoolean Util_IsValidInt
 geBoolean Util_IsValidFloat
     (
 	  const char *Text,
-	  float *TheFloat
+	  geFloat *TheFloat
 	)
 {
     char const *c;
 	int sign;
-	float num;
+	geFloat num;
 
 	num = 0;
 	sign = 1;
@@ -141,13 +141,13 @@ geBoolean Util_IsValidFloat
 
 	if (*c == '.')
 	{
-		float div;
+		geFloat div;
 
 		div = 10.0;
 		++c;
 		while (isdigit (*c))
 		{
-		    num += ((float)(*c - '0'))/div;
+		    num += ((geFloat)(*c - '0'))/div;
 			div *= 10.0;
 			++c;
 		}

@@ -24,10 +24,6 @@
 
 #include "face.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 typedef struct tag_SelFaceList SelFaceList;
 typedef geBoolean (*SelFaceList_Callback)(Face *pFace, void *lParam);
 
@@ -43,10 +39,6 @@ Face *SelFaceList_GetFace (SelFaceList *pList, int FaceIndex);
 
 void SelFaceList_Enum (SelFaceList *pList, SelFaceList_Callback Callback, void *lParam);
 
-
-#ifdef __cplusplus
-	}
-#endif
 
 
 #endif

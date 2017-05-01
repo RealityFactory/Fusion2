@@ -46,7 +46,7 @@ typedef struct NodeTag
 {
 	struct NodeTag	*Front, *Back;
 	Face			*Face;
-	const Face		*OGFace;
+	const FaceTag		  *OGFace;
 	int				Flags;
 } Node;
 
@@ -58,7 +58,7 @@ static Node	*Node_Create(const Face *f)
 
 	assert(f);
 
-	n	=geRam_Allocate(sizeof(Node));
+	n	= (Node *)geRam_Allocate(sizeof(Node));
 	if(n)
 	{
 		n->Face	=Face_Clone(f);

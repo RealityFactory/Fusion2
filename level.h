@@ -97,7 +97,7 @@ typedef struct
 typedef struct
 {
 	geBoolean IsValid;
-	float ZoomFactor;
+	geFloat ZoomFactor;
 	geVec3d PitchRollYaw;
 	geVec3d CameraPos;
 } ViewStateInfo;
@@ -160,7 +160,7 @@ void Level_TranslateAll (Level *pLevel, const geVec3d *VecXlate);
 void Level_CollapseGroups (Level *pLevel, int StartingGroup);
 void Level_CollapseModels (Level *pLevel, int StartingModel);
 
-float Level_GetGridSnapSize (const Level *pLevel);
+geFloat Level_GetGridSnapSize (const Level *pLevel);
 int Level_GetRotationSnap (const Level *pLevel);
 int Level_GetGridType (const Level *pLevel);
 geBoolean Level_UseGrid (const Level *pLevel);
@@ -180,10 +180,10 @@ BrushTemplate_Staircase *Level_GetStaircaseTemplate (Level *pLevel);
 
 geVec3d *Level_GetTemplatePos (Level *pLevel);
 
-float Level_GetDrawScale (const Level *pLevel);
-float Level_GetLightmapScale (const Level *pLevel);
-void Level_SetDrawScale (Level *pLevel, float Scale);
-void Level_SetLightmapScale (Level *pLevel, float Scale);
+geFloat Level_GetDrawScale (const Level *pLevel);
+geFloat Level_GetLightmapScale (const Level *pLevel);
+void Level_SetDrawScale (Level *pLevel, geFloat Scale);
+void Level_SetLightmapScale (Level *pLevel, geFloat Scale);
 
 geBoolean Level_LoadEntityDefs (Level *pLevel, const char *HeadersDir);
 const char *Level_GetHeadersDirectory (const Level *pLevel);

@@ -26,10 +26,6 @@
 #include "parse3dt.h"
 #include "EntityTable.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 struct EntityViewEntry
 {
 	char *pName;
@@ -71,9 +67,5 @@ geBoolean EntityViewList_WriteToFile
 	  EntityViewList *pList,
 	  FILE *f
 	);
-
-#ifdef __cplusplus
-	}
-#endif
 
 #endif

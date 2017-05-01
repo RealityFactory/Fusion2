@@ -22,10 +22,6 @@
 #ifndef	SYMTAB_H
 #define	SYMTAB_H
 
-#ifdef __cplusplus
-    extern "C" {
-#endif
-
 typedef struct	SymTab_Symbol
 {
 	Iden *					symName;
@@ -69,11 +65,6 @@ SymTab_Scope *	SymTab_CreateScope(
 SymTab_Symbol *	SymTab_FindSymbolInScope(SymTab *st, SymTab_Scope *scp, Iden *name);
 
 void SymTab_DestroyScope(SymTab_Scope *scp);
-
-#ifdef __cplusplus
-    }
-#endif
-
 
 #endif
 

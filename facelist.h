@@ -24,10 +24,6 @@
 
 #include "face.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 typedef struct tag_FaceList FaceList;
 
 FaceList	*FaceList_Create(int NumFaces);
@@ -65,9 +61,5 @@ geBoolean	FaceList_Write(const FaceList *pList, FILE *f);
 FaceList	*FaceList_CreateFromFile(Parse3dt *Parser, int VersionMajor, int VersionMinor, const char **Expected);
 geBoolean	FaceList_WriteToMap(const FaceList *pList, FILE *f);
 geBoolean	FaceList_WriteToQuakeMap(const FaceList *pList, FILE *f);
-
-#ifdef __cplusplus
-	}
-#endif
 
 #endif

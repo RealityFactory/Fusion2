@@ -81,7 +81,7 @@ void CEntity::Scale(geFloat ScaleFactor, const EntityTable *pEntityDefs)
 	if(GetKeyValue("light", temp))
 	{
 		int	lval	=atoi(temp);
-		itoa((int)(((float)lval)*ScaleFactor), temp, 10);
+		itoa((int)(((geFloat)lval)*ScaleFactor), temp, 10);
 		SetKeyValue("light", temp);
 	}
 }
@@ -418,7 +418,7 @@ BOOL CEntity::SetAngles (const geVec3d *pDir, const EntityTable *pEntityDefs)
 }
 
 /*
-  The arc value is stored as an integer degrees, and returned as a float radians.
+  The arc value is stored as an integer degrees, and returned as a geFloat radians.
 */
 BOOL CEntity::GetArc (geFloat *pArc, const EntityTable *pEntityDefs) const
 {
@@ -489,12 +489,12 @@ void CEntity::Export(FILE *OutFile)
 
 }
 
-float CEntity::DistanceFrom (geVec3d const *pPoint)
+geFloat CEntity::DistanceFrom (geVec3d const *pPoint)
 {
 	return geVec3d_DistanceBetween (pPoint, &mOrigin);
 }
 
-float CEntity::RayDistance(CPoint point, ViewVars *v)
+geFloat CEntity::RayDistance(CPoint point, ViewVars *v)
 {
 	if(EntityStyle!=ENTITY_S_ORIGIN)
 		return 0;
@@ -505,12 +505,12 @@ float CEntity::RayDistance(CPoint point, ViewVars *v)
 	min.x=min.y=9999;
 	max.x=max.y=-9999;
 
-	float xPlus8  = (float)(mOrigin.X + 8.0);
-	float xMinus8 = (float)(mOrigin.X - 8.0);
-	float yPlus8  = (float)(mOrigin.Y + 8.0);
-	float yMinus8 = (float)(mOrigin.Y - 8.0);
-	float zPlus8  = (float)(mOrigin.Z + 8.0);
-	float zMinus8 = (float)(mOrigin.Z - 8.0);
+	geFloat xPlus8  = (geFloat)(mOrigin.X + 8.0);
+	geFloat xMinus8 = (geFloat)(mOrigin.X - 8.0);
+	geFloat yPlus8  = (geFloat)(mOrigin.Y + 8.0);
+	geFloat yMinus8 = (geFloat)(mOrigin.Y - 8.0);
+	geFloat zPlus8  = (geFloat)(mOrigin.Z + 8.0);
+	geFloat zMinus8 = (geFloat)(mOrigin.Z - 8.0);
 
 	geVec3d_Set (&box[0], xPlus8,  yPlus8,  zPlus8);
 	geVec3d_Set (&box[1], xMinus8, yPlus8,  zPlus8);
@@ -557,18 +557,18 @@ float CEntity::RayDistance(CPoint point, ViewVars *v)
 //==================================================================
 #define RoundDouble(x)  (floor( (x) + 0.5 ))
 
-static float SnapToGrid
+static geFloat SnapToGrid
 	(
-	  float x,
+	  geFloat x,
 	  double GridSize
 	)
 {
-	return (float)(RoundDouble ((x/GridSize) ) * GridSize) ;
+	return (geFloat)(RoundDouble ((x/GridSize) ) * GridSize) ;
 }
 
 void CEntity::DoneMove(double GridSize, const EntityTable *pEntityDefs)
 {
-	float x, y, z;
+	geFloat x, y, z;
 
 	// Snap to the grid
 	x = SnapToGrid (mOrigin.X, GridSize);
@@ -599,7 +599,7 @@ void CEntity::UpdateOriginFirst(const EntityTable *pEntityDefs)
 	int x, y, z;
 	sscanf(OriginStr, "%d %d %d", &x, &y, &z);
 
-	SetOrigin ((float)x, (float)y, (float)z, pEntityDefs);
+	SetOrigin ((geFloat)x, (geFloat)y, (geFloat)z, pEntityDefs);
 }
 
 

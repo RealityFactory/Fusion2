@@ -1,8 +1,8 @@
 /****************************************************************************************/
-/*  Stack.c                                                                             */
+/*  HASH.C                                                                              */
 /*                                                                                      */
-/*  Author:       Jim Mischel                                                           */
-/*  Description:  simple stack                                                          */
+/*  Author: Eli Boling                                                                  */
+/*  Description: Simple character hashing function                                      */
 /*                                                                                      */
 /*  The contents of this file are subject to the Genesis3D Public License               */
 /*  Version 1.01 (the "License"); you may not use this file except in                   */
@@ -19,74 +19,46 @@
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
-#include "stack.h"
-#include "ram.h"
-#include <assert.h>
+#pragma hdrstop
 
-struct tag_Stack
+#include <stdafx.h>
+#include	<stdlib.h>
+#include	<limits.h>
+
+#include	"hash.h"
+
+#ifndef __BORLANDC__
+// 02/12/98 - jim - MSVC doesn't have a random() function
+#define random(num)(int)(((long)rand()*(num))/(RAND_MAX+1))
+#endif
+
+static	int	hashValues[256];
+static	int	Initialized = 0;
+
+void			Hash_Init(void)
 {
-	List *pList;
-};
+	int	i;
 
-// Create a stack that is initially empty.
-// On success, returns a pointer to the stack.
-// Returns NULL on error.
-Stack *Stack_Create (void)
+	if	(Initialized)
+		return;
+
+	Initialized = 1;
+
+	for	(i = 0; i < 256; i++)
+		hashValues[i] = random(INT_MAX);
+}
+
+unsigned int	hash(const char *s, int count)
 {
-	Stack *pStack;
+	int	value;
 
-	pStack = geRam_Allocate (sizeof (Stack));
-	if (pStack != NULL)
+	value = 0;
+	while	(count--)
 	{
-		pStack->pList = List_Create ();
+		value += hashValues[*s];
+		s++;
 	}
-	return pStack;
+
+	return (unsigned int)value;
 }
-
-// Destroy a stack.
-void Stack_Destroy (Stack **ppStack, Stack_DestroyCallback DestroyCallback)
-{
-	assert (ppStack != NULL);
-	assert (*ppStack != NULL);
-
-	List_Destroy (&((*ppStack)->pList), DestroyCallback);
-	geRam_Free (*ppStack);
-}
-
-// Push an item onto the stack.
-// Returns GE_TRUE if the item was pushed successfully.
-geBoolean Stack_Push (Stack *pStack, void *pData)
-{
-	ListIterator li;
-
-	assert (pStack != NULL);
-
-	li = List_Prepend (pStack->pList, pData);
-	return (li != LIST_INVALID_NODE);
-}
-
-
-// Pop an item from the stack.
-// It is an error to try to
-// pop when there's nothing on the stack.
-void *Stack_Pop (Stack *pStack)
-{
-	void *pData;
-	ListIterator li;
-
-	assert (pStack != NULL);
-	assert (!Stack_IsEmpty (pStack));
-
-	pData = List_GetFirst (pStack->pList, &li);
-	return pData;
-}
-
-// returns GE_TRUE if the stack is empty (has no items)
-geBoolean Stack_IsEmpty (const Stack *pStack)
-{
-	assert (pStack != NULL);
-
-	return !(List_GetNumItems (pStack->pList) > 0);
-}
-
 

@@ -24,10 +24,6 @@
 
 #include "list.h"
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
-
 typedef struct tag_Stack Stack;
 typedef List_DestroyCallback Stack_DestroyCallback;
 
@@ -50,12 +46,6 @@ void *Stack_Pop (Stack *pStack);
 
 // returns GE_TRUE if the stack is empty (has no items)
 geBoolean Stack_IsEmpty (const Stack *pStack);
-
-
-#ifdef __cplusplus
-	}
-#endif
-
 
 
 #endif

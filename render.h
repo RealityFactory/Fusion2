@@ -69,10 +69,6 @@ typedef struct SizeInfoTag
 	uint32	*ZData;
 } SizeInfo;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 geFloat	Render_GetFineGrid(const ViewVars *v, int GridType);
 geFloat Render_ComputeGridDist (const ViewVars *v, int GridType);
 SizeInfo	*Render_GetWadSizes(const ViewVars *v);
@@ -82,8 +78,8 @@ void		Render_UpdateGridMetric(ViewVars *v);
 void		Render_UpdateGridTexel(ViewVars *v);
 int			Render_GetInidx(const ViewVars *v);
 void		Render_ViewToWorld(const ViewVars *v, const int x, const int y, geVec3d *wp);
-geFloat		Render_ViewDeltaToRadians( const ViewVars *v, const float dx ) ;
-void		Render_ViewDeltaToRotation(const ViewVars *v, const float dx, geVec3d *VecRotate);
+geFloat		Render_ViewDeltaToRadians( const ViewVars *v, const geFloat dx ) ;
+void		Render_ViewDeltaToRotation(const ViewVars *v, const geFloat dx, geVec3d *VecRotate);
 geVec3d		Render_GetViewCenter (const ViewVars *v);
 void		Render_GetCameraPos(const ViewVars *v, geVec3d *pos);
 void		Render_SetCameraPos(ViewVars *v, const geVec3d *pos);
@@ -130,9 +126,5 @@ void		Render_UpdateViewPos(ViewVars *v);
 void		Render_3DTextureZBuffer(ViewVars *Cam, const geVec3d *pos, const geBitmap *bmap);
 void		Render_3DTextureZBufferOutline(ViewVars *Cam, const geVec3d *pos, const geBitmap *bmap, uint32 OutlineColor);
 //void		Render_RenderBrushHintFacesOrtho(ViewVars *Cam, Brush *b, HDC ViewDC);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

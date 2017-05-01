@@ -46,7 +46,6 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CSkyDialog)
 	enum { IDD = IDD_SKYDIALOG };
-	CEdit	m_EditSpeed;
 	CButton	m_SkyTop;
 	CButton	m_SkyRight;
 	CButton	m_SkyLeft;
@@ -60,8 +59,8 @@ public:
 	CComboBox	m_SkyBottomCombo;
 	CComboBox	m_SkyBackCombo;
 	int		m_RotationAxis;
-	float	m_RotationSpeed;
-	float	m_TextureScale;
+	geFloat	m_RotationSpeed;
+	geFloat	m_TextureScale;
 	//}}AFX_DATA
 
 

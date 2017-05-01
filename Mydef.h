@@ -33,7 +33,7 @@ typedef signed   char   S8 ;
 typedef signed   short  S16;
 typedef signed   long   S32;
 
-typedef          float	MyFloat;
+typedef double	MyFloat;
 typedef unsigned char	byte;
 
 #endif

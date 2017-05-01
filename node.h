@@ -24,10 +24,6 @@
 
 #include "brush.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct NodeTag Node;
 typedef void (*Node_CB)(Face *f, const Face *OGFace, int Key, geFloat pdist, int RFlags, void *pVoid);
 
@@ -35,9 +31,5 @@ void	Node_ClearBsp(Node *n);
 Node	*Node_AddBrushToTree(Node *tree, Brush *b);
 void	Node_EnumTreeFaces(Node *tree, geVec3d *pov, int RFlags, void *pVoid, Node_CB NodeCallBack);
 void	Node_InvalidateTreeOGFaces(Node *n);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

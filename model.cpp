@@ -1417,7 +1417,7 @@ ModelList *ModelList_Create
 				return GE_FALSE;
 			}
 			LastId = pModel->Id;
-			pModel = List_GetNext ((ModelList *)pList, &li);
+			pModel = (Model *)List_GetNext ((ModelList *)pList, &li);
 		}
 		return GE_TRUE;
 	}
@@ -1815,11 +1815,11 @@ geBoolean ModelList_WriteToMap
 	Model *m;
 	ListIterator li;
 
-	m = List_GetFirst ((List *)pList, &li);
+	m = (Model *)List_GetFirst ((List *)pList, &li);
 	while (m != NULL)
 	{
 		Model_WriteToMap (m, f, ppBList, SuppressHidden, VisDetail);
-		m = List_GetNext ((List *)pList, &li);
+		m = (Model *)List_GetNext ((List *)pList, &li);
 	}
 	return GE_TRUE;;
 }
@@ -1836,11 +1836,11 @@ void ModelList_ScaleAll
 	assert (pList != NULL);
 	assert (ScaleFactor > 0.0f);
 
-	m = List_GetFirst (pList, &li);
+	m = (Model *)List_GetFirst (pList, &li);
 	while (m != NULL)
 	{
 		Model_Scale (m, ScaleFactor);
-		m = List_GetNext (pList, &li);
+		m = (Model *)List_GetNext (pList, &li);
 	}
 }
 
