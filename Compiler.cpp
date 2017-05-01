@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -30,6 +29,7 @@
 #include <assert.h>
 
 #include <io.h>
+#include <fstream.h>
 #include "filepath.h"
 #include "consoletab.h"	// for ConPrintf (yes, it's ugly)
 #include "util.h"
@@ -40,6 +40,7 @@ static geBoolean ThreadActive = GE_FALSE;
 static HINSTANCE GBSPHandle = NULL;
 static GBSP_FuncHook *GlobalFHook;
 
+static ofstream *CompileLog;
 
 CompilerErrorEnum Compiler_RunPreview
 	(
@@ -409,6 +410,9 @@ static void Compiler_PrintfCallback
 	vsprintf (buf, format, argptr);
 	va_end (argptr);
 
+	if (CompileLog)
+		(*CompileLog) << buf;
+
 	Compiler_NotifyApp (buf, WM_USER_COMPILE_MSG);
 }
 
@@ -424,6 +428,9 @@ static void Compiler_ErrorCallback
 	va_start (argptr, format);
 	vsprintf (buf, format, argptr);
 	va_end (argptr);
+
+	if (CompileLog)
+		(*CompileLog) << buf;
 
 	Compiler_NotifyApp (buf, WM_USER_COMPILE_ERR);
 }
@@ -443,12 +450,22 @@ static UINT Compiler_ThreadProc
 	ThreadActive = GE_TRUE;
 	CompileParams = *((CompileParamsType *)pParam);
 
+	char LogFilename[_MAX_PATH];
+	FilePath_SetExt(CompileParams.Filename, ".log", LogFilename);
+	CompileLog = new ofstream(LogFilename, ofstream::out | ofstream::trunc);
+
 	CompileRslt = Compiler_Compile (&CompileParams, Compiler_ErrorCallback, Compiler_PrintfCallback);
 
 	if (CompileRslt == COMPILER_ERROR_NONE)
 	{
 		Compiler_PrintfCallback ("%s", "------------------------------\n");
 		Compiler_PrintfCallback ("%s", "Compile successfully completed\n");
+	}
+
+	if (CompileLog)
+	{
+		(*CompileLog).close();
+		delete CompileLog;
 	}
 
 	// notify parent that the compile has completed

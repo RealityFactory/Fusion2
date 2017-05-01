@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -27,9 +26,13 @@
 
 #include "FusionTabControls.h"
 #include "BrushEntityDialog.h"
+#include "ChildFrm.h"
 #include "units.h"
 #include "face.h"
 #include "ram.h"
+
+#include "MoveDialog.h"
+#include "RotateDialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -46,9 +49,9 @@ static char THIS_FILE[] = __FILE__;
 int CFusionView::mCY_DRAG = 2 ;
 int CFusionView::mCX_DRAG = 2 ;
 
-IMPLEMENT_DYNCREATE(CFusionView, CView)
+IMPLEMENT_DYNCREATE(CFusionView, CCaptionView)
 
-BEGIN_MESSAGE_MAP(CFusionView, CView)
+BEGIN_MESSAGE_MAP(CFusionView, CCaptionView)
 	ON_MESSAGE(WM_USER_COMPILE_MSG, OnCompileMessage)
 	ON_MESSAGE(WM_USER_COMPILE_ERR, OnCompileError)
 	ON_MESSAGE(WM_USER_COMPILE_DONE, OnCompileDone)
@@ -91,8 +94,9 @@ BEGIN_MESSAGE_MAP(CFusionView, CView)
 	ON_UPDATE_COMMAND_UI(ID_DESELECTALL, OnUpdateDeselectall)
 	ON_COMMAND(ID_SELECTALL, OnSelectall)
 	ON_UPDATE_COMMAND_UI(ID_SELECTALL, OnUpdateSelectall)
+	ON_COMMAND(ID_EDIT_SELECT_BRUSH_ALL, OnSelectAllBrushes)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_SELECT_BRUSH_ALL, OnUpdateSelectAllBrushes)
 	ON_COMMAND(ID_TOOLS_SCALEWORLD, OnToolsScaleworld)
-	ON_COMMAND(ID_TOOLS_BRUSH_MAKENEWEST, OnToolsBrushMakenewest)
 	ON_COMMAND(ID_TOOLS_SETTEXTURESCALE, OnToolsSettexturescale)
 	ON_COMMAND(ID_TOOLS_NEXTBRUSH, OnToolsNextbrush)
 	ON_COMMAND(ID_TOOLS_PREVBRUSH, OnToolsPrevbrush)
@@ -103,11 +107,35 @@ BEGIN_MESSAGE_MAP(CFusionView, CView)
 	ON_COMMAND(ID_VIEW_ZOOMOUT, OnViewZoomout)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ZOOMOUT, OnUpdateViewZoomout)
 	ON_COMMAND(ID_CENTERTHING, OnCenterthing)
-	ON_WM_MBUTTONUP()
 	ON_UPDATE_COMMAND_UI(ID_CENTERTHING, OnUpdateCenterthing)
+	ON_COMMAND(ID_EDIT_SELECT_FACES_NEXT, OnEditSelectFacesNext)
+	ON_COMMAND(ID_EDIT_SELECT_FACES_PREVIOUS, OnEditSelectFacesPrevious)
+	ON_COMMAND(ID_EDIT_SELECT_FACES_ALLINSELECTEDBRUSHES, OnEditSelectFacesAllinselectedbrushes)
+	ON_COMMAND(ID_EDIT_SELECT_ENTITIES_ALL, OnEditSelectEntitiesAll)
+	ON_COMMAND(ID_EDIT_SELECT_ENTITIES_NEXT, OnEditSelectEntitiesNext)
+	ON_COMMAND(ID_EDIT_SELECT_ENTITIES_PREVIOUS, OnEditSelectEntitiesPrevious)
+	ON_COMMAND(ID_EDIT_DESELECT_BRUSHES, OnEditDeselectBrushes)
+	ON_COMMAND(ID_EDIT_DESELECT_ENTITIES, OnEditDeselectEntities)
+	ON_COMMAND(ID_EDIT_DESELECT_FACES, OnEditDeselectFaces)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_DESELECT_BRUSHES, OnUpdateEditDeselectBrushes)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_DESELECT_ENTITIES, OnUpdateEditDeselectEntities)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_DESELECT_FACES, OnUpdateEditDeselectFaces)
+	ON_WM_KILLFOCUS()
+	ON_WM_SETFOCUS()
+	ON_COMMAND(ID_VIEWPORT_CENTERONCAMERA, OnViewportCenteroncamera)
+	ON_UPDATE_COMMAND_UI(ID_VIEWPORT_CENTERONCAMERA, OnUpdateViewportCenteroncamera)
+	ON_COMMAND(ID_VIEWPORT_CENTERONSELECTION, OnViewportCenteronselection)
+	ON_UPDATE_COMMAND_UI(ID_VIEWPORT_CENTERONSELECTION, OnUpdateViewportCenteronselection)
+	ON_COMMAND(ID_CAMERA_CENTERONVIEW, OnCameraCenteronview)
+	ON_UPDATE_COMMAND_UI(ID_CAMERA_CENTERONVIEW, OnUpdateCameraCenteronview)
+	ON_COMMAND(ID_VIEWPORT_GOTO, OnViewportGoto)
+	ON_UPDATE_COMMAND_UI(ID_VIEWPORT_GOTO, OnUpdateViewportGoto)
+	ON_COMMAND(ID_MODIFY_ROTATE, OnModifyRotate)
+	ON_UPDATE_COMMAND_UI(ID_MODIFY_ROTATE, OnUpdateModifyRotate)
+	ON_WM_MBUTTONUP()
 	//}}AFX_MSG_MAP
-	ON_COMMAND_RANGE( ID_VIEW_3DWIREFRAME, ID_VIEW_TEXTUREVIEW, OnViewType)
-	ON_UPDATE_COMMAND_UI_RANGE(ID_VIEW_3DWIREFRAME, ID_VIEW_TEXTUREVIEW, OnViewTypeCmdUi)
+	ON_COMMAND_RANGE(ID_VIEW_TOPVIEW, ID_VIEW_FRONTVIEW, OnViewType)
+	ON_UPDATE_COMMAND_UI_RANGE(ID_VIEW_TOPVIEW, ID_VIEW_FRONTVIEW, OnViewTypeCmdUi)
 END_MESSAGE_MAP()
 
 
@@ -118,54 +146,45 @@ END_MESSAGE_MAP()
 
 void CFusionView::OnUpdateCenterthing(CCmdUI* pCmdUI) 
 {
-	CFusionDoc *pDoc = GetDocument ();
-
-	if ((pDoc->mModeTool == ID_TOOLS_TEMPLATE) &&
-	    ((mViewType == ID_VIEW_TOPVIEW) || (mViewType == ID_VIEW_SIDEVIEW) || (mViewType == ID_VIEW_FRONTVIEW)))
-	{
-		pCmdUI->Enable (TRUE);
-	}
-	else
+	if (mViewIs3d)
 	{
 		pCmdUI->Enable (FALSE);
+		return;
 	}
+
+	CFusionDoc *pDoc = GetDocument ();
+	if(!pDoc)
+	{
+		pCmdUI->Enable( FALSE );
+		return;
+	}
+
+	if ((pDoc->GetSelState()!=NOSELECTIONS) || (pDoc->mModeTool==ID_TOOLS_TEMPLATE))
+		pCmdUI->Enable( TRUE );
+	else
+		pCmdUI->Enable( FALSE );
 }
 
 // Center the template brush or entity in the selected view.
 // Doesn't work for 3d views...
 void CFusionView::OnCenterthing()
 {
-	CFusionDoc *pDoc = GetDocument ();
-	// only works on templates
-	if ((pDoc->mModeTool != ID_TOOLS_TEMPLATE) ||
-	    ((mViewType != ID_VIEW_TOPVIEW) && (mViewType != ID_VIEW_SIDEVIEW) && (mViewType != ID_VIEW_FRONTVIEW)))
-	{
+	if (mViewIs3d)
 		return;
-	}
+
+	CFusionDoc *pDoc = GetDocument();
+	if (!pDoc)
+		return;
+
+	pDoc->SetModifiedFlag();
 
 	geVec3d NewWorldPos = Render_GetViewCenter (VCam);
-
-	// Get the current thing's position...
-	geVec3d CurrentThingPos;
-
-	if (pDoc->TempEnt)
-	{
-		CurrentThingPos = pDoc->mRegularEntity.mOrigin;
-	}
-	else
-	{
-		if (pDoc->CurBrush == NULL)
-		{
-			return;
-		}
-		Brush_Center (pDoc->CurBrush, &CurrentThingPos);
-	}
 
 	// Compute delta required to get thing to NewWorldPos.
 	// One dimension won't be changed (i.e. in the top view, the Y won't be modified)
 	geVec3d MoveDelta;
 
-	geVec3d_Subtract (&NewWorldPos, &CurrentThingPos, &MoveDelta);
+	geVec3d_Subtract (&NewWorldPos, &pDoc->SelectedGeoCenter, &MoveDelta);
 
 	switch (mViewType)
 	{
@@ -187,12 +206,15 @@ void CFusionView::OnCenterthing()
 	}
 
 	// We've computed the delta, so move the thing...
-	pDoc->MoveTemplateBrush (&MoveDelta);
+	if (pDoc->mModeTool == ID_TOOLS_TEMPLATE)
+		pDoc->MoveTemplateBrush (&MoveDelta);
+	else
+		pDoc->MoveSelectedBrushList(pDoc->pSelBrushes, &MoveDelta);
 
 	pDoc->UpdateAllViews( UAV_ALL3DVIEWS, NULL );
 }
 
-static geBoolean IsKeyDown (int Key)
+geBoolean CFusionView::IsKeyDown (int Key)
 {
 	int KeyState;
 
@@ -243,6 +265,10 @@ void CFusionView::OnToolsBrushRotate45()
 	geVec3d	rp;
 
 	CFusionDoc* pDoc = GetDocument();
+	if (!pDoc)
+		return;
+
+	pDoc->SetModifiedFlag();
 
 	geVec3d_Clear (&rp);
 	switch (mViewType)
@@ -291,28 +317,37 @@ int CFusionView::GetCursorBoxPos (const POINT *ptMousePos)
 
 	  What we're creating is:
 
-			0	   1       2        3	  4
+			0	   1       2        3			4
 				------------------------
 				|     |          |     |
 			5	|  6  |    7     |  8  |  9
 				------------------------
 				|     |          |     |
 				|     |          |     | 
-		   10	|  11 |   12     |  13 |  14
+	   10	|  11 |   12     |  13 |  14
 				|     |          |     |
 				------------------------
 				|     |          |     | 
-		   15	|  16 |   17     |  18 |  19
+		 15	|  16 |   17     |  18 |  19
 				------------------------
-		   20      21	  22	    23	  24
+	   20    21			22				23	  24
 	  
 	  Then we determine which of the sections the cursor is closest to,
 	  and return that index.
 	*/
 
 	pDoc = GetDocument ();
+	if (!pDoc)
+		return 12;
 
-	pBrushBox = Brush_GetBoundingBox (pDoc->CurBrush);
+//	Box3d BrushBox;
+//	if (pDoc->mModeTool == ID_TOOLS_TEMPLATE)
+		pBrushBox = Brush_GetBoundingBox (pDoc->CurBrush);
+//	else
+//	{
+//		SelBrushList_GetBoundingBox(pDoc->pSelBrushes, &BrushBox);
+//		pBrushBox = &BrushBox;
+//	}
 
 	// obtain screen coordinates for bounding box min and max points
 	ptMin = Render_OrthoWorldToView (VCam, &pBrushBox->Min);
@@ -415,6 +450,8 @@ void CFusionView::Pan
 	  BOOL RButtonIsDown
 	)
 {
+	pDoc->SetModifiedFlag();
+
 	if(mViewIs3d)
 	{
 		geVec3d MoveVec;
@@ -461,6 +498,7 @@ void CFusionView::Pan
 		if (LButtonIsDown)
 		{
 			Render_MoveCamPosOrtho(VCam, &dcamv);
+			pDoc->LinkViewports();
 		}
 		else if (RButtonIsDown)
 		{
@@ -472,6 +510,8 @@ void CFusionView::Pan
 
 void CFusionView::ScaleSelected (CFusionDoc *pDoc, int dx, int dy)
 {
+	pDoc->SetModifiedFlag();
+
 	//smooth out the zoom scale curve with a scalar
 	float	ZoomInv	=Render_GetZoom(VCam);
 
@@ -483,6 +523,8 @@ void CFusionView::ScaleSelected (CFusionDoc *pDoc, int dx, int dy)
 
 void CFusionView::ShearSelected (CFusionDoc *pDoc, int dx, int dy)
 {
+	pDoc->SetModifiedFlag();
+
 	//smooth out the zoom scale curve with a scalar
 	float	ZoomInv	=Render_GetZoom(VCam);
 
@@ -500,19 +542,35 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 	geBoolean	ShiftHeld;
 	geBoolean	ControlHeld;
 	geBoolean	LButtonIsDown, RButtonIsDown;
-	geBoolean	SpaceHeld;
+//	geBoolean	SpaceHeld;
 	BOOL		ThisIsCaptured;
 	int			ModeTool, Tool;
 	fdocAdjustEnum AdjustMode;
 	BOOL		DoRedraw = TRUE;
 	POINT		RealCursorPosition;
 
-
 	pDoc	=GetDocument();
 	ThisIsCaptured = (this == GetCapture ());
 	ModeTool = GetModeTool ();
 	Tool		= GetTool ();
 	AdjustMode  = GetAdjustMode ();
+
+	/*
+	  The point parameter to this message gives us the mouse position when the
+	  message was received.  That could be old.  We really want the *current*
+	  position, so we get it here and convert it to client coordinates.  This
+	  prevents the panning runaway bug that plauged us for so long.
+	*/
+	::GetCursorPos (&RealCursorPosition);
+	ScreenToClient (&RealCursorPosition);
+
+	if ((!ThisIsCaptured) && (RealCursorPosition.y < 0))
+	{
+		LButtonIsDown = GE_FALSE;
+		RButtonIsDown = GE_FALSE;
+		SetCursor (AfxGetApp()->LoadStandardCursor (IDC_ARROW));
+		return;
+	}
 
 	/*
 	  You'll notice here that we don't use the nFlags parameter to get these
@@ -523,12 +581,26 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 	*/
 	ShiftHeld = IsKeyDown (VK_SHIFT);
 	ControlHeld = IsKeyDown (VK_CONTROL);
-	LButtonIsDown = IsKeyDown (VK_LBUTTON);
-	RButtonIsDown = IsKeyDown (VK_RBUTTON);
-	SpaceHeld	= IsKeyDown (VK_SPACE);
+	LButtonIsDown = LMouseButtonDown;//IsKeyDown (VK_LBUTTON);
+	RButtonIsDown = RMouseButtonDown;//IsKeyDown (VK_RBUTTON);
+	//SpaceHeld	= IsKeyDown (VK_SPACE);
 
-	IsPanning	=((SpaceHeld || IsPanning) &&
+//	IsPanning	=((ControlHeld || IsPanning) &&
+//				  (LButtonIsDown | RButtonIsDown) && ThisIsCaptured);
+	IsPanning	=((ControlHeld || BeganWithPan) &&
 				  (LButtonIsDown | RButtonIsDown) && ThisIsCaptured);
+
+
+	if(mViewIs3d && !( IsPanning || IsDragging ))
+	{
+		TRACKMOUSEEVENT et;
+		et.cbSize = sizeof(TRACKMOUSEEVENT);
+		et.dwFlags = TME_HOVER | TME_LEAVE;
+		et.hwndTrack = GetSafeHwnd();
+		et.dwHoverTime = 300;
+
+		_TrackMouseEvent( &et );
+	}
 
 	if (!ThisIsCaptured)
 	{
@@ -542,7 +614,8 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 			Tool = GetTool ();
 			if (mViewIs3d)
 			{
-				if (ShiftHeld)
+//				if (ShiftHeld)
+				if (RMouseButtonDown && !LMouseButtonDown)
 				{
 					SetCursor (AfxGetApp()->LoadCursor (IDC_EYEDROPPER));
 				}
@@ -559,20 +632,12 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 		return;
 	}
 
+	pDoc->SetModifiedFlag();
 	
 	if(this==GetParentFrame()->GetActiveView())
 	{
 		pDoc->mActiveView	=mViewType;
 	}
-
-	/*
-	  The point parameter to this message gives us the mouse position when the
-	  message was received.  That could be old.  We really want the *current*
-	  position, so we get it here and convert it to client coordinates.  This
-	  prevents the panning runaway bug that plauged us for so long.
-	*/
-	::GetCursorPos (&RealCursorPosition);
-	ScreenToClient (&RealCursorPosition);
 
 	dx = (RealCursorPosition.x - mStartPoint.x);
 	dy = (RealCursorPosition.y - mStartPoint.y);
@@ -601,28 +666,33 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 				{
 					case CURTOOL_NONE :
 						// no tool selected.  We're doing a drag select or clone operation
-						if (AdjustMode == ADJUST_MODE_BRUSH)
+//						if (AdjustMode == ADJUST_MODE_BRUSH)
 						{
 							// drag select or cloning
 							if( IsDragging )
 							{
 								mDragCurrentPoint.x += (long)dx ;
 								mDragCurrentPoint.y += (long)dy ;
+								DoRedraw = FALSE;
+								Drag(DRAG_CONTINUE);
 							}
-							else if( !IsCopying && !ShiftHeld && !RButtonIsDown )
+//							else if( !IsCopying && !ShiftHeld && !RButtonIsDown )
+							else if( !RButtonIsDown )
 							{
-#pragma message ("Logic flawed here when space being held.  Don't know exactly what.")
 								if((abs(dx) > mCX_DRAG) || (abs(dy) > mCY_DRAG))
 								{
 									mDragCurrentPoint = RealCursorPosition;
 									IsDragging = TRUE ;
+									DoRedraw = FALSE;
+									Drag(DRAG_BEGIN);
 								}
 							}// Drag Select
-							else
+/*							else
 							{	// Begin a copy operation			
 								if((LButtonIsDown && ShiftHeld)&&(!IsCopying))
 								{
 									IsCopying	=TRUE;
+									pDoc->ResetAllSelectedFaces();
 									pDoc->CopySelectedBrushes();
 									if (SelBrushList_GetSize (pDoc->pSelBrushes) > 0)
 									{
@@ -641,6 +711,7 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 									SetTool(CURTOOL_NONE);
 								}
 							}// Not Drag Select
+*/
 						}
 						break;
 
@@ -657,15 +728,17 @@ void CFusionView::OnMouseMove (UINT nFlags, CPoint point)
 						{
 							if( pDoc->GetSelState() == ONEENTITYONLY )	// Angle,Arc,Radius control
 							{
-								if( !ShiftHeld && !ControlHeld )
+//								if( !ShiftHeld && !ControlHeld )
+								if( !ShiftHeld )
 								{
 									pDoc->AdjustEntityAngle( VCam, (float)dx ) ;
 								}
-								else if( ShiftHeld && !ControlHeld )
+/*								else if( ShiftHeld && !ControlHeld )
 								{
 									pDoc->AdjustEntityArc( VCam, (float)dx ) ;
 								}
-								else if( !ShiftHeld && ControlHeld )
+*/
+								else  // if( !ShiftHeld && ControlHeld )
 								{
 									pDoc->AdjustEntityRadius( &dv ) ;
 								}
@@ -798,6 +871,8 @@ void CFusionView::DoneMovingBrushes ()
 	CFusionDoc *pDoc = GetDocument ();
 	int ModeTool = GetModeTool ();
 
+	pDoc->SetModifiedFlag();
+
 	if (SelBrushList_GetSize (pDoc->pSelBrushes) > 0 || ModeTool == ID_TOOLS_TEMPLATE)
 	{
 		geFloat fSnapSize ;
@@ -870,6 +945,31 @@ void CFusionView::DoneMovingBrushes ()
 #pragma warning (disable:4100)
 void CFusionView::OnLButtonUp(UINT nFlags, CPoint point)
 {
+	BOOL ThisIsCaptured = (this == GetCapture ());
+	if ((!ThisIsCaptured) && (point.y < 0))
+	{
+		LMouseButtonDown = GE_FALSE;
+		SetCursor (AfxGetApp()->LoadStandardCursor (IDC_ARROW));
+		return;
+	}
+	else if(IsCopying)
+	{
+		// MS We need to switch to move mode, to
+		// correctly place groups of entities. 
+		// Switch to move mode
+		OnToolsBrushMoverotatebrush();
+		// Do what has to be done
+		DoneMovingBrushes ();
+		// switch bach to Select mode
+		GetDocument()->DoGeneralSelect();
+		// ~MS
+		IsCopying = FALSE;
+	}
+
+
+	if (!LMouseButtonDown)
+		return;
+
 	BOOL		bWasCaptured = FALSE ;
 	CFusionDoc* pDoc;
 	int ModeTool;
@@ -885,13 +985,21 @@ void CFusionView::OnLButtonUp(UINT nFlags, CPoint point)
 	if (!RMouseButtonDown)
 	{
 		// right mouse button isn't down
-		if(this == GetCapture ())
+		if(ThisIsCaptured)
 		{
 			bWasCaptured = TRUE ;
 			ReleaseCapture();
 		}
 
-		if (IsKeyDown (VK_SPACE) || IsPanning || ModeTool == ID_TOOLS_CAMERA)
+		if( bWasCaptured )
+		{
+			ClientToScreen( &mStartPoint ) ;
+			SetCursorPos( mStartPoint.x, mStartPoint.y ) ;
+		}
+		ShowTheCursor ();
+
+//		if (IsKeyDown (VK_SPACE) || IsPanning || ModeTool == ID_TOOLS_CAMERA)
+		if (IsKeyDown (VK_CONTROL) || IsPanning || ModeTool == ID_TOOLS_CAMERA)
 		{
 			/*
 			  Ok, here's the scoop.
@@ -911,7 +1019,16 @@ void CFusionView::OnLButtonUp(UINT nFlags, CPoint point)
 			IsPanning = FALSE;
 			ShowTheCursor ();
 
-			RedrawWindow();
+			if( IsDragging )
+			{
+				pDoc->SelectOrthoRect( mDragStartPoint, mDragCurrentPoint, VCam );
+				pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+				IsDragging = FALSE ;
+				Drag(DRAG_END);
+			}
+			else
+				RedrawWindow();
+
 			return;
 		}
 
@@ -920,11 +1037,14 @@ void CFusionView::OnLButtonUp(UINT nFlags, CPoint point)
 			if(ModeTool==ID_TOOLS_TEMPLATE && pDoc->TempEnt)
 			{
 				pDoc->PlaceTemplateEntity3D(point, VCam);	
+				pDoc->SetModifiedFlag();
 			}
+/*
 			else if (IsKeyDown (VK_SHIFT))
 			{
 				pDoc->SelectTextureFromFace3D (point, VCam);
 			}
+*/
 			else
 			{
 				switch (AdjustMode)
@@ -945,18 +1065,20 @@ void CFusionView::OnLButtonUp(UINT nFlags, CPoint point)
 			switch (Tool)
 			{
 				case CURTOOL_NONE :
-					if (AdjustMode == ADJUST_MODE_BRUSH)
+					//if (AdjustMode == ADJUST_MODE_BRUSH)
 					{
 						if( IsDragging )
 						{
 							pDoc->SelectOrthoRect( mDragStartPoint, mDragCurrentPoint, VCam );
 							pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 							IsDragging = FALSE ;
+							Drag(DRAG_END);
 						}
 						else if(IsCopying)
 						{
 							DoneMovingBrushes ();
 							IsCopying = FALSE;
+							pDoc->SetModifiedFlag();
 						}
 						else
 						{
@@ -964,20 +1086,22 @@ void CFusionView::OnLButtonUp(UINT nFlags, CPoint point)
 							pDoc->UpdateAllViews( UAV_ALL3DVIEWS, NULL );
 						}
 					}
+/*
 					else
 					{
 						MessageBeep ((UINT)(-1));
 					}
-
+*/
 					break;
 
 				case ID_TOOLS_BRUSH_MOVEROTATEBRUSH :
 				case ID_TOOLS_BRUSH_MOVESELECTEDBRUSHES :
-
 						DoneMovingBrushes ();
+						pDoc->SetModifiedFlag();
 					break; 
 
 				case ID_TOOLS_BRUSH_SCALEBRUSH :
+					pDoc->SetModifiedFlag();
 					SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 					pDoc->SnapScaleNearest(sides, Render_GetInidx(VCam), VCam);
 					if(pDoc->mLastOp == BRUSH_SCALE)
@@ -998,6 +1122,7 @@ void CFusionView::OnLButtonUp(UINT nFlags, CPoint point)
 					break;
 
 				case ID_TOOLS_BRUSH_SHEARBRUSH :
+					pDoc->SetModifiedFlag();
 					SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 					if(pDoc->mLastOp==BRUSH_SHEAR)
 						pDoc->DoneShear(sides, Render_GetInidx(VCam));
@@ -1018,14 +1143,6 @@ void CFusionView::OnLButtonUp(UINT nFlags, CPoint point)
 					break;
 			}
 		}
-
-		if( bWasCaptured )
-		{
-			ClientToScreen( &mStartPoint ) ;
-			SetCursorPos( mStartPoint.x, mStartPoint.y ) ;
-		}
-
-		ShowTheCursor ();
 	}
 
 	assert( IsCopying == FALSE ) ;
@@ -1043,12 +1160,12 @@ void CFusionView::OnLButtonDown(UINT nFlags, CPoint point)
 	  using this:
 
 				   4
-	           ----------
+	     ----------
 			   |		|
 			1  |		|  2
 			   |		|
 			   |		|
-	           ----------
+	     ----------
 				   8
 
 	  So the cursor in the top-left corner of the box will be 5 (left+top = 1+4 = 5).
@@ -1073,11 +1190,20 @@ void CFusionView::OnLButtonDown(UINT nFlags, CPoint point)
 	int ModeTool = GetModeTool ();
 //	int AdjustMode = GetAdjustMode ();
 
+	BOOL ThisIsCaptured = (this == GetCapture ());
+	if ((!ThisIsCaptured) && (point.y < 0))
+	{
+		LMouseButtonDown = GE_FALSE;
+		SetCursor (AfxGetApp()->LoadStandardCursor (IDC_ARROW));
+		return;
+	}
+
 	CFusionDoc* pDoc = GetDocument();
 
 	LMouseButtonDown = GE_TRUE;
 
-	geBoolean SpaceIsDown = IsKeyDown (VK_SPACE);
+//	geBoolean SpaceIsDown = IsKeyDown (VK_SPACE);
+	geBoolean SpaceIsDown = IsKeyDown (VK_CONTROL);
 
 	assert( IsCopying == FALSE ) ;
 
@@ -1091,11 +1217,13 @@ void CFusionView::OnLButtonDown(UINT nFlags, CPoint point)
 		}
 */
 
+		BeganWithPan = SpaceIsDown;
+
 		SetCapture();
 		HideTheCursor ();
 		mStartPoint = point;
 
-		if (mViewIs3d || IsPanning || SpaceIsDown)
+		if (mViewIs3d || SpaceIsDown)
 			return ;
 
 		if ((Tool == CURTOOL_NONE))// && (ModeTool == ID_GENERALSELECT) && (AdjustMode == ADJUST_MODE_BRUSH))
@@ -1151,13 +1279,37 @@ void CFusionView::OnLButtonDown(UINT nFlags, CPoint point)
 #pragma warning (disable:4100)
 void CFusionView::OnRButtonDown(UINT nFlags, CPoint point) 
 {
-	CFusionDoc* pDoc = GetDocument();
-	geBoolean SpaceIsDown = IsKeyDown (VK_SPACE);
+	BOOL ThisIsCaptured = (this == GetCapture ());
+	if ((!ThisIsCaptured) && (point.y < 0))
+	{
+		RMouseButtonDown = GE_FALSE;
+		SetCursor (AfxGetApp()->LoadStandardCursor (IDC_ARROW));
+		return;
+	}
 
-	RMouseButtonDown = GE_TRUE;
+	CFusionDoc* pDoc = GetDocument();
+
+	int Tool;
+	Tool = GetTool ();
+
+//	geBoolean SpaceIsDown = IsKeyDown (VK_SPACE);
+	geBoolean SpaceIsDown = IsKeyDown (VK_CONTROL);
+
+	if (((!LMouseButtonDown) || SpaceIsDown) || ((Tool != ID_TOOLS_BRUSH_SCALEBRUSH) && (Tool != ID_TOOLS_BRUSH_SHEARBRUSH)))
+		RMouseButtonDown = GE_TRUE;
+	else
+		return;
+
 	if (!LMouseButtonDown)
 	{
-		int Tool;
+
+		if (mViewIs3d && !SpaceIsDown)
+		{
+			SetCursor (AfxGetApp()->LoadCursor (IDC_EYEDROPPER));
+			return;
+		}
+
+		BeganWithPan = SpaceIsDown;
 
 		SetCapture();
 
@@ -1165,15 +1317,15 @@ void CFusionView::OnRButtonDown(UINT nFlags, CPoint point)
 
 		mStartPoint = point;
 
-		if (mViewIs3d || IsPanning || SpaceIsDown)
+//		if (mViewIs3d || IsPanning || SpaceIsDown)
+		if (IsPanning || SpaceIsDown)
 			return ;
-
-		Tool = GetTool ();
 
 		if ((Tool == ID_TOOLS_BRUSH_MOVEROTATEBRUSH) || (Tool == ID_TOOLS_BRUSH_MOVESELECTEDBRUSHES))
 		{
 			geVec3d_Set (&(pDoc->FinalRot), 0.0f, 0.0f, 0.0f);
 			pDoc->TempCopySelectedBrushes();
+			pDoc->SetModifiedFlag();
 		}
 
 	}
@@ -1183,6 +1335,17 @@ void CFusionView::OnRButtonDown(UINT nFlags, CPoint point)
 #pragma warning (disable:4100)
 void CFusionView::OnRButtonUp(UINT nFlags, CPoint point)
 {
+	BOOL ThisIsCaptured = (this == GetCapture ());
+	if ((!ThisIsCaptured) && (point.y < 0))
+	{
+		RMouseButtonDown = GE_FALSE;
+		SetCursor (AfxGetApp()->LoadStandardCursor (IDC_ARROW));
+		return;
+	}
+
+	if (!RMouseButtonDown)
+		return;
+
 	int Tool = GetTool ();
 
 	RMouseButtonDown = GE_FALSE;
@@ -1195,14 +1358,40 @@ void CFusionView::OnRButtonUp(UINT nFlags, CPoint point)
 			ReleaseCapture();
 		}
 
+		if (mViewIs3d && !IsKeyDown(VK_CONTROL))
+		{
+			pDoc->SelectTextureFromFace3D (point, VCam);
+		}
 
-		if((IsKeyDown (VK_SPACE)) || IsPanning || GetModeTool()==ID_TOOLS_CAMERA)
+		pDoc->SetModifiedFlag();
+
+//		if((IsKeyDown (VK_SPACE)) || IsPanning || GetModeTool()==ID_TOOLS_CAMERA)
+		if((IsKeyDown (VK_CONTROL)) || IsPanning || GetModeTool()==ID_TOOLS_CAMERA)
 		{
 			pDoc->TempDeleteSelected();
 			IsPanning	=FALSE;
 
 			ShowTheCursor ();
-			RedrawWindow();
+
+			if( IsDragging )
+			{
+				pDoc->SelectOrthoRect( mDragStartPoint, mDragCurrentPoint, VCam );
+				pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+				IsDragging = FALSE ;
+				Drag(DRAG_END);
+			}
+			else
+				RedrawWindow();
+			
+			return;
+		}
+		else if( IsDragging )
+		{
+			ShowTheCursor ();
+			pDoc->SelectOrthoRect( mDragStartPoint, mDragCurrentPoint, VCam );
+			pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+			IsDragging = FALSE ;
+			Drag(DRAG_END);
 			return;
 		}
 
@@ -1213,7 +1402,7 @@ void CFusionView::OnRButtonUp(UINT nFlags, CPoint point)
 			if ((Tool == ID_TOOLS_BRUSH_MOVEROTATEBRUSH) || (Tool == ID_TOOLS_BRUSH_MOVESELECTEDBRUSHES))
 			{
 				pDoc->UpdateSelected();
-				if (GetModeTool () == ID_GENERALSELECT)
+				if ((GetModeTool () == ID_GENERALSELECT) || (GetModeTool () == ID_TOOLS_TEMPLATE))
 				{
 					pDoc->DoneRotate ();
 				}
@@ -1253,16 +1442,52 @@ void CFusionView::OnDraw(CDC *c)
 	case ID_VIEW_TOPVIEW:
 	case ID_VIEW_SIDEVIEW:
 	case ID_VIEW_FRONTVIEW:
-		pDoc->RenderOrthoView(VCam, c);
+
+		CDC dcCompatible;
+		dcCompatible.CreateCompatibleDC(c);
+
+		CRect rect;
+    c->GetClipBox(&rect);
+
+		CBitmap OffScreenBitmap;
+		CBitmap* OldBitmap;
+
+		OffScreenBitmap.CreateCompatibleBitmap(c, rect.Width(), rect.Height());
+		OldBitmap = dcCompatible.SelectObject(&OffScreenBitmap);
+		
+		dcCompatible.SetWindowOrg(rect.left, rect.top);
+
+		dcCompatible.FillSolidRect( &rect, Prefs_GetBackgroundColor (((CFusionApp *)AfxGetApp ())->GetPreferencesNormal ()));
+
+
+
+		pDoc->RenderOrthoView(VCam, &dcCompatible);
 		if(pDoc->IsLeakFileLoaded() && pDoc->bShowLeakFinder())
 		{
-			DrawLeakPoints(c->m_hDC, pDoc->GetLeakPoints(), pDoc->GetNumLeakPoints());
+			DrawLeakPoints(dcCompatible.m_hDC, pDoc->GetLeakPoints(), pDoc->GetNumLeakPoints());
 		}
+
+
+
+		c->BitBlt(rect.left,
+							rect.top,
+							rect.Width(),
+							rect.Height(),
+							&dcCompatible,
+							rect.left,
+							rect.top,
+							SRCCOPY);
+
+		dcCompatible.SelectObject(OldBitmap);
+
 		break;
 	}
+
+/*
 	int bkMode=c->GetBkMode();
 	int oldColor;
 	c->SetBkMode(TRANSPARENT);
+
 	if(this==GetParentFrame()->GetActiveView())
 	{
 		RECT	r ;
@@ -1276,6 +1501,7 @@ void CFusionView::OnDraw(CDC *c)
 	{
 		oldColor=c->SetTextColor(RGB(205,205,205));
 	}
+
 	switch( mViewType ) {
 	case ID_VIEW_TEXTUREVIEW:
 		c->TextOut(4,4,"Textured",8);
@@ -1284,27 +1510,21 @@ void CFusionView::OnDraw(CDC *c)
 		c->TextOut(4,4,"Wireframe",9);
 		break;
 	case ID_VIEW_TOPVIEW:
-		c->TextOut(4,4,"Top",3);
+		c->TextOut(4,4,"Top (XZ)",8);
 		break;
 	case ID_VIEW_SIDEVIEW:
-		c->TextOut(4,4,"Side",4);
+		c->TextOut(4,4,"Side (ZY)",9);
 		break;
 	case ID_VIEW_FRONTVIEW:
-		c->TextOut(4,4,"Front",5);
+		c->TextOut(4,4,"Front (XY)",10);
 		break;
 	}
 	c->SetBkMode(bkMode);
 	c->SetTextColor(oldColor);
+*/
 
-	if( IsDragging && this==GetCapture() )
-	{
-		// DrawDragRect here just didn't show up against our grid...
-		CBrush SelBrush ;
-		SelBrush.CreateSolidBrush( RGB(0,255,255) );
-		CRect NewRect(mDragStartPoint, mDragCurrentPoint );
-		NewRect.NormalizeRect();
-		c->FrameRect( &NewRect, &SelBrush ) ;
-	}
+	if (IsDragging)
+		Drag(DRAG_BEGIN);
 }
 
 void CFusionView::OnInitialUpdate() 
@@ -1314,7 +1534,7 @@ void CFusionView::OnInitialUpdate()
 	SizeInfo *WadSizeInfos = Level_GetWadSizeInfos (pDoc->pLevel);
 	int iView;
 
-	CView::OnInitialUpdate();
+	CCaptionView::OnInitialUpdate();
 	GetClientRect(&r);
 
 	if(WadSizeInfos)
@@ -1404,7 +1624,7 @@ BOOL CFusionView::PreCreateWindow(CREATESTRUCT& cs)
 	cs.lpszClass = AfxRegisterWndClass( CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW,
 		NULL, (HBRUSH)GetStockObject(GRAY_BRUSH));
 	
-	return CView::PreCreateWindow(cs);
+	return CCaptionView::PreCreateWindow(cs);
 }
 
 CFusionDoc* CFusionView::GetDocument()
@@ -1424,7 +1644,7 @@ void CFusionView::OnSize(UINT nType, int cx, int cy)
 	SizeInfo *WadSizeInfos = Level_GetWadSizeInfos (pDoc->pLevel);
 
 	// call our oldself
-	CView::OnSize(nType, cx, cy);
+	CCaptionView::OnSize(nType, cx, cy);
 	
 	// make sure that our camera knows our current size
 	if(WadSizeInfos)
@@ -1514,7 +1734,7 @@ void CFusionView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pD
 {
 	CFusionDoc* pDoc = GetDocument();
 
-	CView::OnActivateView(bActivate, pActivateView, pDeactiveView);
+	CCaptionView::OnActivateView(bActivate, pActivateView, pDeactiveView);
 
 	// set our title
 	GetParentFrame()->SetWindowText(pDoc->GetTitle());
@@ -1545,7 +1765,8 @@ void CFusionView::OnToolsBrushMoverotatebrush()
 		if(GetTool()==ID_TOOLS_BRUSH_MOVEROTATEBRUSH)
 		{
 			SetTool(CURTOOL_NONE);
-			SetAdjustMode (ADJUST_MODE_BRUSH);
+//			SetAdjustMode (ADJUST_MODE_BRUSH);
+			SetAdjustMode (ADJUST_MODE_FACE);
 		} 
 		else 
 		{
@@ -1562,7 +1783,7 @@ void CFusionView::OnUpdateToolsBrushMoverotatebrush(CCmdUI* pCmdUI)
 	//that's a pretty big if
 	if(GetModeTool()==ID_TOOLS_TEMPLATE ||
 		(GetModeTool()==ID_GENERALSELECT &&
-		GetAdjustMode()==ADJUST_MODE_BRUSH &&
+//		GetAdjustMode()==ADJUST_MODE_BRUSH &&
 		pDoc->GetSelState()!=NOSELECTIONS)) 
 	{
 		pCmdUI->Enable();
@@ -1599,7 +1820,8 @@ void CFusionView::OnToolsBrushScalebrush()
 		if(GetTool()==ID_TOOLS_BRUSH_SCALEBRUSH)
 		{
 			SetTool(CURTOOL_NONE);
-			SetAdjustMode (ADJUST_MODE_BRUSH);
+//			SetAdjustMode (ADJUST_MODE_BRUSH);
+			SetAdjustMode (ADJUST_MODE_FACE);
 		} 
 		else 
 		{
@@ -1616,7 +1838,7 @@ void CFusionView::OnUpdateToolsBrushScalebrush(CCmdUI* pCmdUI)
 	//that's a very big if
 	if((GetModeTool()==ID_TOOLS_TEMPLATE && !pDoc->TempEnt) ||
 		(GetModeTool()==ID_GENERALSELECT &&
-		GetAdjustMode ()==ADJUST_MODE_BRUSH &&
+//		GetAdjustMode ()==ADJUST_MODE_BRUSH &&
 #pragma message ("Can't do multiple brush scaling due to Brush_Resize implementation.")
 //		SelBrushList_GetSize (pDoc->pSelBrushes) > 0)) 
 		SelBrushList_GetSize (pDoc->pSelBrushes) == 1))
@@ -1660,6 +1882,7 @@ void CFusionView::OnUpdateToolsBrushShowbrush(CCmdUI* pCmdUI)
 
 BOOL CFusionView::OnEraseBkgnd(CDC* pDC) 
 {
+/*
 	CRect rect ;
 //	CFusionDoc* pDoc = GetDocument();
 
@@ -1669,7 +1892,7 @@ BOOL CFusionView::OnEraseBkgnd(CDC* pDC)
 		GetClientRect( &rect ) ;
 		pDC->FillSolidRect( &rect, Prefs_GetBackgroundColor (((CFusionApp *)AfxGetApp ())->GetPreferences ()));
 	}
-
+*/
 	return TRUE;
 }
 
@@ -1708,22 +1931,27 @@ void CFusionView::OnViewType(UINT nID)
 	{
 	case ID_VIEW_TEXTUREVIEW:
 		Render_SetViewType(VCam, VIEWTEXTURE);
+		SetCaption("Camera - Textured");
 		mViewIs3d = TRUE ;
 		break;
 	case ID_VIEW_3DWIREFRAME:
 		Render_SetViewType(VCam, VIEWWIRE);
+		SetCaption("Camera - Wireframe");
 		mViewIs3d = TRUE ;
 		break;
 	case ID_VIEW_TOPVIEW:
 		Render_SetViewType(VCam, VIEWTOP);
+		SetCaption("Viewport - Top ( XZ )");
 		mViewIs3d = FALSE ;
 		break;
 	case ID_VIEW_SIDEVIEW:
 		Render_SetViewType(VCam, VIEWSIDE);
+		SetCaption("Viewport - Side ( ZY )");
 		mViewIs3d = FALSE ;
 		break;
 	case ID_VIEW_FRONTVIEW:
 		Render_SetViewType(VCam, VIEWFRONT);
+		SetCaption("Viewport - Front ( XY )");
 		mViewIs3d = FALSE ;
 		break;
 	}
@@ -1800,7 +2028,8 @@ void CFusionView::OnToolsBrushShearbrush()
 		if(GetTool()==ID_TOOLS_BRUSH_SHEARBRUSH)
 		{
 			SetTool(CURTOOL_NONE);
-			SetAdjustMode (ADJUST_MODE_BRUSH);
+//			SetAdjustMode (ADJUST_MODE_BRUSH);
+			SetAdjustMode (ADJUST_MODE_FACE);
 		}
 		else 
 		{
@@ -1818,7 +2047,7 @@ void CFusionView::OnUpdateToolsBrushShearbrush(CCmdUI* pCmdUI)
 	//that's a very big if
 	if((GetModeTool()==ID_TOOLS_TEMPLATE && !pDoc->TempEnt) ||
 		(GetModeTool()==ID_GENERALSELECT &&
-		GetAdjustMode()==ADJUST_MODE_BRUSH &&
+//		GetAdjustMode()==ADJUST_MODE_BRUSH &&
 #pragma message ("Can't do multiple brush shear due to Brush_Shear implementation.")
 		SelBrushList_GetSize (pDoc->pSelBrushes) == 1)) 
 //		SelBrushList_GetSize (pDoc->pSelBrushes) > 0)) 
@@ -1872,7 +2101,8 @@ void CFusionView::SetAdjustMode(fdocAdjustEnum Mode)
 {
 	CFusionDoc* pDoc = GetDocument();
 	
-	pDoc->mAdjustMode = Mode;
+//	pDoc->mAdjustMode = Mode;
+	pDoc->mAdjustMode = ADJUST_MODE_FACE;
 }
 
 void CFusionView::SetModeTool(int Tool)
@@ -1895,6 +2125,8 @@ void CFusionView::OnBrushGroupsAddtogroup()
 	pDoc->AddSelToGroup() ;
 
 	pDoc->mpMainFrame->UpdateActiveDoc() ;
+
+	pDoc->SetModifiedFlag();
 }
 
 void CFusionView::OnUpdateBrushGroupsAddtogroup(CCmdUI* pCmdUI) 
@@ -1910,6 +2142,8 @@ void CFusionView::OnBrushRemoveselectedfromgroup()
 	
 	pDoc->RemovesSelFromGroup() ;
 	pDoc->mpMainFrame->UpdateActiveDoc() ;
+
+	pDoc->SetModifiedFlag();
 
 }/* CFusionView::OnBrushRemoveselectedfromgroup */
 
@@ -1949,23 +2183,7 @@ void CFusionView::OnUpdateToolsBrushMoveselectedbrushes(CCmdUI* pCmdUI)
 void CFusionView::OnToolsTemplate() 
 {
 	CFusionDoc* pDoc = GetDocument();
-
-	pDoc->ResetAllSelectedEntities();
-	pDoc->ResetAllSelectedFaces();
-	pDoc->ResetAllSelectedBrushes();
-
-	SetModeTool(ID_TOOLS_TEMPLATE);
-	if(pDoc->TempEnt) 
-	{
-		SetTool( ID_TOOLS_BRUSH_MOVEROTATEBRUSH );
-	}
-	else 
-	{
-		SetTool(ID_TOOLS_BRUSH_SCALEBRUSH);
-	}
-	pDoc->SetAdjustmentMode( ADJUST_MODE_BRUSH ) ;
-	pDoc->ConfigureCurrentTool();
-	pDoc->mpMainFrame->m_wndTabControls->m_pBrushEntityDialog->Update(pDoc);
+	pDoc->OnToolsTemplate();
 }
 
 void CFusionView::OnUpdateToolsTemplate(CCmdUI* pCmdUI) 
@@ -1981,7 +2199,7 @@ void CFusionView::OnUpdateToolsBrushRotate45(CCmdUI* pCmdUI)
 	//that's a pretty big if
 	if((GetModeTool()==ID_TOOLS_TEMPLATE && !pDoc->TempEnt) || 
 	   (GetModeTool()==ID_GENERALSELECT &&
-		GetAdjustMode()==ADJUST_MODE_BRUSH &&
+//		GetAdjustMode()==ADJUST_MODE_BRUSH &&
 		pDoc->GetSelState()!=NOSELECTIONS))
 	{
 		pCmdUI->Enable();
@@ -2083,6 +2301,22 @@ void CFusionView::OnUpdateSelectall(CCmdUI* pCmdUI)
 }
 
 
+void CFusionView::OnSelectAllBrushes() 
+{
+	CFusionDoc* pDoc = GetDocument();
+
+	if (!(IsKeyDown(VK_SHIFT)))
+		pDoc->ResetAllSelections() ;
+	
+	pDoc->SelectAllBrushes () ;
+	pDoc->UpdateAllViews( UAV_ALL3DVIEWS, NULL ) ;
+}
+
+void CFusionView::OnUpdateSelectAllBrushes(CCmdUI* pCmdUI) 
+{
+	pCmdUI->Enable( TRUE ) ;
+}
+
 LRESULT CFusionView::OnCompileMessage (WPARAM wParam, LPARAM lParam)
 {
 	if (wParam == COMPILER_PROCESSID)
@@ -2143,15 +2377,9 @@ void CFusionView::OnToolsScaleworld()
 		{
 			sscanf((LPCSTR)szVal, "%f", &scf);
 			pDoc->ScaleWorld(scf);			
+			pDoc->SetModifiedFlag();
 		}
 	}	
-}
-
-void CFusionView::OnToolsBrushMakenewest() 
-{
-	CFusionDoc *pDoc = GetDocument ();
-
-	pDoc->MakeSelectedBrushNewest();
 }
 
 void CFusionView::OnToolsSettexturescale() 
@@ -2173,6 +2401,7 @@ void CFusionView::OnToolsSettexturescale()
 		{
 			sscanf((LPCSTR)szVal, "%f", &scf);
 			pDoc->SetAllFacesTextureScale(scf);
+			pDoc->SetModifiedFlag();
 		}
 	}
 }
@@ -2184,80 +2413,29 @@ void CFusionView::OnToolsNextbrush()
 
 	if(GetModeTool()==ID_GENERALSELECT && !pDoc->IsSelectionLocked())
 	{
-		switch (pDoc->mAdjustMode)
+		if(pDoc->GetSelState()&ONEBRUSH)
 		{
-			case ADJUST_MODE_FACE :
+			if (!(IsKeyDown(VK_SHIFT)))
+				SelBrushList_RemoveAll (pDoc->pSelBrushes);
+			SelBrushList_Add (pDoc->pSelBrushes, Brush_GetNextBrush(pDoc->CurBrush, BList));
+			pDoc->UpdateSelected();
+		
+			//update the brush attributes dialog...
+//			pDoc->UpdateBrushAttributesDlg ();
+			pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+		}
+		else if(!(pDoc->GetSelState() & ANYBRUSH))
+		{
+			Brush *pBrush;
+			BrushIterator bi;
+
+			pBrush = BrushList_GetFirst (BList, &bi);
+			if(pBrush != NULL)
 			{
-				int nSelectedFaces = SelFaceList_GetSize (pDoc->pSelFaces);
-				Face *pFace;
-
-				if (nSelectedFaces == 0)
-				{
-					BrushIterator bi;
-
-					pDoc->CurBrush = BrushList_GetFirst (BList, &bi);
-					pFace = Brush_SelectFirstFace (pDoc->CurBrush);
-					SelBrushList_Add (pDoc->pSelBrushes, pDoc->CurBrush);
-				}
-				else
-				{
-					Brush *pBrush;
-
-					// get first selected face
-					pFace = SelFaceList_GetFace (pDoc->pSelFaces, nSelectedFaces-1);
-					// Remove all face selections
-					pDoc->ResetAllSelectedFaces ();
-
-					Face_SetSelected (pFace, GE_TRUE);
-					pBrush = BrushList_FindTopLevelFaceParent (Level_GetBrushes (pDoc->pLevel), pFace);
-
-					// select next face
-					if(!Brush_SetNextSelectedFace(pBrush))
-					{
-						pFace = Brush_SelectFirstFace(pBrush);
-					}
-					else
-					{
-						pFace = Brush_GetSelectedFace (pBrush);
-					}
-				}
-				SelFaceList_Add (pDoc->pSelFaces, pFace);
-				pDoc->UpdateSelected ();
-									
-				pDoc->UpdateFaceAttributesDlg ();
+				SelBrushList_Add (pDoc->pSelBrushes, pBrush);
+				pDoc->UpdateSelected();
 				pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
-				break;
 			}
-
-			case ADJUST_MODE_BRUSH :
-				if(pDoc->GetSelState()&ONEBRUSH)
-				{
-					SelBrushList_RemoveAll (pDoc->pSelBrushes);
-					SelBrushList_Add (pDoc->pSelBrushes, Brush_GetNextBrush(pDoc->CurBrush, BList));
-					pDoc->UpdateSelected();
-				
-					//update the brush attributes dialog...
-					pDoc->UpdateBrushAttributesDlg ();
-					pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
-				}
-				else if(!(pDoc->GetSelState() & ANYBRUSH))
-				{
-					Brush *pBrush;
-					BrushIterator bi;
-
-					pBrush = BrushList_GetFirst (BList, &bi);
-					if(pBrush != NULL)
-					{
-						SelBrushList_Add (pDoc->pSelBrushes, pBrush);
-						pDoc->UpdateSelected();
-						pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
-					}
-				}
-				break;
-
-			default :
-				assert (0);  // bad adjust mode
-				break;
 		}
 	}
 }
@@ -2269,82 +2447,29 @@ void CFusionView::OnToolsPrevbrush()
 
 	if(GetModeTool()==ID_GENERALSELECT && !pDoc->IsSelectionLocked())
 	{
-		switch (pDoc->mAdjustMode)
+		if(pDoc->GetSelState()&ONEBRUSH)
 		{
-			case ADJUST_MODE_FACE :
+			if (!(IsKeyDown(VK_SHIFT)))
+				SelBrushList_RemoveAll (pDoc->pSelBrushes);
+			SelBrushList_Add (pDoc->pSelBrushes, Brush_GetPrevBrush(pDoc->CurBrush, BList));
+			pDoc->UpdateSelected();
+		
+			//update the brush attributes dialog...
+//			pDoc->UpdateBrushAttributesDlg ();
+			pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+		}
+		else if(!(pDoc->GetSelState() & ANYBRUSH))
+		{
+			Brush *pBrush;
+			BrushIterator bi;
+
+			pBrush = BrushList_GetLast(BList, &bi);
+			if (pBrush != NULL)
 			{
-				int nSelectedFaces = SelFaceList_GetSize (pDoc->pSelFaces);
-				Face *pFace;
-
-				if (nSelectedFaces == 0)
-				{
-					BrushIterator bi;
-
-					pDoc->CurBrush = BrushList_GetFirst (BList, &bi);
-					pFace = Brush_SelectFirstFace (pDoc->CurBrush);
-					SelBrushList_Add (pDoc->pSelBrushes, pDoc->CurBrush);
-				}
-				else
-				{
-					Brush *pBrush;
-
-					// get the last selected face
-					pFace = SelFaceList_GetFace (pDoc->pSelFaces, 0);
-
-					// Remove all face selections
-					pDoc->ResetAllSelectedFaces ();
-
-					// Select the next face in order, using selected brush list...
-					pBrush = BrushList_FindTopLevelFaceParent (Level_GetBrushes (pDoc->pLevel), pFace);
-					Face_SetSelected (pFace, GE_TRUE);
-
-					// select next face
-					if(!Brush_SetPrevSelectedFace(pBrush))
-					{
-						pFace = Brush_SelectLastFace(pBrush);
-					}
-					else
-					{
-						pFace = Brush_GetSelectedFace (pBrush);
-					}
-				}
-				SelFaceList_Add (pDoc->pSelFaces, pFace);
-				pDoc->UpdateSelected ();
-									
-				pDoc->UpdateFaceAttributesDlg ();
+				SelBrushList_Add (pDoc->pSelBrushes, pBrush);
+				pDoc->UpdateSelected();
 				pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
-				break;
 			}
-
-			case ADJUST_MODE_BRUSH :
-				if(pDoc->GetSelState()&ONEBRUSH)
-				{
-					SelBrushList_RemoveAll (pDoc->pSelBrushes);
-					SelBrushList_Add (pDoc->pSelBrushes, Brush_GetPrevBrush(pDoc->CurBrush, BList));
-					pDoc->UpdateSelected();
-				
-					//update the brush attributes dialog...
-					pDoc->UpdateBrushAttributesDlg ();
-					pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
-				}
-				else if(!(pDoc->GetSelState() & ANYBRUSH))
-				{
-					Brush *pBrush;
-					BrushIterator bi;
-
-					pBrush = BrushList_GetLast(BList, &bi);
-					if (pBrush != NULL)
-					{
-						SelBrushList_Add (pDoc->pSelBrushes, pBrush);
-						pDoc->UpdateSelected();
-						pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
-					}
-				}
-				break;
-
-			default :
-				assert (0);		// bad adjust mode
-				break;
 		}
 	}
 }
@@ -2354,7 +2479,12 @@ void CFusionView::OnToolsAddtolevel()
 	CFusionDoc *pDoc = GetDocument ();
 
 	if(GetModeTool()==ID_TOOLS_TEMPLATE)
+	{
 		pDoc->AddBrushToWorld();
+		pDoc->SetModifiedFlag();
+	}
+
+	pDoc->DoGeneralSelect();
 }
 
 void CFusionView::OnUpdateToolsAddtolevel(CCmdUI* pCmdUI) 
@@ -2371,6 +2501,7 @@ void CFusionView::DoZoom (float ZoomInc)
 
 		Render_ZoomChange( VCam, ZoomInc);
 		pDoc->UpdateGridInformation ();
+		pDoc->SetModifiedFlag();
 		RedrawWindow();
 	}
 }
@@ -2412,3 +2543,687 @@ void CFusionView::ShowTheCursor (void)
 		;
 	}
 }
+
+void CFusionView::Drag(dragtime Now)
+{
+	CDC* c = GetDC();
+
+	CRect NewRect(mDragStartPoint, mDragCurrentPoint );
+	NewRect.NormalizeRect();
+
+	LPCRECT lpRect;
+	LPCRECT lpRectLast;
+
+	switch (Now)
+	{
+		case DRAG_BEGIN:
+			lpRect = &NewRect;
+			lpRectLast = NULL;
+			break;
+		case DRAG_CONTINUE:
+			lpRect = &NewRect;
+			lpRectLast = &LastDragRect;
+			break;
+		default:
+			lpRect = &LastDragRect;
+			lpRectLast = NULL;
+			break;
+	}
+
+	SIZE One;
+	One.cx = 1;
+	One.cy = 1;
+
+	c->DrawDragRect( lpRect, One, lpRectLast, One, NULL, NULL );
+
+	LastDragRect.CopyRect( &NewRect );
+
+	ReleaseDC(c);
+}
+
+
+void CFusionView::OnEditSelectFacesNext() 
+{
+	CFusionDoc *pDoc = GetDocument ();
+	BrushList *BList = Level_GetBrushes (pDoc->pLevel);
+
+	if(GetModeTool()==ID_GENERALSELECT && !pDoc->IsSelectionLocked())
+	{
+		int nSelectedFaces = SelFaceList_GetSize (pDoc->pSelFaces);
+		Face *pFace;
+
+		if (nSelectedFaces == 0)
+		{
+			BrushIterator bi;
+
+			pDoc->CurBrush = BrushList_GetFirst (BList, &bi);
+			pFace = Brush_SelectFirstFace (pDoc->CurBrush);
+			SelBrushList_Add (pDoc->pSelBrushes, pDoc->CurBrush);
+		}
+		else
+		{
+			Brush *pBrush;
+
+			// get first selected face
+			pFace = SelFaceList_GetFace (pDoc->pSelFaces, nSelectedFaces-1);
+			// Remove all face selections
+			if (!(IsKeyDown(VK_SHIFT)))
+				pDoc->ResetAllSelectedFaces ();
+
+			Face_SetSelected (pFace, GE_TRUE);
+			pBrush = BrushList_FindTopLevelFaceParent (Level_GetBrushes (pDoc->pLevel), pFace);
+
+			// select next face
+			if(!Brush_SetNextSelectedFace(pBrush))
+			{
+				pFace = Brush_SelectFirstFace(pBrush);
+			}
+			else
+			{
+				pFace = Brush_GetSelectedFace (pBrush);
+			}
+		}
+
+		SelFaceList_Add (pDoc->pSelFaces, pFace);
+		pDoc->UpdateSelected ();
+							
+		pDoc->UpdateFaceAttributesDlg ();
+		pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+	}
+}
+
+void CFusionView::OnEditSelectFacesPrevious() 
+{
+	CFusionDoc *pDoc = GetDocument ();
+	BrushList *BList = Level_GetBrushes (pDoc->pLevel);
+
+	if(GetModeTool()==ID_GENERALSELECT && !pDoc->IsSelectionLocked())
+	{
+		int nSelectedFaces = SelFaceList_GetSize (pDoc->pSelFaces);
+		Face *pFace;
+
+		if (nSelectedFaces == 0)
+		{
+			BrushIterator bi;
+
+			pDoc->CurBrush = BrushList_GetFirst (BList, &bi);
+			pFace = Brush_SelectFirstFace (pDoc->CurBrush);
+			SelBrushList_Add (pDoc->pSelBrushes, pDoc->CurBrush);
+		}
+		else
+		{
+			Brush *pBrush;
+
+			// get the last selected face
+			pFace = SelFaceList_GetFace (pDoc->pSelFaces, 0);
+
+			// Remove all face selections
+			if (!(IsKeyDown(VK_SHIFT)))
+				pDoc->ResetAllSelectedFaces ();
+
+			// Select the next face in order, using selected brush list...
+			pBrush = BrushList_FindTopLevelFaceParent (Level_GetBrushes (pDoc->pLevel), pFace);
+			Face_SetSelected (pFace, GE_TRUE);
+
+			// select next face
+			if(!Brush_SetPrevSelectedFace(pBrush))
+			{
+				pFace = Brush_SelectLastFace(pBrush);
+			}
+			else
+			{
+				pFace = Brush_GetSelectedFace (pBrush);
+			}
+		}
+
+		SelFaceList_Add (pDoc->pSelFaces, pFace);
+		pDoc->UpdateSelected ();
+							
+		pDoc->UpdateFaceAttributesDlg ();
+		pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+	}
+
+}
+
+
+void CFusionView::OnEditSelectFacesAllinselectedbrushes() 
+{
+	CFusionDoc* pDoc = GetDocument();
+
+	pDoc->SelectAllFacesInBrushes() ;
+	pDoc->UpdateAllViews( UAV_ALL3DVIEWS, NULL ) ;
+}
+
+void CFusionView::OnEditSelectEntitiesAll() 
+{
+	CFusionDoc* pDoc = GetDocument();
+
+	if (!(IsKeyDown(VK_SHIFT)))
+		pDoc->ResetAllSelections() ;
+	
+	pDoc->SelectAllEntities () ;
+	pDoc->UpdateAllViews( UAV_ALL3DVIEWS, NULL ) ;
+}
+
+
+void CFusionView::OnEditSelectEntitiesNext() 
+{
+	CFusionDoc* pDoc = GetDocument();
+
+	if(GetModeTool()==ID_GENERALSELECT && !pDoc->IsSelectionLocked())
+	{
+
+		CEntityArray *Entities;
+		Entities = Level_GetEntities (pDoc->pLevel);
+
+		int NumEntities = Entities->GetSize();
+
+		if (NumEntities)
+		{
+			if (pDoc->NumSelEntities == 0)
+			{
+				pDoc->SelectEntity(&(*Entities)[0]);
+				pDoc->UpdateSelected ();
+				pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+			}
+			else
+			{
+				CEntity *NextEntity = NULL;
+
+				// Find the last selected entity
+				for (int i=(NumEntities-1);i>-1;i--)
+				{
+					if ((*Entities)[i].IsSelected())
+					{
+						// If the last selected entity is also the last
+						// entity, then find the first unselected entity
+						if (i==(NumEntities-1))
+						{
+							for (int j=0;j<NumEntities;j++)
+							{
+								if (!((*Entities)[j].IsSelected()))
+								{
+									NextEntity = &(*Entities)[j];
+									break;
+								}
+							}
+						}
+
+						// Otherwise, the next entity is the entity after
+						// the last selected entity
+						else
+						{
+							NextEntity = &(*Entities)[i+1];
+						}
+
+						break;
+					}
+				}
+
+				if (NextEntity)
+				{
+					if (!(IsKeyDown(VK_SHIFT)))
+						pDoc->ResetAllSelectedEntities();
+
+					pDoc->SelectEntity(NextEntity);
+					pDoc->UpdateSelected ();
+					pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+				}
+			}
+		}
+	}
+}
+
+void CFusionView::OnEditSelectEntitiesPrevious() 
+{
+	CFusionDoc* pDoc = GetDocument();
+
+	if(GetModeTool()==ID_GENERALSELECT && !pDoc->IsSelectionLocked())
+	{
+
+		CEntityArray *Entities;
+		Entities = Level_GetEntities (pDoc->pLevel);
+
+		int NumEntities = Entities->GetSize();
+
+		if (NumEntities)
+		{
+			if (pDoc->NumSelEntities == 0)
+			{
+				pDoc->SelectEntity(&(*Entities)[0]);
+				pDoc->UpdateSelected ();
+				pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+			}
+			else
+			{
+				CEntity *NextEntity = NULL;
+
+				// Find the first selected entity
+				for (int i=0;i<NumEntities;i++)
+				{
+					if ((*Entities)[i].IsSelected())
+					{
+						// If the last selected entity is also the last
+						// entity, then find the first unselected entity
+						if (i==0)
+						{
+							for (int j=(NumEntities-1);j>-1;j--)
+							{
+								if (!((*Entities)[j].IsSelected()))
+								{
+									NextEntity = &(*Entities)[j];
+									break;
+								}
+							}
+						}
+
+						// Otherwise, the next entity is the entity after
+						// the last selected entity
+						else
+						{
+							NextEntity = &(*Entities)[i-1];
+						}
+
+						break;
+					}
+				}
+
+				if (NextEntity)
+				{
+					if (!(IsKeyDown(VK_SHIFT)))
+						pDoc->ResetAllSelectedEntities();
+
+					pDoc->SelectEntity(NextEntity);
+					pDoc->UpdateSelected ();
+					pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+				}
+			}
+		}
+	}
+}
+
+void CFusionView::OnEditDeselectBrushes() 
+{
+	CFusionDoc* pDoc = GetDocument();
+
+	pDoc->ResetAllSelectedBrushes() ;
+	pDoc->UpdateSelected();
+	pDoc->UpdateAllViews( UAV_ALL3DVIEWS, NULL ) ;
+}
+
+void CFusionView::OnEditDeselectEntities() 
+{
+	CFusionDoc* pDoc = GetDocument();
+
+	pDoc->ResetAllSelectedEntities() ;
+	pDoc->UpdateSelected();
+	pDoc->UpdateAllViews( UAV_ALL3DVIEWS, NULL ) ;
+}
+
+void CFusionView::OnEditDeselectFaces() 
+{
+	CFusionDoc* pDoc = GetDocument();
+
+	pDoc->ResetAllSelectedFaces() ;
+	pDoc->UpdateSelected();
+	pDoc->UpdateAllViews( UAV_ALL3DVIEWS, NULL ) ;
+}
+
+void CFusionView::OnUpdateEditDeselectBrushes(CCmdUI* pCmdUI) 
+{
+	BOOL		bEnable ;
+	CFusionDoc* pDoc = GetDocument();
+	
+	bEnable = ( pDoc->GetSelState() & ANYBRUSH ) ? TRUE : FALSE ;
+	pCmdUI->Enable( bEnable ) ;	
+}
+
+void CFusionView::OnUpdateEditDeselectEntities(CCmdUI* pCmdUI) 
+{
+	BOOL		bEnable ;
+	CFusionDoc* pDoc = GetDocument();
+	
+	bEnable = ( pDoc->GetSelState() & ANYENTITY ) ? TRUE : FALSE ;
+	pCmdUI->Enable( bEnable ) ;
+}
+
+void CFusionView::OnUpdateEditDeselectFaces(CCmdUI* pCmdUI) 
+{
+	BOOL		bEnable ;
+	CFusionDoc* pDoc = GetDocument();
+	
+	bEnable = ( pDoc->GetSelState() & ANYFACE ) ? TRUE : FALSE ;
+	pCmdUI->Enable( bEnable ) ;
+}
+
+void CFusionView::OnKillFocus(CWnd* pNewWnd) 
+{
+	CCaptionView::OnKillFocus(pNewWnd);
+	
+	((CChildFrame*)GetParentFrame())->m_wndSplitter.RefreshSplitBars();
+}
+
+void CFusionView::OnSetFocus(CWnd* pOldWnd) 
+{
+	CCaptionView::OnSetFocus(pOldWnd);
+	
+	((CChildFrame*)GetParentFrame())->m_wndSplitter.RefreshSplitBars();
+}
+
+void CFusionView::OnMouseHover(POINT pt)
+{
+	
+	m_strObjectUnderPoint="";
+
+	CFusionDoc* pDoc = GetDocument();
+	if(pDoc)
+	{
+		if(mViewIs3d)
+		{
+			m_strObjectUnderPoint = pDoc->GetObjectName3D(pt, VCam);
+			if (m_strObjectUnderPoint)
+			{
+				CMainFrame* pFrame = (CMainFrame*)AfxGetMainWnd();
+				pFrame->SetCursorInfo(m_strObjectUnderPoint);
+			}
+
+		}
+	}
+/*
+			m_strObjectUnderPoint = pDoc->GetObjectName3D(pt, VCam);
+
+		else
+			m_strObjectUnderPoint = pDoc->ReturnThingUnderPoint(pt, VCam);
+		
+		if( m_strObjectUnderPoint.IsEmpty())
+			pDoc->mpMainFrame->m_NameWindow.Hide();
+		else
+			pDoc->mpMainFrame->m_NameWindow.Show(m_strObjectUnderPoint);
+	}
+*/
+}
+
+BOOL CFusionView::PreTranslateMessage(MSG* pMsg) 
+{
+	if(pMsg->message == WM_MOUSEHOVER)
+	{
+		POINTS point = MAKEPOINTS(pMsg->lParam);
+		CPoint pt;
+		pt.x = point.x;
+		pt.y = point.y;
+		OnMouseHover(pt);
+		return 0;
+	}
+	else if( pMsg->message == WM_MOUSELEAVE )
+	{
+/*
+		CFusionDoc* pDoc = GetDocument();
+		if(pDoc)
+			pDoc->mpMainFrame->m_NameWindow.Hide();
+*/
+		return 0;
+	}
+	return CCaptionView::PreTranslateMessage(pMsg);
+}
+
+
+void CFusionView::OnViewportCenteroncamera() 
+{
+	CFusionDoc *pDoc = GetDocument ();
+	if(!pDoc)
+		return;
+
+	if(mViewIs3d)
+	{
+		return;
+	}
+	else
+	{
+
+		CEntity *p = pDoc->FindCameraEntity();
+		if(!p)
+			return;
+		
+		Render_SetCameraPos(VCam, &p->mOrigin);
+
+		pDoc->LinkViewports();
+		pDoc->SetModifiedFlag();
+		RedrawWindow();
+	}
+}
+
+void CFusionView::OnUpdateViewportCenteroncamera(CCmdUI* pCmdUI) 
+{
+	pCmdUI->Enable(!(mViewIs3d));
+}
+
+
+
+void CFusionView::OnViewportCenteronselection() 
+{
+	CFusionDoc *pDoc = GetDocument ();
+	if(!pDoc)
+		return;
+
+	Render_SetCameraPos(VCam, &pDoc->SelectedGeoCenter);
+
+	pDoc->LinkViewports();
+	pDoc->SetModifiedFlag();
+	RedrawWindow();
+}
+
+void CFusionView::OnUpdateViewportCenteronselection(CCmdUI* pCmdUI) 
+{
+	if (mViewIs3d)
+		pCmdUI->Enable( FALSE );
+	else
+	{
+		CFusionDoc *pDoc = GetDocument ();
+		if (pDoc) {
+			if ((pDoc->GetSelState()!=NOSELECTIONS) || (pDoc->mModeTool == ID_TOOLS_TEMPLATE))
+				pCmdUI->Enable( TRUE );
+			else
+				pCmdUI->Enable( FALSE );
+		}
+		else
+			pCmdUI->Enable( FALSE );
+	}
+}
+
+void CFusionView::OnCameraCenteronview() 
+{
+	if (mViewIs3d)
+		return;
+
+	CFusionDoc *pDoc = GetDocument ();
+	if(!pDoc)
+		return;
+
+	CEntity *pCameraEntity = pDoc->FindCameraEntity ();
+
+	if (pCameraEntity)
+	{
+		geVec3d CurrentPosition;
+		Render_GetCameraPos(VCam, &CurrentPosition);
+		
+		geVec3d Angles;
+		pCameraEntity->GetAngles( &Angles, Level_GetEntityDefs (pDoc->pLevel) );
+
+		switch (mViewType)
+		{
+			case ID_VIEW_TOPVIEW :
+				pCameraEntity->mOrigin.X = CurrentPosition.X;
+				pCameraEntity->mOrigin.Z = CurrentPosition.Z;
+				break;
+
+			case ID_VIEW_SIDEVIEW :
+				pCameraEntity->mOrigin.X = CurrentPosition.X;
+				pCameraEntity->mOrigin.Y = CurrentPosition.Y;
+				break;
+
+			case ID_VIEW_FRONTVIEW :
+				pCameraEntity->mOrigin.Z = CurrentPosition.Z;
+				pCameraEntity->mOrigin.Y = CurrentPosition.Y;
+				break;
+
+			default :
+				// don't do nothin!
+				assert (0);
+		}
+		
+		pDoc->SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+		pDoc->SetModifiedFlag();
+		pDoc->UpdateAllViews( UAV_ALLVIEWS, NULL );
+	}
+}
+
+void CFusionView::OnUpdateCameraCenteronview(CCmdUI* pCmdUI) 
+{
+	if (mViewIs3d)
+		pCmdUI->Enable(FALSE);
+	else
+		pCmdUI->Enable(TRUE);
+}
+
+void CFusionView::OnViewportGoto() 
+{
+	geBoolean ShowX = GE_TRUE;
+	geBoolean ShowY = GE_TRUE;
+	geBoolean ShowZ = GE_TRUE;
+
+	geVec3d CurrentPosition;
+	Render_GetCameraPos(VCam, &CurrentPosition);
+	geVec3d NewPos = CurrentPosition;
+	
+	switch (mViewType)
+	{
+		case ID_VIEW_TOPVIEW :
+			ShowY = GE_FALSE;
+			break;
+
+		case ID_VIEW_SIDEVIEW :
+			ShowX = GE_FALSE;
+			break;
+
+		case ID_VIEW_FRONTVIEW :
+			ShowZ = GE_FALSE;
+			break;
+
+		default :
+			assert(0);
+	}
+
+	CMoveDialog MoveDialog;
+
+	if (MoveDialog.DoModal(&CurrentPosition, ShowX, ShowY, ShowZ) == IDOK)
+	{
+		switch (mViewType)
+		{
+			case ID_VIEW_TOPVIEW :
+				NewPos.X = CurrentPosition.X;
+				NewPos.Z = CurrentPosition.Z;
+				break;
+
+			case ID_VIEW_SIDEVIEW :
+				NewPos.Y = CurrentPosition.Y;
+				NewPos.Z = CurrentPosition.Z;
+				break;
+
+			case ID_VIEW_FRONTVIEW :
+				NewPos.X = CurrentPosition.X;
+				NewPos.Y = CurrentPosition.Y;
+				break;
+
+			default :
+				assert(0);
+		}
+
+		Render_SetCameraPos(VCam, &NewPos);
+		
+		CFusionDoc *pDoc = GetDocument();
+		if (pDoc)
+		{
+			pDoc->LinkViewports();
+			pDoc->SetModifiedFlag();
+		}
+
+		RedrawWindow();
+	}
+}
+
+void CFusionView::OnUpdateViewportGoto(CCmdUI* pCmdUI) 
+{
+	if (mViewIs3d)
+		pCmdUI->Enable(FALSE);
+	else
+		pCmdUI->Enable(TRUE);
+}
+
+void CFusionView::OnModifyRotate() 
+{
+	CFusionDoc *pDoc = GetDocument ();
+	if(!pDoc)
+		return;
+
+	geFloat RotateRadians;
+
+	CRotateDialog RotateDialog;
+
+	if (RotateDialog.DoModal(&RotateRadians) == IDOK)
+	{
+
+		geVec3d	RotateVector;
+		geVec3d_Clear (&RotateVector);
+
+		switch (mViewType)
+		{
+			case ID_VIEW_TOPVIEW:
+				RotateVector.Y = RotateRadians;
+				break;
+			case ID_VIEW_FRONTVIEW :
+				RotateVector.Z = RotateRadians;
+				break;
+			case ID_VIEW_SIDEVIEW:
+				RotateVector.X = -RotateRadians;
+				break;
+			default :
+				assert(0);
+				return;
+		}
+
+		if(GetModeTool()==ID_TOOLS_TEMPLATE)
+		{
+			pDoc->RotateTemplateBrush(&RotateVector);
+			pDoc->UpdateSelected();
+			pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+		}
+		else
+		{
+			pDoc->RotateSelectedBrushesDirect (&RotateVector);
+			pDoc->SetModifiedFlag();
+			pDoc->UpdateAllViews(UAV_ALL3DVIEWS | REBUILD_QUICK, NULL);
+		}
+	}
+}
+
+void CFusionView::OnUpdateModifyRotate(CCmdUI* pCmdUI) 
+{
+	if (mViewIs3d)
+	{
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+
+	CFusionDoc *pDoc = GetDocument ();
+	if(!pDoc)
+	{
+		pCmdUI->Enable( FALSE );
+		return;
+	}
+
+	if ((pDoc->GetSelState()!=NOSELECTIONS) || ((pDoc->mModeTool==ID_TOOLS_TEMPLATE) && !pDoc->PlaceObjectFlag))
+		pCmdUI->Enable( TRUE );
+	else
+		pCmdUI->Enable( FALSE );
+}
+

@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifdef	__BORLANDC__
@@ -148,7 +147,7 @@ CParser *	CParser_Init(CParser_ErrFunc errFunc)
 	CParser *	p;
 	int			i;
 
-	p = geRam_Allocate(sizeof(*p));
+	p = (CParser*)geRam_Allocate(sizeof(*p));
 	if	(!p)
 		return p;
 
@@ -765,7 +764,7 @@ static	void	CParser_ParseContentsEnum(CParser *p)
 				CParser_Error(p, ERR_VALUEUSEDTWICE);
 		}
 
-		NewValues = geRam_Realloc(p->cpBrushContents,
+		NewValues = (CParser_BrushEnumValue*)geRam_Realloc(p->cpBrushContents,
 								  sizeof(*p->cpBrushContents) * (p->cpBrushContentsCount + 1));
 		if	(!NewValues)
 			CParser_Error(p, ERR_OUTOFMEMORY);

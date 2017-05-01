@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef ABOUT_H
@@ -34,6 +33,7 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CAboutDlg)
 	enum { IDD = IDD_ABOUTBOX };
+	CString	m_Information;
 	//}}AFX_DATA
 
 	// ClassWizard generated virtual function overrides
@@ -45,7 +45,6 @@ public:
 // Implementation
 protected:
 	//{{AFX_MSG(CAboutDlg)
-		// No message handlers
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

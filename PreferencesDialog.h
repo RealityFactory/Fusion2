@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #if !defined(AFX_PREFERENCESDIALOG_H__14A85704_E5AB_11D1_A2EA_0000E823F3AA__INCLUDED_)
@@ -48,6 +47,11 @@ public:
 	CColorButton	m_SnapGrid;
 	CColorButton	m_Grid;
 	CColorButton	m_GridBackground;
+	CString	m_HeadersList;
+	CString	m_ObjectsDir;
+	CString	m_PreviewPath;
+	CString	m_TxlName;
+	CString	m_TxlSearchPath;
 	//}}AFX_DATA
 
 

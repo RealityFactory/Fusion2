@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "SelBrushList.h"
@@ -165,5 +164,61 @@ void SelBrushList_Enum (SelBrushList *pList, SelBrushList_Callback Callback, voi
 
 		pBrush = SelBrushList_GetBrush (pList, i);
 		Callback (pBrush, lParam);
+	}
+}
+
+static geBoolean SelBrushList_CenterEnum (Brush *b, void *lParam)
+{
+	geVec3d *center;
+	geVec3d newcenter;
+
+	center = (geVec3d*)lParam;
+	Box3d_GetCenter (&b->BoundingBox, &newcenter);
+	geVec3d_Add(center, &newcenter, center);
+
+	return GE_TRUE;
+}
+
+void	SelBrushList_Center(SelBrushList *pList, geVec3d *center)
+{
+	int listcount;
+	geVec3d average;
+
+	assert(pList && center);
+
+	listcount = SelBrushList_GetSize(pList);
+	if (!listcount)
+	{
+		geVec3d_Clear(center);
+		return;
+	}
+	
+	geVec3d_Clear(&average);
+
+	SelBrushList_Enum(pList, SelBrushList_CenterEnum, &average);
+	
+	geVec3d_Scale(&average, (1 / (float)listcount), center);
+}
+
+void	SelBrushList_GetBoundingBox(SelBrushList *pList, Box3d *pBounds)
+{
+	Box3d	BrushBounds;
+	Brush	*pBrush;	
+	int i;
+
+	assert(pList != NULL);
+	assert(pBounds != NULL);
+
+	if (!pList->FirstFree)
+		return;
+
+	pBrush = SelBrushList_GetBrush (pList, 0);
+	(*pBounds) = pBrush->BoundingBox;
+
+	for (i = 1; i < pList->FirstFree; ++i)
+	{
+		pBrush = SelBrushList_GetBrush(pList, i);
+		BrushBounds	= pBrush->BoundingBox;
+		Box3d_Union(pBounds, &BrushBounds, pBounds);
 	}
 }

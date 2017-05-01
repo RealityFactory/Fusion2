@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -69,6 +68,10 @@ CFusionApp::CFusionApp()
 {
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
+	NumCopiedBrushes=0;
+	NumCopiedEntities=0;
+	CopiedBrushes=NULL;
+	CopiedEntities=NULL;
 }
 
 //	Destruction...
@@ -102,6 +105,8 @@ CFusionApp::~CFusionApp()
 	{
 		Prefs_Destroy (&pResolvedPrefs);
 	}
+
+	ClearClipboard();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -181,7 +186,7 @@ BOOL CFusionApp::InitInstance()
 		// set up the help file
 		char HelpFilePath[MAX_PATH];
 
-		FilePath_AppendName (AppPath, "GEDIT.HLP", HelpFilePath);
+		FilePath_AppendName (AppPath, "WRLDEDIT.HLP", HelpFilePath);
 		//First free the string allocated by MFC at CWinApp startup.
 		//The string is allocated before InitInstance is called.
 		free ((void *)m_pszHelpFilePath);
@@ -214,7 +219,7 @@ BOOL CFusionApp::InitInstance()
 
 		FilePath_AppendName (AppPath, FUSION_INIFILE_NAME, IniFilePath);
 
-		// Set our INI file to GEDIT.INI
+		// Set our INI file
 		free( (void*)m_pszProfileName ) ;
 		m_pszProfileName = _tcsdup( IniFilePath ) ;
 
@@ -270,7 +275,7 @@ BOOL CFusionApp::InitInstance()
 		if( Argument.IsEmpty() )
 		{
 			//	Nope...
-			AfxMessageBox( "Unable to process command line.  No .3DT file specified.", MB_OK );
+			AfxMessageBox( "Error: Unable to process command line. File not specified.", MB_OK + MB_ICONERROR);
 			return FALSE;
 		}
 	}
@@ -325,10 +330,9 @@ BOOL CFusionApp::InitInstance()
 	//	Setup user preferences...
 	InitUserPreferences(pMainFrame);
 
-	
 	//	CHANGE!	04/01/97	John Moore
 	//	We don't care about the app right now...
-	//OnAppAbout();
+	OnAppAbout();
 	//	End of CHANGE
 
 
@@ -399,6 +403,13 @@ BOOL CFusionApp::OnIdle(LONG lCount)
 		if( pFusionDoc != NULL )
 		{
 			pMainFrame->m_wndTabControls->DisableAllTabDialogs();
+
+			if (pMainFrame->mpBrushAttributes)
+				pMainFrame->mpBrushAttributes->UpdateBrushFocus();
+
+			if (pMainFrame->mpFaceAttributes)
+				pMainFrame->mpFaceAttributes->UpdatePolygonFocus();
+
 			pFusionDoc = NULL;
 		}
 	}
@@ -511,7 +522,7 @@ void CFusionApp::CommandLineExport( CString* pMapFileName )
 	else
 	{
 		//	Problem! no MAP file specified...
-		AfxMessageBox( "Unable to export .3DT file.  No map file name specified.\n", MB_OK );
+		AfxMessageBox( "Error: Unable to export world file. No map file name specified.\n", MB_OK + MB_ICONERROR );
 	}
 }
 
@@ -573,16 +584,33 @@ void CFusionApp::OnPreferences()
 {
 	CPreferencesDialog PrefsDlg;
 
+	CString OldObjectsDir;
+
 	PrefsDlg.coBackground = Prefs_GetBackgroundColor (pPrefs);
 	PrefsDlg.coGrid = Prefs_GetGridColor (pPrefs);
 	PrefsDlg.coSnapGrid = Prefs_GetSnapGridColor (pPrefs);
+
+	PrefsDlg.m_HeadersList = Prefs_GetHeadersList (pPrefs);
+	PrefsDlg.m_ObjectsDir = Prefs_GetObjectsDir (pPrefs);
+	PrefsDlg.m_PreviewPath = Prefs_GetPreviewPath (pPrefs);
+	PrefsDlg.m_TxlName = Prefs_GetTxlName (pPrefs);
+	PrefsDlg.m_TxlSearchPath = Prefs_GetTxlSearchPath (pPrefs);
+
+	OldObjectsDir = PrefsDlg.m_ObjectsDir;
 
 	if(	PrefsDlg.DoModal() == IDOK )
 	{
 		Prefs_SetBackgroundColor (pPrefs, PrefsDlg.coBackground);
 		Prefs_SetGridColor (pPrefs, PrefsDlg.coGrid);
 		Prefs_SetSnapGridColor (pPrefs, PrefsDlg.coSnapGrid);
-#if 1
+
+		Prefs_SetHeadersList (pPrefs, PrefsDlg.m_HeadersList);
+		Prefs_SetObjectsDir (pPrefs, PrefsDlg.m_ObjectsDir);
+		Prefs_SetPreviewPath (pPrefs, PrefsDlg.m_PreviewPath);
+		Prefs_SetTxlName (pPrefs, PrefsDlg.m_TxlName);
+		Prefs_SetTxlSearchPath (pPrefs, PrefsDlg.m_TxlSearchPath);
+
+#if 0 // This has been fixed: the directory was being set on opening a file
 		/*
 		  Something in this program has the disturbing tendency to change 
 		  the current directory.  Until I can track that down, I don't want
@@ -598,6 +626,13 @@ void CFusionApp::OnPreferences()
 		if( pDoc != NULL )
 		{
 			pDoc->UpdateAllViews( UAV_ALL3DVIEWS, NULL );
+		}
+		if (OldObjectsDir != PrefsDlg.m_ObjectsDir)
+		{
+			if (pMainFrame)
+				if (pMainFrame->m_wndTabControls)
+					if (pMainFrame->m_wndTabControls->m_pBrushEntityDialog)
+						pMainFrame->m_wndTabControls->m_pBrushEntityDialog->SetupObjectListCombo();
 		}
 	}
 }
@@ -621,4 +656,34 @@ void CFusionApp::OnHelpHowdoi()
 {
 	// TODO: Add your command handler code here
 	
+}
+
+void CFusionApp::ClearClipboard() 
+{
+	int i;
+
+	if (CopiedBrushes)
+	{
+		for (i=0;i<NumCopiedBrushes;i++) {
+			if (CopiedBrushes[i])
+				Brush_Destroy(&(CopiedBrushes[i]));
+		}
+
+		free(CopiedBrushes);
+	}
+
+	if (CopiedEntities)
+	{
+		for (i=0;i<NumCopiedBrushes;i++) {
+			if (CopiedEntities[i])
+				delete (CopiedEntities[i]);
+		}
+
+		free(CopiedEntities);
+	}
+
+	NumCopiedBrushes=0;
+	NumCopiedEntities=0;
+	CopiedBrushes=NULL;
+	CopiedEntities=NULL;
 }

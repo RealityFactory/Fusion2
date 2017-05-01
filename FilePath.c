@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "FilePath.h"
@@ -211,9 +210,17 @@ geBoolean FilePath_SearchForFile (const char *Filename, const char *SearchPath, 
 		}
 		else
 		{
-			strncpy (WorkPath, pPath, (c-pPath));
-			WorkPath[c-pPath] = '\0';
-			++c;
+			if ((c-pPath) < MAX_PATH)
+			{
+				strncpy (WorkPath, pPath, (c-pPath));
+				WorkPath[c-pPath] = '\0';
+				++c;
+			}
+			else
+			{
+				++c;
+				continue;
+			}
 		}
 
 		FilePath_AppendName (WorkPath, Filename, WorkPath);

@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef _BRUSH_H_
@@ -59,7 +58,21 @@ enum BrushTypeFlags
 
 typedef struct tag_FaceList FaceList;
 typedef struct tag_BrushList BrushList;
-typedef struct BrushTag Brush;
+
+typedef struct BrushTag
+{
+	struct BrushTag	*Prev, *Next;
+	FaceList		*Faces;			//null if multibrush
+	BrushList		*BList;			//null if csgbrush
+	unsigned long	Flags;
+	int				Type;
+	int				ModelId;
+	int				GroupId;
+	geFloat			HullSize;		//for hollows
+	uint32			Color;
+	char			*Name;
+	Box3d			BoundingBox;
+} Brush;
 
 //instancing / init
 Brush		*Brush_Create(int Type, const FaceList *fl, const BrushList *BList);
@@ -123,7 +136,7 @@ void		Brush_SetVisible(Brush *b, const geBoolean state);
 void		Brush_SetLocked(Brush *b, const geBoolean state);
 void		Brush_SetHint(Brush *b, const geBoolean state);
 void		Brush_SetArea(Brush *b, const geBoolean state);
-void		Brush_SetTranslucent(Brush *b, const geBoolean state);
+//void		Brush_SetTranslucent(Brush *b, const geBoolean state);
 void		Brush_SetEmpty(Brush *b, const geBoolean state);
 void		Brush_SetHollowCut(Brush *b, const geBoolean bState);
 void		Brush_SetFlocking (Brush *b, const geBoolean bState);
@@ -145,10 +158,16 @@ void		Brush_SnapShearNearest(Brush *b, geFloat gsize, int sides, int inidx, int 
 void		Brush_SnapScaleNearest(Brush *b, geFloat gsize, int sides, int inidx, geVec3d *fnscale, int *ScaleNum);
 Face		*Brush_RayCast(const Brush *b, geVec3d *BrushOrg, geVec3d *dir, geFloat *dist);
 void		Brush_Move(Brush *b, const geVec3d *trans);
-void		Brush_Scale3d(Brush *b, const geVec3d *scalevec);
+//MRB BEGIN
+//void		Brush_Scale3d(Brush *b, const geVec3d *scalevec);
+geBoolean		Brush_Scale3d(Brush *b, const geVec3d *scalevec);
+//MRB END
 void		Brush_Transform (Brush *b, const geXForm3d *pXfm);
 void		Brush_Rotate (Brush *b, const geXForm3d *pXfmRotate, const geVec3d *pCenter);
-void		Brush_Scale (Brush *b, float ScaleFactor);
+//MRB BEGIN
+//void		Brush_Scale (Brush *b, float ScaleFactor);
+geBoolean		Brush_Scale (Brush *b, float ScaleFactor);
+//MRB END
 void		Brush_Shear(Brush *b, const geVec3d *ShearVec, const geVec3d *ShearAxis);
 void		Brush_ShearFixed(Brush *b, float dx, float dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum);
 void		Brush_Bound(Brush *b);
@@ -218,8 +237,12 @@ void	BrushList_RebuildHollowFaces(BrushList *inList, int mid, Brush_CSGCallback 
 void	BrushList_ClearAllCSG (BrushList *pList);
 void	BrushList_ClearCSGAndHollows(BrushList *inList, int mid);
 void	BrushList_Move(BrushList *pList, const geVec3d *trans);
-void	BrushList_Scale (BrushList *pList, float ScaleFactor);
-void	BrushList_Scale3d(BrushList *pList, const geVec3d *trans);
+//MRB BEGIN
+//void	BrushList_Scale (BrushList *pList, float ScaleFactor);
+//void	BrushList_Scale3d(BrushList *pList, const geVec3d *trans);
+geBoolean	BrushList_Scale (BrushList *pList, float ScaleFactor);
+geBoolean	BrushList_Scale3d(BrushList *pList, const geVec3d *trans);
+//MRB END
 void	BrushList_Transform(BrushList *pList, const geXForm3d *pXfm);
 void	BrushList_Rotate(BrushList *pList, const geXForm3d *pXfmRotate, const geVec3d *pCenter);
 void	BrushList_Shear(BrushList *pList, const geVec3d *ShearVec, const geVec3d *ShearAxis);

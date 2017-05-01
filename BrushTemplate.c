@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "BrushTemplate.h"
@@ -468,7 +467,8 @@ Brush *BrushTemplate_CreateCone (const BrushTemplate_Cone *pTemplate)
 		FaceVerts[0]	=CurPoint;
 
 		f	=Face_Create(3, FaceVerts, 0);
-		FaceList_AddFace(fl, f);
+		if (f)
+			FaceList_AddFace(fl, f);
 
 		OldPoint		=CurPoint;
 

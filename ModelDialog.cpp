@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -133,14 +132,14 @@ BOOL CEventKeyEdit::OnInitDialog()
     switch (pEditInfo->AddOrEdit)
     {
         case 'A' :
-            SetWindowText ("Add event");
+            SetWindowText ("Add Event");
             m_EventTime.SetWindowText ("");
             m_EventString.SetWindowText ("");
             break;
         case 'E' :
             char StringTime[20];
 
-            SetWindowText ("Edit event");
+            SetWindowText ("Edit Event");
             sprintf (StringTime, "%.2f", pEditInfo->Time);
             m_EventTime.SetWindowText (StringTime);
             m_EventString.SetWindowText (pEditInfo->EventString);
@@ -219,17 +218,9 @@ void CModelDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SETMODELORIGIN, m_SetModelOrigin);
 	DDX_Control(pDX, IDC_CLONEMODEL, m_CloneModel);
 	DDX_Control(pDX, IDC_LOCKORIGIN, m_cbLockOrigin);
-	DDX_Control(pDX, IDI_STOP, m_Stop);
-	DDX_Control(pDX, IDI_RRSTART, m_rrStart);
-	DDX_Control(pDX, IDI_RRFRAME, m_rrFrame);
-	DDX_Control(pDX, IDI_PLAY, m_Play);
-	DDX_Control(pDX, IDI_FFFRAME, m_ffFrame);
-	DDX_Control(pDX, IDI_FFEND, m_ffEnd);
 	DDX_Control(pDX, IDC_SELECT, m_Select);
 	DDX_Control(pDX, IDC_REMOVEBRUSHES, m_RemoveBrushes);
-	DDX_Control(pDX, IDC_EDITMODEL, m_EditModel);
 	DDX_Control(pDX, IDC_EDITKEY, m_EditKey);
-	DDX_Control(pDX, IDC_EDITEVENT, m_EditEvent);
 	DDX_Control(pDX, IDC_DESELECT, m_Deselect);
 	DDX_Control(pDX, IDC_DELETEMODEL, m_DeleteModel);
 	DDX_Control(pDX, IDC_DELETEKEY, m_DeleteKey);
@@ -263,9 +254,7 @@ BEGIN_MESSAGE_MAP(CModelDialog, CDialog)
 	ON_BN_CLICKED(IDC_LOCKORIGIN, OnLockorigin)
 	ON_BN_CLICKED(IDC_ADDEVENT, OnAddevent)
 	ON_BN_CLICKED(IDC_DELETEEVENT, OnDeleteevent)
-	ON_BN_CLICKED(IDC_EDITEVENT, OnEditevent)
 	ON_BN_CLICKED(IDC_EDITKEY, OnEditkey)
-	ON_BN_CLICKED(IDC_EDITMODEL, OnEditmodel)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -300,14 +289,14 @@ int CModelDialog::GetUniqueModelName
 		{
 			if (ModelName == "")
 			{
-				rslt = AfxMessageBox( IDS_NOBLANKMODEL, MB_OKCANCEL ) ;
+				rslt = AfxMessageBox( IDS_NOBLANKMODEL, MB_ICONINFORMATION + MB_OKCANCEL ) ;
 			}
 			else if (ModelList_FindByName (pModelInfo->Models, ModelName) != NULL)
 			{
 				CString s;
 
 				s.Format( IDS_MODELEXISTS, ModelName);
-				rslt = MessageBox (s, NULL, MB_OKCANCEL);
+				rslt = MessageBox (s, NULL, MB_ICONINFORMATION + MB_OKCANCEL);
 			}
 			else
 			{
@@ -325,24 +314,26 @@ void CModelDialog::OnAddmodel()
 
 	if (SelBrushList_GetSize (pDoc->pSelBrushes) == 0)
 	{
-		MessageBox ("No brushes selected.", "Add Model", MB_ICONEXCLAMATION | MB_OK);
+		AfxMessageBox ("No brushes selected!", MB_ICONEXCLAMATION | MB_OK);
 		return;
 	}
 
 	// See if any of the selected brushes already belong to a model
 	if (SelectedBrushesInOtherModels (0))
 	{
-		if (MessageBox (ModelPrompt, "Add Model", MB_ICONEXCLAMATION | MB_YESNO | MB_DEFBUTTON2) != IDYES)
+		if (AfxMessageBox (ModelPrompt, MB_ICONEXCLAMATION | MB_YESNO | MB_DEFBUTTON2) != IDYES)
 		{
 			return;
 		}
 	}
 
 	ModelName = "";
-	rslt = GetUniqueModelName ("Enter model name", ModelName);
+	rslt = GetUniqueModelName ("Model Name", ModelName);
 
 	if (rslt == IDOK)
 	{
+		pDoc->SetModifiedFlag();
+
 		// add the new model to the list.
 		// This will set the model id fields in the model's brushes
 		if (ModelList_Add (pModelInfo->Models, ModelName, pDoc->pSelBrushes))
@@ -376,6 +367,7 @@ void CModelDialog::OnDeletemodel()
 	{
 		ModelList_Remove (pModelInfo->Models, pModelInfo->CurrentModel, Level_GetBrushes (pDoc->pLevel));
 		PrivateUpdate ();
+		pDoc->SetModifiedFlag();
 		pDoc->RebuildTrees ();
 	}
 }
@@ -416,7 +408,7 @@ void CModelDialog::OnAddbrushes()
 	pModel = GetCurrentModel ();
 	if (pModel == NULL)
 	{
-		MessageBox ("No brushes selected.", "Add model brushes", MB_OK);
+		AfxMessageBox ("No brushes selected!", MB_OK + MB_ICONEXCLAMATION);
 		return;
 	}
 	
@@ -427,7 +419,7 @@ void CModelDialog::OnAddbrushes()
 		// prompt user
 		int rslt;
 
-		rslt = MessageBox (ModelPrompt, "Add model brushes", MB_ICONQUESTION | MB_YESNO | MB_DEFBUTTON2);
+		rslt = AfxMessageBox (ModelPrompt, MB_ICONQUESTION | MB_YESNO | MB_DEFBUTTON2);
 		if (rslt != IDYES)
 		{
 			AddBrushes = FALSE;
@@ -436,6 +428,8 @@ void CModelDialog::OnAddbrushes()
 
 	if (AddBrushes)
 	{
+		pDoc->SetModifiedFlag();
+
 		Model_AddBrushes (pModel, pDoc->pSelBrushes);
 
 		// make sure that all model brushes are selected if this is a locked model...
@@ -457,6 +451,7 @@ void CModelDialog::OnRemovebrushes()
 	pModel = GetCurrentModel ();
 	if (pModel != NULL)
 	{
+		pDoc->SetModifiedFlag();
 		Model_RemoveBrushes (pModel, pDoc->pSelBrushes);
 		pDoc->RebuildTrees ();
 	}
@@ -820,6 +815,8 @@ void CModelDialog::OnSelendokModelcombo()
 {
 	if (pDoc != NULL)
 	{
+		pDoc->SetModifiedFlag();
+
 		int Index;
 
 		Index = m_ModelCombo.GetCurSel ();
@@ -901,13 +898,15 @@ void CModelDialog::AddKey()
 	*/
 	float Time;
 	Model *pModel;
-	CString const Prompt = "Enter key time";
+	CString const Prompt = "Key Time";
 	CString Value;
 	CFloatKeyEditDlg *pDlg;
 	int SaveNumKeys;
 	geBoolean GotKeyTime;
 	geXForm3d XfmCurrent;
 	
+	pDoc->SetModifiedFlag();
+
 	pModel = GetCurrentModel ();
 
 	// shouldn't be able to get here w/o a selected model!
@@ -945,7 +944,7 @@ void CModelDialog::AddKey()
 
 		if (Time <= 0.0f)
 		{
-			rslt = MessageBox ("Key time must be greater than 0.", "Add key", MB_ICONINFORMATION | MB_OKCANCEL);
+			rslt = AfxMessageBox ("Key time must be greater than 0.", MB_ICONINFORMATION | MB_OKCANCEL);
 			if (rslt == IDCANCEL)
 			{
 				ReverseDeltas (pModel);
@@ -960,7 +959,7 @@ void CModelDialog::AddKey()
 
 			msg.Format ("A key with time %s already exists.\rDo you want to replace it?", Value);
 			
-			rslt = MessageBox (msg, "Add key", MB_ICONQUESTION | MB_YESNOCANCEL);
+			rslt = AfxMessageBox (msg, MB_ICONQUESTION | MB_YESNOCANCEL);
 			switch (rslt)
 			{
 				case IDCANCEL :
@@ -1090,21 +1089,10 @@ void CModelDialog::EnableControls
 	)
 // This function called to enable/disable dialog controls
 {
-	#pragma message ("VCR control buttons disabled")
-    // Permamently disable the VCR control buttons...
-	m_Stop.EnableWindow (FALSE);
-	m_rrStart.EnableWindow (FALSE);
-	m_rrFrame.EnableWindow (FALSE);
-	m_Play.EnableWindow (FALSE);
-	m_ffFrame.EnableWindow (FALSE);
-	m_ffEnd.EnableWindow (FALSE);
 
 	m_Select.EnableWindow (Enable);
 	m_RemoveBrushes.EnableWindow (Enable);
 	m_AddModel.EnableWindow (Enable);
-
-	#pragma message ("Edit Model button disabled")
-	m_EditModel.EnableWindow (FALSE);
 
 	m_DeleteModel.EnableWindow (Enable);
 
@@ -1112,9 +1100,6 @@ void CModelDialog::EnableControls
 
 	m_DeleteKey.EnableWindow (Enable);
 	m_AddEvent.EnableWindow (Enable);
-
-	#pragma message ("Edit Event button disabled")
-	m_EditEvent.EnableWindow (FALSE);
 
 	m_DeleteEvent.EnableWindow (Enable);
 	m_Deselect.EnableWindow (Enable);
@@ -1144,9 +1129,8 @@ void CModelDialog::EnableControls
     	CurSel = GetCurrentLbKey (&Time, &KeyType);
 
 	    m_EditKey.EnableWindow ((KeyType == KEY_TYPE_KEYFRAME));
-#pragma message ("Editing events disabled")
-//	    m_EditEvent.EnableWindow ((KeyType == KEY_TYPE_EVENT));
-	    m_DeleteKey.EnableWindow ((KeyType == KEY_TYPE_KEYFRAME));
+
+			m_DeleteKey.EnableWindow ((KeyType == KEY_TYPE_KEYFRAME));
 	    m_DeleteEvent.EnableWindow ((KeyType == KEY_TYPE_EVENT));
     }
 }
@@ -1164,7 +1148,7 @@ void CModelDialog::OnAnimate()
 		Model_SetAnimating (pModel, GE_FALSE);
 		Animating = GE_FALSE;
 		EnableControls (TRUE, pModel);
-		m_AnimateButton.SetWindowText ("&Animate");
+		m_AnimateButton.SetWindowText ("Insert");
 		m_AnimateButton.EnableWindow (TRUE);
 		AddKey ();
 	}
@@ -1177,7 +1161,7 @@ void CModelDialog::OnAnimate()
 			Model_SetAnimating (pModel, GE_TRUE);
 			EnableControls (FALSE, pModel);
 			geXForm3d_SetIdentity (&XfmDelta);
-			m_AnimateButton.SetWindowText ("Stop &Animating");
+			m_AnimateButton.SetWindowText ("Done");
 			m_AnimateButton.EnableWindow (TRUE);
 
 			OnSelectBrushes ();  // selects the model and all of its brushes
@@ -1257,6 +1241,8 @@ void CModelDialog::ReverseDeltas
 	  Model *pModel
 	)
 {
+	pDoc->SetModifiedFlag();
+
 	// This code figures out where we are, then calls Model_TransformFromTo
 	// to put us back to the current key.
 	geVec3d VecXlate;
@@ -1298,6 +1284,8 @@ void CModelDialog::OnDeletekey()
 		int CurSel;
 		geFloat Time;
 		int KeyType;
+
+		pDoc->SetModifiedFlag();
 
 		CurSel = GetCurrentLbKey (&Time, &KeyType);
 
@@ -1353,14 +1341,13 @@ void CModelDialog::OnSelchangeKeyslist()
 	pModel = GetCurrentModel ();
 	assert (pModel != NULL);	// MUST exist if we get here
 
+	pDoc->SetModifiedFlag();
+
 	CurSel = GetCurrentLbKey (&Time, &KeyType);
     switch (KeyType)
     {
         case KEY_TYPE_EVENT :
 	        m_EditKey.EnableWindow (FALSE);
-#pragma message ("Editing events disabled")
-	        m_EditEvent.EnableWindow (FALSE);
-//	        m_EditEvent.EnableWindow (TRUE);
 	        m_DeleteKey.EnableWindow (FALSE);
 	        m_DeleteEvent.EnableWindow (TRUE);
             break;
@@ -1387,7 +1374,6 @@ void CModelDialog::OnSelchangeKeyslist()
 
 	        m_EditKey.EnableWindow (TRUE);
 	        m_DeleteKey.EnableWindow (TRUE);
-	        m_EditEvent.EnableWindow (FALSE);
 	        m_DeleteEvent.EnableWindow (FALSE);
 
             break;
@@ -1402,6 +1388,8 @@ void CModelDialog::OnLocked()
 {
 	int Locked;
 	Model *pModel;
+
+	pDoc->SetModifiedFlag();
 
 	Locked = m_cbLocked.GetCheck ();
 	pModel = GetCurrentModel ();
@@ -1423,6 +1411,8 @@ void CModelDialog::OnClonemodel()
 
 	pModel = GetCurrentModel ();
 	assert (pModel != NULL);
+
+	pDoc->SetModifiedFlag();
 
 	// Create default unique name.
 	pName = Model_GetName (pModel);
@@ -1456,7 +1446,7 @@ void CModelDialog::OnClonemodel()
 		pNewBrushes = BrushList_Create ();
 		if (pNewBrushes == NULL)
 		{
-			MessageBox ("Out of memory.", "Clone model.", MB_OK | MB_ICONEXCLAMATION);
+			AfxMessageBox ("Error: Out of memory.", MB_OK | MB_ICONERROR);
 			return;
 		}
 
@@ -1518,7 +1508,7 @@ void CModelDialog::OnClonemodel()
 		}
 		else
 		{
-			MessageBox ("Error cloning model.", "Clone model.", MB_OK | MB_ICONEXCLAMATION);
+			AfxMessageBox ("Error: Unable to clone model.", MB_OK | MB_ICONERROR);
 		}
 
 		if (pNewBrushes != NULL)
@@ -1584,6 +1574,8 @@ geBoolean CModelDialog::StartSettingOrigin
 
 	if (pDoc->CreateEntityFromName ("ModelOrigin", Ent))
 	{
+		pDoc->SetModifiedFlag();
+
 		geVec3d org;
 		CEntityArray *Entities;
 
@@ -1620,6 +1612,8 @@ void CModelDialog::StopSettingOrigin
 
 	assert (pModel != NULL);
 	assert (EntityIndex != -1);
+
+	pDoc->SetModifiedFlag();
 
 	// reset the deltas...
 	geXForm3d_SetIdentity (&XfmDelta);
@@ -1674,7 +1668,7 @@ BOOL CModelDialog::OnInitDialog()
 	rParent.top = rTabControl.bottom + FTC_BORDER_SIZE_TOP ;
 	rParent.left = rParent.left + FTC_BORDER_SIZE_LEFT ;
 	rParent.right = rParent.right - FTC_BORDER_SIZE_RIGHT ;
-	rParent.bottom = rParent.bottom - FTC_BORDER_SIZE_BOTTOM ;
+	rParent.bottom = rParent.bottom - rTabControl.bottom - FTC_BORDER_SIZE_BOTTOM ;
 	
 	SetWindowPos
 	( 
@@ -1729,6 +1723,8 @@ void CModelDialog::OnDeleteevent()
 
 		if ((CurSel != LB_ERR) && (KeyType == KEY_TYPE_EVENT))
 		{
+			pDoc->SetModifiedFlag();
+			
 			geXForm3d XfmFrom, XfmTo;
 			
 			geXForm3d_SetIdentity (&XfmFrom);
@@ -1782,7 +1778,9 @@ void CModelDialog::OnEditkey()
 		return;
 	}
 
-	static const CString Prompt = "Enter new key time";
+	pDoc->SetModifiedFlag();
+
+	static const CString Prompt = "Key Time";
 	CString Value;
 
 	Value.Format ("%f", OldTime);
@@ -1803,7 +1801,7 @@ void CModelDialog::OnEditkey()
 
 			if (NewTime <= 0.0f)
 			{
-				MessageBox ("Can't replace the first key.", "Edit key", MB_ICONEXCLAMATION | MB_OK);
+				AfxMessageBox ("You cannot replace the first key.", MB_ICONINFORMATION | MB_OK);
 				GotKeyTime = GE_FALSE;
 			}
 			else if (Model_GetKeyframe (pModel, NewTime, &XfmTemp))
@@ -1813,7 +1811,7 @@ void CModelDialog::OnEditkey()
 
 				msg.Format ("A key with time %s already exists.\rDo you want to replace it?", Value);
 				
-				rslt = MessageBox (msg, "Edit key", MB_ICONQUESTION | MB_YESNOCANCEL);
+				rslt = AfxMessageBox (msg, MB_ICONQUESTION | MB_YESNOCANCEL);
 				switch (rslt)
 				{
 					case IDCANCEL :

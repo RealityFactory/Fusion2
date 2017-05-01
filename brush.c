@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "brush.h"
@@ -49,7 +48,7 @@
 	areas away.  Only drastic content changes will cause this. (cuts)
 
 	There's alot of work done to keep the data structures hidden to other files.  This
-	is a standard practice here at WildTangent and brush, face, facelist are all good
+	is a standard practice here at Eclipse and brush, face, facelist are all good
 	examples of how "opaque" objects work.
 */
 
@@ -121,21 +120,6 @@ enum
 	befHollow		= (1<<5),
 	befRing			= (1<<6)
 };
-
-typedef struct BrushTag
-{
-	struct BrushTag	*Prev, *Next;
-	FaceList		*Faces;			//null if multibrush
-	BrushList		*BList;			//null if csgbrush
-	unsigned long	Flags;
-	int				Type;
-	int				ModelId;
-	int				GroupId;
-	geFloat			HullSize;		//for hollows
-	uint32			Color;
-	char			*Name;
-	Box3d			BoundingBox;
-} Brush;
 
 typedef void (*BrushList_FlagCB)(Brush *pBrush, const geBoolean bState);
 typedef void (*BrushList_IntCB)(Brush *pBrush, const int iVal);
@@ -827,6 +811,7 @@ void	Brush_SetArea(Brush *b, const geBoolean bState)
 	b->Flags	=(bState)? b->Flags|BRUSH_AREA : b->Flags&~BRUSH_AREA;
 }
 
+/*
 void	Brush_SetTranslucent(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
@@ -838,6 +823,7 @@ void	Brush_SetTranslucent(Brush *b, const geBoolean bState)
 
 	b->Flags	=(bState)? b->Flags|BRUSH_TRANSLUCENT : b->Flags&~BRUSH_TRANSLUCENT;
 }
+*/
 
 //brushes written to gbsplib should be convex
 void Brush_WriteToMap(Brush const *b, FILE *ofile, geBoolean VisDetail)
@@ -1086,6 +1072,10 @@ DoneLoad:
 
 void	Brush_Resize(Brush *b, float dx, float dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum)
 {
+//MRB BEGIN
+	Brush* pClone;
+//MRB END
+
 	int		i;
 	geVec3d	FixOrg, BrushOrg, ScaleVec;
 
@@ -1157,7 +1147,14 @@ void	Brush_Resize(Brush *b, float dx, float dy, int sides, int inidx, geVec3d *f
 
 	(*ScaleNum)++;
 
-	Brush_Scale3d(b, &ScaleVec);
+//MRB BEGIN
+//	Brush_Scale3d(b, &ScaleVec);
+
+	pClone = Brush_Clone(b);
+	if (Brush_Scale3d(pClone, &ScaleVec))
+		Brush_Scale3d(b, &ScaleVec);
+	Brush_Destroy(&pClone);
+//MRB END
 
 	//translate back
 	geVec3d_Inverse(&FixOrg);
@@ -1377,6 +1374,10 @@ void Brush_SnapScaleNearest(Brush *b, geFloat gsize, int sides, int inidx, geVec
 
 void Brush_ResizeFinal(Brush *b, int sides, int inidx, geVec3d *fnscale)
 {
+//MRB BEGIN
+	Brush* pClone;
+//MRB END
+
 	geVec3d	FixOrg, BrushOrg;
 
 	geVec3d_Add(&b->BoundingBox.Min, &b->BoundingBox.Max, &BrushOrg);
@@ -1440,7 +1441,14 @@ void Brush_ResizeFinal(Brush *b, int sides, int inidx, geVec3d *fnscale)
 
 	VectorToSUB(*fnscale, inidx)	=1.0f;
 
-	Brush_Scale3d(b, fnscale);
+//MRB BEGIN
+//	Brush_Scale3d(b, fnscale);
+
+	pClone = Brush_Clone(b);
+	if (Brush_Scale3d(pClone, fnscale))
+		Brush_Scale3d(b, fnscale);
+	Brush_Destroy(&pClone);
+//MRB END
 
 	//translate back
 	geVec3d_Inverse(&FixOrg);
@@ -1594,14 +1602,22 @@ void	Brush_Center(const Brush *b, geVec3d *center)
 	Box3d_GetCenter (&b->BoundingBox, center);
 }
 
-void	Brush_Scale (Brush *b, float ScaleFactor)
+//MRB BEGIN
+//void	Brush_Scale (Brush *b, float ScaleFactor)
+geBoolean	Brush_Scale (Brush *b, float ScaleFactor)
 {
+//MRB BEGIN
+	geBoolean Success;
+//MRB END
 
 	assert (b != NULL);
 
 	b->HullSize	*= ScaleFactor;
 	if (b->Type == BRUSH_MULTI)
 	{
+//MRB BEGIN
+	Success = 
+//MRB END
 		BrushList_Scale (b->BList, ScaleFactor);
 	}
 	else
@@ -1609,26 +1625,50 @@ void	Brush_Scale (Brush *b, float ScaleFactor)
 		geVec3d vecScale;
 
 		geVec3d_Set (&vecScale, ScaleFactor, ScaleFactor, ScaleFactor);
+//MRB BEGIN
+	Success = 
+//MRB END
 		FaceList_Scale (b->Faces, &vecScale);
 	}
 	Brush_Bound (b);
+
+//MRB BEGIN
+	return Success;
+//MRB END
 }
 
-void	Brush_Scale3d(Brush *b, const geVec3d *mag)
+//MRB BEGIN
+//void	Brush_Scale3d(Brush *b, const geVec3d *mag)
+geBoolean	Brush_Scale3d(Brush *b, const geVec3d *mag)
+//MRB END
 {
+//MRB BEGIN
+	geBoolean Success;
+//MRB END
+
 	assert(b);
 	assert(mag);
 
 	if(b->Type==BRUSH_MULTI)
 	{
+//MRB BEGIN
+	Success = 
+//MRB END
 		BrushList_Scale3d(b->BList, mag);
 	}
 	else
 	{
+//MRB BEGIN
+	Success = 
+//MRB END
 		FaceList_Scale(b->Faces, mag);
 	}
 
 	Brush_Bound(b);
+
+//MRB BEGIN
+	return Success;
+//MRB END
 }
 
 void	Brush_Shear(Brush *b, const geVec3d *ShearVec, const geVec3d *ShearAxis)
@@ -3172,7 +3212,7 @@ void	Brush_SealFaces(Brush **b)
 	}
 	if(FaceList_GetNumFaces(fl) < 4)
 	{
-		ConPrintf("Overconstrained brush clipped away...\n");
+//		ConPrintf("Overconstrained brush clipped away...\n");
 		Brush_Destroy(b);
 		FaceList_Destroy(&fl);
 	}
@@ -3436,17 +3476,31 @@ void	BrushList_Transform(BrushList *pList, const geXForm3d *pXfm)
 	}
 }
 
-void	BrushList_Scale (BrushList *pList, float ScaleFactor)
+//MRB BEGIN
+//void	BrushList_Scale (BrushList *pList, float ScaleFactor)
+geBoolean	BrushList_Scale (BrushList *pList, float ScaleFactor)
 {
+	geBoolean Success = 1;
+//MRB END
 	Brush *b;
 	for (b = pList->First; b != NULL; b=b->Next)
 	{
+//MRB BEGIN
+		Success = Success &&
+//MRB END
 		Brush_Scale (b, ScaleFactor);
 	}
+//MRB BEGIN
+	return Success;
+//MRB END
 }
-		
-void	BrushList_Scale3d(BrushList *pList, const geVec3d *trans)
+
+//MRB BEGIN		
+//void	BrushList_Scale3d(BrushList *pList, const geVec3d *trans)
+geBoolean	BrushList_Scale3d(BrushList *pList, const geVec3d *trans)
 {
+	geBoolean Success = 1;
+//MRB END
 	Brush	*b;
 
 	assert(pList);
@@ -3454,8 +3508,14 @@ void	BrushList_Scale3d(BrushList *pList, const geVec3d *trans)
 
 	for(b=pList->First;b;b=b->Next)
 	{
+//MRB BEGIN
+		Success = Success &&
+//MRB END
 		Brush_Scale3d(b, trans);
 	}
+//MRB BEGIN
+	return Success;
+//MRB END
 }
 
 void	BrushList_Shear(BrushList *pList, const geVec3d *ShearVec, const geVec3d *ShearAxis)
@@ -3900,7 +3960,7 @@ void	Brush_SnapShearNearest(Brush *b, geFloat gsize, int sides, int inidx, int s
 				int	sidemask	=((1 + axidx[inidx][i])|((1 + axidx[inidx][i])<<1)<<axidx[inidx][i]);
 
 #ifdef _DEBUG
-				ConPrintf("Axis crossover detected...\n");
+//				ConPrintf("Axis crossover detected...\n");
 #endif
 
 				//make sure this is a snapping axis
@@ -3928,7 +3988,7 @@ void	Brush_SnapShearNearest(Brush *b, geFloat gsize, int sides, int inidx, int s
 			Brush_Move(b, &FixOrg);
 			if(incr > 22)
 			{
-				ConPrintf("Please inform Kenneth you got this message!\n");
+//				ConPrintf("Please inform Kenneth you got this message!\n");
 				return;
 			}
 			continue;
@@ -3962,7 +4022,7 @@ void	Brush_SnapShearNearest(Brush *b, geFloat gsize, int sides, int inidx, int s
 			Brush_Move(b, &FixOrg);
 			if(incr > 20)
 			{
-				ConPrintf("WARNING:  Shear snap inaccurate!\n");
+//				ConPrintf("WARNING:  Shear snap inaccurate!\n");
 			}
 			break;
 		}

@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -97,7 +96,7 @@ int CEntitiesDialog::EditEntity( CEntityArray& Entities, int CurrentEntity, CFus
 			{
 				if (pEnt->GetClassname () != EntityClassname)
 				{
-					AfxMessageBox ("To edit multiple entities, they must all be of the same type.");
+					AfxMessageBox ("Only multiple entities of the same type can be edited simultaniously.", MB_OK + MB_ICONINFORMATION);
 					return CurrentEntity;
 				}
 			}

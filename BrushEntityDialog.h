@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -51,13 +50,29 @@ public:
 	geBoolean GetCurrentEntityName (char *pEntityName);
 	geBoolean GetCurrentObjectName (char *pObjName);
 
+	void PlaceOmniLight() { OnPlaceOmniLight(); };
+	void PlaceSpotLight() { OnPlaceSpotLight(); };
+	void PlaceSunLight() { OnPlaceSunLight(); };
+
 // Dialog Data
 	//{{AFX_DATA(CBrushEntityDialog)
 	enum { IDD = IDD_BRUSH_ENTITY_DIALOG };
+	CButton	m_SunLightButton;
+	CButton	m_SpotLightButton;
+	CButton	m_OmniLightButton;
 	CStatic	m_LblBrushes;
 	CStatic	m_LblEntities;
+	CButton m_CubeButton;
+	CButton m_CylinderButton;
+	CButton m_ConeButton;
+	CButton m_SpheroidButton;
+	CButton m_StaircaseButton;
+	CButton m_ArchButton;
+	CButton m_EntityButton;
+	CComboBox m_EntityCombo;
+	CButton	m_PlaceObjectButton;
+	CComboBox	m_ObjectListCombo;
 	//}}AFX_DATA
-
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -81,25 +96,17 @@ protected:
 	afx_msg void OnPlaceObject();
 	afx_msg void OnEntities();
 	afx_msg void OnSelchangeEntitycombo();
+	afx_msg void OnPlaceOmniLight();
+	afx_msg void OnPlaceSpotLight();
+	afx_msg void OnPlaceSunLight();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:
 	//	Brushes
-	CButton m_ConeButton;
-	CButton m_ArchButton;
-	CButton m_StaircaseButton;
-	CButton m_CylinderButton;
-	CButton m_SpheroidButton;
-	CButton m_CubeButton;
 	
 	//	Entitites
-	CButton m_EntityButton;
-	CComboBox m_EntityCombo;
 
 	// combo box containing list of library objects
-	CComboBox	m_ObjectListCombo;
-	// button that user clicks to place an object within the level
-	CButton	m_PlaceObjectButton;
 
 	CFusionTabControls* m_pParentCtrl;
 	CFusionDoc* m_pFusionDoc;

@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef SELBRUSHLIST_H
@@ -40,6 +39,8 @@ geBoolean SelBrushList_Remove (SelBrushList *pList, Brush *pBrush);
 void SelBrushList_RemoveAll (SelBrushList *pList);
 int SelBrushList_GetSize (SelBrushList *pList);
 Brush *SelBrushList_GetBrush (SelBrushList *pList, int BrushIndex);
+void	SelBrushList_Center(SelBrushList *pList, geVec3d *center);
+void	SelBrushList_GetBoundingBox(SelBrushList *pList, Box3d *pBounds);
 
 void SelBrushList_Enum (SelBrushList *pList, SelBrushList_Callback Callback, void *lParam);
 

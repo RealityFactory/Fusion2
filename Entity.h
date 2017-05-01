@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef ENTITY_H_
@@ -55,8 +54,9 @@ public:
 	void Export (FILE *OutFile);
 	void Move (geVec3d const *v);
 	void DoneMove (double GridSize, const EntityTable *pEntityDefs);
-	void Rotate (geXForm3d const *pXfmRotate, geVec3d const *pCenter, const EntityTable *pEntityDefs);
+	void DoneRotate (geXForm3d const *pXfmRotate, geVec3d const *pCenter, const EntityTable *pEntityDefs);
 	void Scale (geFloat ScaleFactor, const EntityTable *pEntityDefs);
+	void Scale3d(geVec3d *ScaleVector, const EntityTable *pEntityDefs);
 
 	void SetKeyValue (const char *Key, const char *Value);
 	BOOL GetKeyValue (const char *Key, char *Value) const;

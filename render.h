@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef _RENDER_H_
@@ -57,7 +56,6 @@ enum
 	GRID_TYPE_METRIC
 };
 
-typedef struct ViewVarsTag ViewVars;
 typedef struct GradientsTag Gradients;
 typedef struct EdgeAsmTag EdgeAsm;
 
@@ -68,6 +66,35 @@ typedef struct SizeInfoTag
 	uint8	*TexData, *ScreenData;
 	uint32	*ZData;
 } SizeInfo;
+
+typedef struct EdgeTag Edge;
+
+typedef struct ViewVarsTag
+{
+	struct
+	{
+		BITMAPINFOHEADER	bmiHeader;
+		RGBQUAD				bmiColors[256];
+	} ViewBMI;
+
+	HBITMAP		hDibSec;
+	uint32		Flags;
+	uint8		*pBits;
+	uint32		*pZBuffer;
+	uint32		ViewType;
+	geFloat	ZoomFactor;//, GridInterval;
+
+	geVec3d		Vpn, Vright, Vup, CamPos;
+	geFloat	roll, pitch, yaw;
+	Plane		FrustPlanes[4];
+	geFloat	MaxScreenScaleInv, FieldOfView;
+	geFloat	XCenter, YCenter, MaxScale;
+	geFloat	SpeedScale, YScreenScale, XScreenScale;
+	long		Width, Height;
+	SizeInfo	*WadSizes;
+	Edge		*NewEdges, **RemoveEdges;
+	long		FacesDone;
+} ViewVars;
 
 #ifdef __cplusplus
 extern "C" {
@@ -106,6 +133,7 @@ geVec3d		Render_XFormVert(const ViewVars *v, const geVec3d *pin);
 void		Render_UpdateTexInfoId(Plane *p, uint16 TId);
 void		Render_GetPitchRollYaw( const ViewVars * v, geVec3d * pPRY ) ;
 void		Render_SetPitchRollYaw( ViewVars * v, const geVec3d * pPRY ) ;
+geFloat Render_NormalizeAngle (float Rads) ;
 geBoolean	Render_UpIsDown (const ViewVars *v);
 void		Render_RenderBrushSelFacesOrtho(ViewVars *v, Brush *b, HDC ViewDC);
 void		Render_RenderBrushSheetFacesOrtho(ViewVars *Cam, Brush *b, HDC ViewDC);

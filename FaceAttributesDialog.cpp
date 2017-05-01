@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -24,6 +23,7 @@
 
 #include "FUSIONDoc.h"  // icko!
 
+#include "mainfrm.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -42,6 +42,10 @@ static char THIS_FILE[] = __FILE__;
 #define UNIT_SCALE_INCR	0.05f
 #define UNIT_ANGLE_INCR	1
 
+
+static CString TEXT_NUM_FACES = "Number of Faces Selected: ";
+
+static BOOL DisplayingNULL;
 
 // This table keeps track of the latest selection used in the combo box
 // so that it can be set correctly when the dialog is closed and re-opened.
@@ -87,7 +91,8 @@ static void SetComboSelection (const CComboBox &Combo)
 */
 
 
-CFaceAttributesDialog::CFaceAttributesDialog(CFusionDoc* pFusionDoc, CWnd* pParent)
+//CFaceAttributesDialog::CFaceAttributesDialog(CFusionDoc* pFusionDoc, CWnd* pParent)
+CFaceAttributesDialog::CFaceAttributesDialog(CMainFrame* pMainFrame, CWnd* pParent)
 	: CDialog(CFaceAttributesDialog::IDD, pParent)
 {	
 	//{{AFX_DATA_INIT(CFaceAttributesDialog)
@@ -110,13 +115,19 @@ CFaceAttributesDialog::CFaceAttributesDialog(CFusionDoc* pFusionDoc, CWnd* pPare
 	m_Reflectivity = 1.0f;
 	m_Translucency = 255.0f;
 	m_Transparent = FALSE;
+	m_NumFaces = TEXT_NUM_FACES;
 	//}}AFX_DATA_INIT
 
-	m_pDoc		=pFusionDoc;
+//	m_pDoc		=pFusionDoc;
+	m_pMainFrame		=pMainFrame;
 
 	CDialog::Create(IDD,pParent);
 
+	DisplayingNULL = TRUE;
+
 	SetupDialog();
+
+	UpdatePolygonFocus();
 }
 
 void CFaceAttributesDialog::DoDataExchange(CDataExchange* pDX)
@@ -162,6 +173,7 @@ void CFaceAttributesDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_REFLECTIVITY, m_Reflectivity);
 	DDX_Text(pDX, IDC_FACETRANSLUCENCY, m_Translucency);
 	DDX_Check(pDX, IDC_TRANSPARENT, m_Transparent);
+	DDX_Text(pDX, IDC_LABEL_NUM_FACES, m_NumFaces);
 	//}}AFX_DATA_MAP
 }
 
@@ -169,7 +181,6 @@ void CFaceAttributesDialog::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CFaceAttributesDialog, CDialog)
 	//{{AFX_MSG_MAP(CFaceAttributesDialog)
 	ON_WM_VSCROLL()
-	ON_WM_MOUSEMOVE()
 	ON_EN_CHANGE(IDC_EDITXOFFSET, OnChangeXOffset)
 	ON_EN_KILLFOCUS(IDC_EDITXOFFSET, OnKillfocusXOffset)
 	ON_EN_CHANGE(IDC_EDITYOFFSET, OnChangeYOffset)
@@ -197,8 +208,10 @@ BEGIN_MESSAGE_MAP(CFaceAttributesDialog, CDialog)
 	ON_BN_CLICKED(IDC_TEXTURELOCK, OnTexturelock)
 	ON_EN_KILLFOCUS(IDC_REFLECTIVITY, OnKillfocusReflectivity)
 	ON_EN_KILLFOCUS(IDC_FACETRANSLUCENCY, OnKillfocusFacetranslucency)
-	ON_BN_CLICKED(ID_DEFAULTS, OnResetAll)
 	ON_BN_CLICKED(IDC_TRANSPARENT, OnTransparent)
+	ON_BN_CLICKED(IDC_FACELIGHT, OnFacelight)
+	ON_BN_CLICKED(IDC_RESETALL, OnResetAll)
+	ON_WM_CLOSE()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -259,9 +272,16 @@ void CFaceAttributesDialog::OnResetAll()
 	m_Reflectivity = 1.0f;
 	m_Translucency = 255.0f;
 
+	EnabledChange(TRUE);
+
 	UpdateData(FALSE);
 
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::AssignFaceValues, this);
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		SelFaceList_Enum (pDoc->pSelFaces, ::AssignFaceValues, this);
+	}
 
 	AssignCurrentToViews();
 }
@@ -415,16 +435,22 @@ void CFaceAttributesDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScro
 //	And this is here to update the views as changes are made.
 void CFaceAttributesDialog::AssignCurrentToViews()
 {
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+	pDoc->SetModifiedFlag();
+
 	// update child faces on all selected brushes
 	int NumSelBrushes;
 
-	NumSelBrushes = SelBrushList_GetSize (m_pDoc->pSelBrushes);
+	NumSelBrushes = SelBrushList_GetSize (pDoc->pSelBrushes);
 	for (int i = 0; i < NumSelBrushes; ++i)
 	{
-		Brush *pBrush = SelBrushList_GetBrush (m_pDoc->pSelBrushes, i);
+		Brush *pBrush = SelBrushList_GetBrush (pDoc->pSelBrushes, i);
 		Brush_UpdateChildFaces (pBrush);
 	}
-	m_pDoc->UpdateAllViews(UAV_RENDER_ONLY, NULL);
+	pDoc->UpdateAllViews(UAV_RENDER_ONLY, NULL);
+	}
 }
 
 
@@ -436,31 +462,61 @@ BOOL CFaceAttributesDialog::OnInitDialog()
 
 	CenterWindow( AfxGetMainWnd() );
 
-	GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light ) ;
+//	GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light && !m_Sky ) ;
 
 	UpdateData (FALSE);
 
 	return TRUE;
 }
 
+/*
 void CFaceAttributesDialog::OnCancel()
 {
-	m_pDoc->NullFaceAttributes ();
+	pDoc->NullFaceAttributes ();
 	DestroyWindow();
 }
+*/
 
 void CFaceAttributesDialog::PostNcDestroy() 
 {
+	if (m_pMainFrame != NULL)
+	{
+		m_pMainFrame->mpBrushAttributes=NULL;
+	}
 	delete this;
 }
 
 // The document calls this function whenever a face is selected or deselected.
 void CFaceAttributesDialog::UpdatePolygonFocus ()
 {
+	int NumberOfFaces = 0;
 	Face *pFace;
 
-	pFace = SelFaceList_GetFace (m_pDoc->pSelFaces, 0);
-	if (pFace != NULL)
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		NumberOfFaces = SelFaceList_GetSize (pDoc->pSelFaces);
+//		pFace = SelFaceList_GetFace (pDoc->pSelFaces, 0);
+		if (NumberOfFaces)
+			pFace = SelFaceList_GetFace (pDoc->pSelFaces, (NumberOfFaces-1));
+		else
+			pFace = NULL;
+	}
+	else
+	{
+		pFace = NULL;
+	}
+
+	if (pFace == NULL)
+	{
+		NumberOfFaces = 0;
+	}
+
+	CString StringNumberOfFaces;
+	StringNumberOfFaces.Format("%d",NumberOfFaces);
+	m_NumFaces = TEXT_NUM_FACES + StringNumberOfFaces;
+	
+	if (pDoc && NumberOfFaces && pFace)
 	{
 		m_TextureAngle	= Face_GetTextureRotate (pFace);
 		Face_GetTextureShift (pFace, &m_TextureXOffset, &m_TextureYOffset);
@@ -479,7 +535,15 @@ void CFaceAttributesDialog::UpdatePolygonFocus ()
 		m_Transparent	=Face_IsTransparent (pFace);
 		m_Sky			=Face_IsSky (pFace);
 		m_Mirror		=Face_IsMirror (pFace);
-		GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light ) ;
+
+//		GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light && !m_Sky) ;
+		DisplayingNULL = FALSE;
+		EnabledChange(TRUE);
+	}
+	else
+	{
+		DisplayingNULL = TRUE;
+		EnabledChange(FALSE);
 	}
 
 	UpdateData(FALSE);
@@ -515,6 +579,7 @@ static BOOL CheckFloatValue (CEdit &Edit)
 }
 */
 
+/*
 #pragma warning (disable:4100)
 void CFaceAttributesDialog::OnMouseMove(UINT nFlags, CPoint point) 
 {
@@ -541,9 +606,13 @@ void CFaceAttributesDialog::OnMouseMove(UINT nFlags, CPoint point)
 	//CDialog::OnMouseMove(nFlags, point);
 }
 #pragma warning (default:4100)
+*/
 
 static BOOL OnIntEditChange (CEdit &Edit, int *val, int DefaultVal)
 {
+	if (DisplayingNULL)
+		return TRUE;
+
 	CString Text;
 
 	Edit.GetWindowText (Text);
@@ -557,6 +626,9 @@ static BOOL OnIntEditChange (CEdit &Edit, int *val, int DefaultVal)
 
 static void OnIntKillFocus (CEdit &Edit, int *val, int DefaultVal, const char *Defstr)
 {
+	if (DisplayingNULL)
+		return;
+
 	if (!OnIntEditChange (Edit, val, DefaultVal))
 	{
 		Edit.SetWindowText (Defstr);
@@ -565,6 +637,9 @@ static void OnIntKillFocus (CEdit &Edit, int *val, int DefaultVal, const char *D
 
 static BOOL OnFloatEditChange (CEdit &Edit, float *val, float DefaultVal)
 {
+	if (DisplayingNULL)
+		return TRUE;
+
 	CString Text;
 
 	Edit.GetWindowText (Text);
@@ -578,6 +653,9 @@ static BOOL OnFloatEditChange (CEdit &Edit, float *val, float DefaultVal)
 
 static void OnFloatKillFocus (CEdit &Edit, float *val, float DefaultVal, const char *Defstr)
 {
+	if (DisplayingNULL)
+		return;
+
 	if (!OnFloatEditChange (Edit, val, DefaultVal))
 	{
 		Edit.SetWindowText (Defstr);
@@ -631,10 +709,18 @@ static geBoolean ChangeXOffset (Face *pFace, void *lParam)
 	
 void CFaceAttributesDialog::OnKillfocusXOffset() 
 {
-	UpdateData (TRUE);
-	OnIntKillFocus (m_EditXOffset, &m_TextureXOffset, 0, "0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeXOffset, &m_TextureXOffset);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnIntKillFocus (m_EditXOffset, &m_TextureXOffset, 0, "0");
+		SelFaceList_Enum (pDoc->pSelFaces, ChangeXOffset, &m_TextureXOffset);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeYOffset (Face *pFace, void *lParam)
@@ -649,10 +735,18 @@ static geBoolean ChangeYOffset (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusYOffset() 
 {	
-	UpdateData (TRUE);
-	OnIntKillFocus (m_EditYOffset, &m_TextureYOffset, 0, "0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeYOffset, &m_TextureYOffset);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnIntKillFocus (m_EditYOffset, &m_TextureYOffset, 0, "0");
+		SelFaceList_Enum (pDoc->pSelFaces, ChangeYOffset, &m_TextureYOffset);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeTextureXScale (Face *pFace, void *lParam)
@@ -667,10 +761,18 @@ static geBoolean ChangeTextureXScale (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusXScale() 
 {
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditXScale, &m_TextureXScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeTextureXScale, &m_TextureXScale);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+	
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnFloatKillFocus (m_EditXScale, &m_TextureXScale, 1.0f, "1.0");
+		SelFaceList_Enum (pDoc->pSelFaces, ChangeTextureXScale, &m_TextureXScale);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeTextureYScale (Face *pFace, void *lParam)
@@ -685,10 +787,18 @@ static geBoolean ChangeTextureYScale (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusYScale() 
 {
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditYScale, &m_TextureYScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeTextureYScale, &m_TextureYScale);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnFloatKillFocus (m_EditYScale, &m_TextureYScale, 1.0f, "1.0");
+		SelFaceList_Enum (pDoc->pSelFaces, ChangeTextureYScale, &m_TextureYScale);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeLightXScale (Face *pFace, void *lParam)
@@ -703,12 +813,19 @@ static geBoolean ChangeLightXScale (Face *pFace, void *lParam)
 	
 void CFaceAttributesDialog::OnKillfocusEditxlightscale() 
 {
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditLightXScale, &m_LightXScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeLightXScale, &m_LightXScale);
-	AssignCurrentToViews ();
-}
+	if (DisplayingNULL)
+		return;
 
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnFloatKillFocus (m_EditLightXScale, &m_LightXScale, 1.0f, "1.0");
+		SelFaceList_Enum (pDoc->pSelFaces, ChangeLightXScale, &m_LightXScale);
+		AssignCurrentToViews ();
+	}
+}
 
 static geBoolean ChangeLightYScale (Face *pFace, void *lParam)
 {
@@ -722,10 +839,18 @@ static geBoolean ChangeLightYScale (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusEditylightscale() 
 {
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditLightYScale, &m_LightYScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeLightYScale, &m_LightYScale);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnFloatKillFocus (m_EditLightYScale, &m_LightYScale, 1.0f, "1.0");
+		SelFaceList_Enum (pDoc->pSelFaces, ChangeLightYScale, &m_LightYScale);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeTextureAngle (Face *pFace, void *lParam)
@@ -738,10 +863,18 @@ static geBoolean ChangeTextureAngle (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusAngle() 
 {	
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditAngle, &m_TextureAngle, 0, "0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::ChangeTextureAngle, &m_TextureAngle);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnFloatKillFocus (m_EditAngle, &m_TextureAngle, 0, "0");
+		SelFaceList_Enum (pDoc->pSelFaces, ::ChangeTextureAngle, &m_TextureAngle);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeLightIntensity (Face *pFace, void *lParam)
@@ -754,10 +887,18 @@ static geBoolean ChangeLightIntensity (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusFacelightintensity() 
 {
-	UpdateData (TRUE);
-	OnIntKillFocus (m_EditLightIntensity, &m_LightIntensity, 300, "300");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::ChangeLightIntensity, &m_LightIntensity);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnIntKillFocus (m_EditLightIntensity, &m_LightIntensity, 300, "300");
+		SelFaceList_Enum (pDoc->pSelFaces, ::ChangeLightIntensity, &m_LightIntensity);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeMipMapBias (Face *pFace, void *lParam)
@@ -770,10 +911,18 @@ static geBoolean ChangeMipMapBias (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusMipmapbias() 
 {
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditMipMapBias, &m_MipMapBias, 0, "1.0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::ChangeMipMapBias, &m_MipMapBias);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnFloatKillFocus (m_EditMipMapBias, &m_MipMapBias, 0, "1.0");
+		SelFaceList_Enum (pDoc->pSelFaces, ::ChangeMipMapBias, &m_MipMapBias);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeReflectivity (Face *pFace, void *lParam)
@@ -786,20 +935,28 @@ static geBoolean ChangeReflectivity (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusReflectivity() 
 {
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditReflectivity, &m_Reflectivity, 0, "1.0");
+	if (DisplayingNULL)
+		return;
 
-	if(m_Reflectivity < 0.0f)
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
 	{
-		m_Reflectivity	=0.0f;
-	}
-	else if(m_Reflectivity > 255.0f)
-	{
-		m_Reflectivity	=10.0f;
-	}
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnFloatKillFocus (m_EditReflectivity, &m_Reflectivity, 0, "1.0");
 
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::ChangeReflectivity, &m_Reflectivity);
-	AssignCurrentToViews ();
+		if(m_Reflectivity < 0.0f)
+		{
+			m_Reflectivity	=0.0f;
+		}
+		else if(m_Reflectivity > 255.0f)
+		{
+			m_Reflectivity	=10.0f;
+		}
+
+		SelFaceList_Enum (pDoc->pSelFaces, ::ChangeReflectivity, &m_Reflectivity);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeTranslucency (Face *pFace, void *lParam)
@@ -812,19 +969,27 @@ static geBoolean ChangeTranslucency (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusFacetranslucency() 
 {
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditTranslucency, &m_Translucency, 0, "255.0");
+	if (DisplayingNULL)
+		return;
 
-	if(m_Translucency < 0.0f)
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
 	{
-		m_Translucency	=0.0f;
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		OnFloatKillFocus (m_EditTranslucency, &m_Translucency, 0, "255.0");
+
+		if(m_Translucency < 0.0f)
+		{
+			m_Translucency	=0.0f;
+		}
+		else if(m_Translucency > 255.0f)
+		{
+			m_Translucency	=255.0f;
+		}
+		SelFaceList_Enum (pDoc->pSelFaces, ::ChangeTranslucency, &m_Translucency);
+		AssignCurrentToViews ();
 	}
-	else if(m_Translucency > 255.0f)
-	{
-		m_Translucency	=255.0f;
-	}
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::ChangeTranslucency, &m_Translucency);
-	AssignCurrentToViews ();
 }
 
 static geBoolean FlipVertical (Face *pFace, void *)
@@ -839,15 +1004,23 @@ static geBoolean FlipVertical (Face *pFace, void *)
 //	Flip it vertical by inverting the Y scale sign...
 void CFaceAttributesDialog::OnFlipvertical() 
 {
-	UpdateData(TRUE);
+	if (DisplayingNULL)
+		return;
 
-	m_TextureYScale = -m_TextureYScale;
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData(TRUE);
 
-	UpdateData(FALSE);
+		m_TextureYScale = -m_TextureYScale;
 
-	SelFaceList_Enum (m_pDoc->pSelFaces, FlipVertical, NULL);
+		UpdateData(FALSE);
 
-	AssignCurrentToViews();
+		SelFaceList_Enum (pDoc->pSelFaces, FlipVertical, NULL);
+
+		AssignCurrentToViews();
+	}
 }
 
 static geBoolean FlipHorizontal (Face *pFace, void *)
@@ -862,15 +1035,23 @@ static geBoolean FlipHorizontal (Face *pFace, void *)
 //	Same here except flip it horizontal...
 void CFaceAttributesDialog::OnFliphorizontal() 
 {
-	UpdateData(TRUE);
+	if (DisplayingNULL)
+		return;
 
-	m_TextureXScale = -m_TextureXScale;
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData(TRUE);
 
-	UpdateData(FALSE);
+		m_TextureXScale = -m_TextureXScale;
 
-	SelFaceList_Enum (m_pDoc->pSelFaces, FlipHorizontal, NULL);
+		UpdateData(FALSE);
 
-	AssignCurrentToViews();
+		SelFaceList_Enum (pDoc->pSelFaces, FlipHorizontal, NULL);
+
+		AssignCurrentToViews();
+	}
 }
 
 static geBoolean SetLight (Face *pFace, void *lParam)
@@ -881,12 +1062,20 @@ static geBoolean SetLight (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnFacelight( void ) 
+void CFaceAttributesDialog::OnFacelight() 
 {
-	UpdateData (TRUE);
-	GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light ) ;
-	SelFaceList_Enum (m_pDoc->pSelFaces, SetLight, &m_Light);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light && !m_Sky) ;
+		SelFaceList_Enum (pDoc->pSelFaces, SetLight, &m_Light);
+		AssignCurrentToViews ();
+	}
 }
 
 
@@ -900,9 +1089,18 @@ static geBoolean SetMirror (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnFacemirror() 
 {
-	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, SetMirror, &m_Mirror);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		EnabledChange(TRUE);
+		SelFaceList_Enum (pDoc->pSelFaces, SetMirror, &m_Mirror);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean SetSky (Face *pFace, void *lParam)
@@ -915,9 +1113,18 @@ static geBoolean SetSky (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnFacesky() 
 {
-	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, SetSky, &m_Sky);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		EnabledChange(TRUE);
+		SelFaceList_Enum (pDoc->pSelFaces, SetSky, &m_Sky);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean SetFullBright (Face *pFace, void *lParam)
@@ -930,20 +1137,38 @@ static geBoolean SetFullBright (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::SetShadingChecks ()
 {
-	Face *pFace = SelFaceList_GetFace (m_pDoc->pSelFaces, 0);
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+//	Face *pFace = SelFaceList_GetFace (pDoc->pSelFaces, 0);
+	int	NumberOfFaces = SelFaceList_GetSize (pDoc->pSelFaces);
+	Face *pFace;
+	if (NumberOfFaces)
+		pFace = SelFaceList_GetFace (pDoc->pSelFaces, (NumberOfFaces-1));
+	else
+		return;
 
 	m_FullBright	=Face_IsFullBright (pFace);
 	m_Gouraud		=Face_IsGouraud (pFace);
 	m_Flat			=Face_IsFlat (pFace);
 	UpdateData (FALSE);
+	}
 }
 
 void CFaceAttributesDialog::OnFacefullbright() 
 {
-	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::SetFullBright, &m_FullBright);
-	SetShadingChecks ();
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		SelFaceList_Enum (pDoc->pSelFaces, ::SetFullBright, &m_FullBright);
+		SetShadingChecks ();
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean SetGouraud (Face *pFace, void *lParam)
@@ -956,10 +1181,18 @@ static geBoolean SetGouraud (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnFacegouraud() 
 {
-	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::SetGouraud, &m_Gouraud);
-	SetShadingChecks ();
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		SelFaceList_Enum (pDoc->pSelFaces, ::SetGouraud, &m_Gouraud);
+		SetShadingChecks ();
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean SetFlat (Face *pFace, void *lParam)
@@ -972,10 +1205,18 @@ static geBoolean SetFlat (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnFaceflat() 
 {
-	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::SetFlat, &m_Flat);
-	SetShadingChecks ();
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		SelFaceList_Enum (pDoc->pSelFaces, ::SetFlat, &m_Flat);
+		SetShadingChecks ();
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean SetTextureLock (Face *pFace, void *lParam)
@@ -988,9 +1229,17 @@ static geBoolean SetTextureLock (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnTexturelock() 
 {
-	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::SetTextureLock, &m_TextureLock);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		SelFaceList_Enum (pDoc->pSelFaces, ::SetTextureLock, &m_TextureLock);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean SetTransparent (Face *pFace, void *lParam)
@@ -1003,9 +1252,18 @@ static geBoolean SetTransparent (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnTransparent() 
 {
-	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::SetTransparent, &m_Transparent);
-	AssignCurrentToViews ();
+	if (DisplayingNULL)
+		return;
+
+	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
+	if (pDoc)
+	{
+		pDoc->SetModifiedFlag();
+		UpdateData (TRUE);
+		GetDlgItem( IDC_FACETRANSLUCENCY )->EnableWindow( (m_Mirror || m_Transparent) && !m_Sky) ;
+		SelFaceList_Enum (pDoc->pSelFaces, ::SetTransparent, &m_Transparent);
+		AssignCurrentToViews ();
+	}
 }
 
 void CFaceAttributesDialog::OnOK ()
@@ -1018,6 +1276,7 @@ void CFaceAttributesDialog::OnActivate( UINT nState, CWnd* pWndOther, BOOL bMini
 	CDialog::OnActivate( nState, pWndOther, bMinimized ) ;
 }
 
+/*
 BOOL CFaceAttributesDialog::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo) 
 {
 	switch( nID )
@@ -1028,6 +1287,7 @@ BOOL CFaceAttributesDialog::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDH
 	}
 	return CDialog::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
 }
+*/
 
 typedef struct
 {
@@ -1098,4 +1358,72 @@ void CFaceAttributesDialog::SetupDialog()
 	FillComboBox (m_ComboXLightScale, ScaleValues, nScaleItems);
 	FillComboBox (m_ComboYLightScale, ScaleValues, nScaleItems);
 	FillComboBox (m_ComboAngle, AngleValues, nAngleItems);
+}
+
+
+void CFaceAttributesDialog::EnabledChange(BOOL Enabled)
+{
+	BOOL notSky = !m_Sky;
+	GetDlgItem( IDC_LABEL_NUM_FACES )->EnableWindow( Enabled ) ;
+	GetDlgItem( IDC_STATIC5 )->EnableWindow( Enabled ) ;
+	GetDlgItem( IDC_FACESKY )->EnableWindow( Enabled ) ;
+	GetDlgItem( IDC_FACEGOURAUD )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_FACEFLAT )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_FACEFULLBRIGHT )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_FACEMIRROR )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_TRANSPARENT )->EnableWindow( notSky && Enabled && !m_Mirror ) ;
+	GetDlgItem( IDC_FACELIGHT )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_FACETRANSLUCENCY )->EnableWindow( (m_Mirror || m_Transparent) && notSky && Enabled ) ;
+	GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light && notSky && Enabled ) ;
+	GetDlgItem( IDC_GROUP_TEXTURE_OFFSET_SCALE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_LABEL_TEXTURE_OFFSET_SCALEX )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_EDITXOFFSET )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBXOFFSET_UNIT )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBXOFFSET_INCR )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_CBXOFFSET )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_EDITXSCALE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBXSCALE_UNIT )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBXSCALE_INCR )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_CBXSCALE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_FLIPVERTICAL )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_LABEL_TEXTURE_OFFSET_SCALEY )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_EDITYOFFSET )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBYOFFSET_UNIT )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBYOFFSET_INCR )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_CBYOFFSET )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_EDITYSCALE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBYSCALE_UNIT )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBYSCALE_INCR )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_CBYSCALE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_FLIPHORIZONTAL )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_LABEL_TEXTURE_OFFSET_SCALEANGLE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_EDITANGLE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBANGLE_UNIT )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBANGLE_INCR )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_CBANGLE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_TEXTURELOCK )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_GROUP_LIGHTMAP_SCALE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_LABEL_LIGHTMAP_SCALEX )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_EDITXLIGHTSCALE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBXLIGHTSCALE_UNIT )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBXLIGHTSCALE_INCR )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_CBXLIGHTSCALE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_LABEL_LIGHTMAP_SCALEY )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_EDITYLIGHTSCALE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBYLIGHTSCALE_UNIT )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_SBYLIGHTSCALE_INCR )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_CBYLIGHTSCALE )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_LABEL_REFLECTIVITY )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_REFLECTIVITY )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_LABEL_MIPMAPBIAS )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_MIPMAPBIAS )->EnableWindow( notSky && Enabled ) ;
+	GetDlgItem( IDC_RESETALL )->EnableWindow( Enabled ) ;
+}
+
+void CFaceAttributesDialog::OnClose() 
+{
+	// TODO: Add your message handler code here and/or call default
+	m_pMainFrame->mpFaceAttributes = NULL;
+	
+	CDialog::OnClose();
 }

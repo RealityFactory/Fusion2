@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -93,6 +92,10 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 	ON_COMMAND(ID_VIEWLEAKFINDER, OnViewLeakFinder)
 	ON_UPDATE_COMMAND_UI(ID_VIEWLEAKFINDER, OnUpdateViewLeakFinder)
 	ON_CBN_SELCHANGE(ID_TOOLBAR_COMBOBOX, OnSelchangeGroupList)
+	ON_COMMAND(ID_TOOLS_FACE_ATTRIBUTES, OnToolsFaceAttributes)
+	ON_UPDATE_COMMAND_UI(ID_TOOLS_FACE_ATTRIBUTES, OnUpdateToolsFaceAttributes)
+	ON_COMMAND(ID_TOOLS_BRUSH_ATTRIBUTES, OnToolsBrushAttributes)
+	ON_UPDATE_COMMAND_UI(ID_TOOLS_BRUSH_ATTRIBUTES, OnUpdateToolsBrushAttributes)
 	//}}AFX_MSG_MAP
 	// Global help commands
 END_MESSAGE_MAP()
@@ -106,6 +109,11 @@ CMainFrame::CMainFrame
 	  void
 	) : IsStartingApp(1), IsDestroyingApp(0)
 {
+	mpBrushAttributes = NULL;
+	mpFaceAttributes = NULL;
+
+	szGridString[0] = NULL;
+	szSnapString[0] = NULL;
 }
 
 
@@ -156,14 +164,15 @@ void CMainFrame::OnUpdateSelInfo(CCmdUI *pCmdUI)
 		int NumSelFaces = SelFaceList_GetSize (pDoc->pSelFaces);
 		int NumSelBrushes = SelBrushList_GetSize (pDoc->pSelBrushes);
 
-		etxt.Format("Ent: %d", pDoc->NumSelEntities);
-		btxt.Format(" Brsh: %d", NumSelBrushes);
-		ftxt.Format(" Face: %d", NumSelFaces);
+		etxt.Format("Entities: %d", pDoc->NumSelEntities);
+		btxt.Format(" Brushes: %d", NumSelBrushes);
+		ftxt.Format(" Faces: %d", NumSelFaces);
 		Text.Format("%s%s%s",
 			pDoc->NumSelEntities ? etxt : "",
 			NumSelBrushes ? btxt : "",
 			NumSelFaces ? ftxt : "");
 
+/*
 		switch (pDoc->mAdjustMode)
 		{
 			case ADJUST_MODE_BRUSH :
@@ -177,12 +186,14 @@ void CMainFrame::OnUpdateSelInfo(CCmdUI *pCmdUI)
 //				pCmdUI->SetText( Text);
 				break;
 		}
+*/
 	}
 	pCmdUI->SetText (Text) ;
 }
 
 void CMainFrame::OnUpdateCursorInfo(CCmdUI *pCmdUI)
 {
+	pCmdUI->Enable();
 	char info[256];
 	CFusionDoc* pDoc;
 
@@ -191,10 +202,13 @@ void CMainFrame::OnUpdateCursorInfo(CCmdUI *pCmdUI)
 
 	if (pDoc != NULL)
 	{
-		pDoc->GetCursorInfo(info, 15);
-		pCmdUI->SetText( info );
+		if (pDoc->GetCursorInfo(info, 255))
+		{
+			pCmdUI->SetText( info );
+		}
 		return;
 	}
+
 	pCmdUI->SetText( "" );
 }
 
@@ -319,9 +333,9 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndGroupBar.SetBarStyle(m_wndToolBar.GetBarStyle() |
 		CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC);
 
-	m_wndToolBar.SetWindowText( "General" ) ;
+	m_wndToolBar.SetWindowText( "Standard" ) ;
 	m_wndToolBar.EnableDocking(CBRS_ALIGN_ANY);
-	m_wndBrushToolBar.SetWindowText( "Mode" ) ;
+	m_wndBrushToolBar.SetWindowText( "Modify" ) ;
 	m_wndBrushToolBar.EnableDocking(CBRS_ALIGN_ANY);
 	m_wndGroupBar.SetWindowText( "Group" ) ;
 	m_wndGroupBar.EnableDocking(CBRS_ALIGN_ANY);
@@ -335,10 +349,19 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	DockControlBarLeftOf(&m_wndBrushToolBar, &m_wndToolBar );
 	DockControlBarLeftOf(&m_wndGroupBar, &m_wndBrushToolBar );
 
-	m_CB_FUSION_BRUSH_FORMAT = RegisterClipboardFormat( "FUSIONBRUSHDATA" );
-	m_CB_FUSION_ENTITY_FORMAT = RegisterClipboardFormat( "FUSIONENTITYDATA" );
+//	m_CB_FUSION_BRUSH_FORMAT = RegisterClipboardFormat( "FUSIONBRUSHDATA" );
+//	m_CB_FUSION_ENTITY_FORMAT = RegisterClipboardFormat( "FUSIONENTITYDATA" );
 	LoadBarState( "DESKTOP" ) ;	
 
+/*	CRect r(0,0,20,20);
+	m_NameWindow.Create(NULL, 
+						  "Hi",
+						  WS_BORDER,
+						  r, this, 1234);
+
+
+	m_NameWindow.Hide();
+*/
 	return 0;
 }
 
@@ -445,7 +468,7 @@ BOOL CMainFrame::CreateGroupBar()
 	m_wndGroupBar.SetButtonInfo(6, ID_SEPARATOR, TBBS_SEPARATOR, 12);
 	CRect rect;
 	m_wndGroupBar.GetItemRect(7, &rect);
-	rect.top = 3;
+	rect.top = 0;
 	rect.bottom = rect.top + nDropHeight;
 	if (!m_wndGroupBar.m_comboBox.Create(
 			CBS_DROPDOWNLIST|WS_VISIBLE|WS_TABSTOP,
@@ -511,7 +534,7 @@ BOOL CMainFrame::CreateTabBar()
 	(
 		12, 0, 
 		0, 0, 
-		FW_BOLD,
+		FW_NORMAL,
 		0, 0, 0,
 		ANSI_CHARSET, 
 		OUT_DEFAULT_PRECIS,
@@ -685,6 +708,8 @@ void CMainFrame::UpdateGridSize(geFloat GridSize, int SnapOn, int snapto, int gu
 	assert (snapto > 0);
 	assert (snapto < 1000000);
 
+	GridSize = 128;
+
 	if(!gunits)
 	{
 		//use plus one to compensate for fp error
@@ -774,6 +799,7 @@ void CMainFrame::OnBrushGroupsMakenewgroup()
 	{
 		if (pDoc->MakeNewBrushGroup ( this ))
 		{
+			pDoc->SetModifiedFlag();
 			this->LoadComboBox ();
 		}
 	}
@@ -802,6 +828,12 @@ void CMainFrame::UpdateActiveDoc
 	  void
 	)
 {
+	if (mpBrushAttributes)
+		mpBrushAttributes->UpdateBrushFocus();
+
+	if (mpFaceAttributes)
+		mpFaceAttributes->UpdatePolygonFocus();
+
 	CChildFrame	*pActiveChild	=(CChildFrame *)this->MDIGetActive();
 	if(pActiveChild)
 	{
@@ -819,6 +851,7 @@ void CMainFrame::UpdateActiveDoc
 			}
 			LoadComboBox() ;
 		}
+
 	}
 	// update models list box
 	this->UpdateModelsDialog ();
@@ -993,7 +1026,7 @@ void CMainFrame::OnUpdateViewLeakFinder(CCmdUI* pCmdUI)
 
 	//should this be enabled even if greyed?
 	//so you know that it will display when loaded?
-	pCmdUI->SetCheck(pDoc->bShowLeakFinder());
+	pCmdUI->SetCheck(pDoc->bShowLeakFinder() && bEnable);
 }
 
 void CMainFrame::OnSelchangeGroupList ()
@@ -1009,3 +1042,48 @@ void CMainFrame::OnSelchangeGroupList ()
 	}
 }
 
+
+void CMainFrame::OnToolsFaceAttributes() 
+{
+	if (!(mpFaceAttributes))
+	{
+		mpFaceAttributes = new CFaceAttributesDialog (this);
+	}
+	else
+	{
+		mpFaceAttributes->SendMessage(WM_CLOSE, 0, 0);
+	}
+}	
+
+void CMainFrame::OnUpdateToolsFaceAttributes(CCmdUI* pCmdUI) 
+{
+	pCmdUI->SetCheck((mpFaceAttributes!=NULL));
+}
+
+void CMainFrame::OnToolsBrushAttributes() 
+{
+	if (!(mpBrushAttributes))
+	{
+		mpBrushAttributes = new CBrushAttributesDialog (this);
+	}
+	else
+	{
+		mpBrushAttributes->SendMessage(WM_CLOSE, 0, 0);
+	}
+}
+
+void CMainFrame::OnUpdateToolsBrushAttributes(CCmdUI* pCmdUI) 
+{
+	pCmdUI->SetCheck((mpBrushAttributes!=NULL));
+}
+
+void CMainFrame::SetCursorInfo(CString &CursorInfo)
+{
+/*	UINT pane_id;
+	UINT pane_style;
+	int pane_width;
+
+	m_wndStatusBar.GetPaneInfo( ID_CURSORINFO_PANE, pane_id, pane_style, pane_width );
+*/
+	m_wndStatusBar.SetPaneText( ID_CURSORINFO_PANE , CursorInfo, TRUE );
+}

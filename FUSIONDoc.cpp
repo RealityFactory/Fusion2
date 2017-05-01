@@ -15,13 +15,13 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
 #include "FUSIONDoc.h"
 #include <float.h>
+#include <fstream.h>
 
 #include "CreateArchDialog.h"
 #include "CreateBoxDialog.h"
@@ -41,6 +41,8 @@
 #include "FusionTabControls.h"
 #include "EntityVisDlg.h"
 #include "LevelOptions.h"
+#include "MoveDialog.h"
+#include "ScaleDialog.h"
 
 #include "FUSIONView.h"
 #include "wadfile.h"
@@ -83,10 +85,15 @@ static char THIS_FILE[] = __FILE__;
 // no matter how far away it is...)
 #define MAX_PIXEL_SELECT_DIST (10000)
 #define MIN_ENTITY_SELECT_DIST (8.0f)
+#define MAX_PIXEL_SELECT_THINGNAME (20)
 
 // Maximum distance from entity in order for it to be selected.
 // This is in world space coordinates and is used in rendered view only.
 #define MAX_ENTITY_SELECT_DIST (16.0f)
+
+#define CAMERA_MOVEMENT_DISTANCE (32.0f)
+#define CAMERA_MOVEMENT_ANGLE (M_PI/16.0f)
+
 
 IMPLEMENT_SERIAL(CFusionDoc, CDocument, 0);
 BEGIN_MESSAGE_MAP(CFusionDoc, CDocument)
@@ -116,7 +123,6 @@ BEGIN_MESSAGE_MAP(CFusionDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_CONSTRAINHOLLOWS, OnUpdateConstrainhollows)
 	ON_COMMAND(ID_GENERALSELECT, OnGeneralselect)
 	ON_UPDATE_COMMAND_UI(ID_GENERALSELECT, OnUpdateGeneralselect)
-	ON_COMMAND(ID_THING_ATTRIBUTES, OnThingAttributes)
 	ON_COMMAND(ID_BRUSH_SUBTRACTFROMWORLD, OnBrushSubtractfromworld)
 	ON_COMMAND(ID_EDIT_COPY, OnEditCopy)
 	ON_COMMAND(ID_EDIT_PASTE, OnEditPaste)
@@ -126,8 +132,6 @@ BEGIN_MESSAGE_MAP(CFusionDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateEditCut)
 	ON_COMMAND(ID_COMPILE, OnCompile)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_SUBTRACTFROMWORLD, OnUpdateBrushSubtractfromworld)
-	ON_UPDATE_COMMAND_UI(ID_THING_ATTRIBUTES, OnUpdateThingAttributes)
-	ON_UPDATE_COMMAND_UI(ID_TOOLS_BRUSH_SHOWASSOCIATEDENTITY, OnUpdateToolsBrushShowassociatedentity)
 	ON_UPDATE_COMMAND_UI(ID_ENTITIES_EDITOR, OnUpdateEntitiesEditor)
 	ON_COMMAND(ID_NEW_LIB_OBJECT, OnNewLibObject)
 	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
@@ -148,10 +152,6 @@ BEGIN_MESSAGE_MAP(CFusionDoc, CDocument)
 	ON_COMMAND(ID_BRUSH_PRIMITIVES_ARCH, OnBrushPrimitivesArch)
 	ON_COMMAND(ID_BRUSH_PRIMITIVES_CONE, OnBrushPrimitivesCone)
 	ON_COMMAND(ID_FILE_IMPORT, OnFileImport)
-	ON_COMMAND(ID_TOOLS_BRUSH_ATTRIBUTES, OnToolsBrushAttributes)
-	ON_UPDATE_COMMAND_UI(ID_TOOLS_BRUSH_ATTRIBUTES, OnUpdateToolsBrushAttributes)
-	ON_COMMAND(ID_TOOLS_FACE_ATTRIBUTES, OnToolsFaceAttributes)
-	ON_UPDATE_COMMAND_UI(ID_TOOLS_FACE_ATTRIBUTES, OnUpdateToolsFaceAttributes)
 	ON_COMMAND(ID_ENTITYVISIBILITY, OnEntityVisibility)
 	ON_COMMAND(IDM_REBUILD_BSP, OnRebuildBsp)
 	ON_UPDATE_COMMAND_UI(IDM_REBUILD_BSP, OnUpdateRebuildBsp)
@@ -160,11 +160,44 @@ BEGIN_MESSAGE_MAP(CFusionDoc, CDocument)
 	ON_COMMAND(ID_TOOLS_TOGGLEADJUSTMODE, OnToolsToggleadjustmode)
 	ON_UPDATE_COMMAND_UI(ID_TOOLS_TOGGLEADJUSTMODE, OnUpdateToolsToggleadjustmode)
 	ON_COMMAND(IDM_LEVELOPTIONS, OnLeveloptions)
+	ON_COMMAND(ID_CAMERA_FORWARD, OnCameraForward)
+	ON_COMMAND(ID_CAMERA_BACK, OnCameraBack)
+	ON_COMMAND(ID_CAMERA_LEFT, OnCameraLeft)
+	ON_COMMAND(ID_CAMERA_RIGHT, OnCameraRight)
+	ON_COMMAND(ID_CAMERA_LOOK_UP, OnCameraLookUp)
+	ON_COMMAND(ID_CAMERA_LOOK_DOWN, OnCameraLookDown)
+	ON_COMMAND(ID_CAMERA_UP, OnCameraUp)
+	ON_COMMAND(ID_CAMERA_DOWN, OnCameraDown)
+	ON_COMMAND(ID_FILE_EXPORT, OnFileExport)
+	ON_UPDATE_COMMAND_UI(ID_FILE_EXPORT, OnUpdateFileExport)
+	ON_COMMAND( ID_VIEW_3DWIREFRAME, OnViewTypeWireFrame)
+	ON_COMMAND( ID_VIEW_TEXTUREVIEW, OnViewTypeTexture)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_3DWIREFRAME, OnUpdateViewTypeWireFrame)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_TEXTUREVIEW, OnUpdateViewTypeTexture)
+	ON_COMMAND(ID_CAMERA_CENTERONSELECTION, OnCameraCenteronselection)
+	ON_UPDATE_COMMAND_UI(ID_CAMERA_CENTERONSELECTION, OnUpdateCameraCenteronselection)
+	ON_COMMAND(ID_ENTITIES_PLACELIGHT, OnPlaceOmniLight)
+	ON_COMMAND(ID_TEMPLATE_SPOTLIGHT, OnPlaceSpotLight)
+	ON_COMMAND(ID_CAMERA_GOTO, OnCameraGoto)
+	ON_COMMAND(ID_MODE_MOVE, OnModifyMove)
+	ON_UPDATE_COMMAND_UI(ID_MODE_MOVE, OnUpdateModifyMove)
+	ON_COMMAND(ID_MODE_SCALE, OnModifyScale)
+	ON_UPDATE_COMMAND_UI(ID_MODE_SCALE, OnUpdateModifyScale)
+	ON_COMMAND(ID_TOOLS_BRUSH_MAKENEWEST, OnToolsBrushMakenewest)
+	ON_UPDATE_COMMAND_UI(ID_TOOLS_BRUSH_MAKENEWEST, OnUpdateToolsBrushMakenewest)
+	ON_COMMAND(ID_VIEWPORT_LINKVIEWPORTS, OnLinkviewports)
+	ON_UPDATE_COMMAND_UI(ID_VIEWPORT_LINKVIEWPORTS, OnUpdateLinkviewports)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateEditCopy)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdateEditPaste)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_SPHEROID, OnUpdateBrushPrimitives)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_CYLINDER, OnUpdateBrushPrimitives)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_STAIRCASE, OnUpdateBrushPrimitives)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_ARCH, OnUpdateBrushPrimitives)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_CONE, OnUpdateBrushPrimitives)
+	ON_UPDATE_COMMAND_UI(ID_ENTITIES_PLACELIGHT, OnUpdateBrushPrimitives)
+	ON_UPDATE_COMMAND_UI(ID_TEMPLATE_SPOTLIGHT, OnUpdateBrushPrimitives)
+	ON_COMMAND(ID_TEMPLATE_SUNLIGHT, OnTemplateSunlight)
+	ON_UPDATE_COMMAND_UI(ID_TEMPLATE_SUNLIGHT, OnUpdateBrushPrimitives)
 	//}}AFX_MSG_MAP
 	ON_UPDATE_COMMAND_UI_RANGE(  ID_BRUSH_SELECTED_DELETE, ID_BRUSH_SELECTED_COPYTOCURRENT, OnSelectedTypeCmdUI)
 END_MESSAGE_MAP()
@@ -209,17 +242,18 @@ CFusionDoc::CFusionDoc() : CDocument (),
 	LeakPoints (NULL), NumLeakPoints (0), bLeakLoaded (FALSE), bShowLeak (TRUE),
 	IsNewDocument (1), mShowEntities (GE_TRUE), mCurTextureSelection (1),
 	bShowClipBrushes (GE_TRUE), bShowDetailBrushes (GE_TRUE), bShowHintBrushes (GE_TRUE),
-	mpActiveViewFrame (NULL), mpBrushAttributes (NULL), mpFaceAttributes (NULL),
+	mpActiveViewFrame (NULL), // mpBrushAttributes (NULL), mpFaceAttributes (NULL),
 	/*mpTextureView (NULL), */mWorldBsp (NULL), mActiveView (-1), mCurrentEntity (-1),
-	mModeTool (ID_TOOLS_TEMPLATE), mAdjustMode (ADJUST_MODE_BRUSH),
-	mCurrentTool (ID_TOOLS_BRUSH_SCALEBRUSH), mShowBrush (TRUE), mConstrainHollows (GE_TRUE),
+	mModeTool (ID_TOOLS_TEMPLATE), mAdjustMode (ADJUST_MODE_FACE),
+	mCurrentTool (ID_TOOLS_BRUSH_MOVEROTATEBRUSH), mShowBrush (TRUE), mConstrainHollows (GE_TRUE),
 	mCurrentBitmap (0), NumSelEntities (0), //mTextureBrowserOpen (0), 
 	mCurrentGroup (0), TempShearTemplate (NULL), PlaceObjectFlag (FALSE),
-	pSelFaces (NULL), pSelBrushes (NULL), pTempSelBrushes (NULL)
+	pSelFaces (NULL), pSelBrushes (NULL), pTempSelBrushes (NULL) //, pCameraEntity (NULL)
 {
 	const char *DefaultWadName;
 	const Prefs  *pPrefs = GetPrefs ();
 
+	LastTemplateTypeName = "Box";
 
 	DefaultWadName = Prefs_GetTxlName (pPrefs);
 
@@ -229,7 +263,7 @@ CFusionDoc::CFusionDoc() : CDocument (),
 
 	if (WadPath == NULL)
 	{
-		AfxMessageBox ("Can't find texture library");
+		AfxMessageBox ("Error: Unable to find texture library.", MB_OK + MB_ICONERROR);
 	}
 
 	pLevel = Level_Create (WadPath, Prefs_GetHeadersList (pPrefs));
@@ -238,7 +272,7 @@ CFusionDoc::CFusionDoc() : CDocument (),
 		CString Msg;
 
 		AfxFormatString1 (Msg, IDS_CANTLOADTXL, WadPath);
-		AfxMessageBox (Msg);
+		AfxMessageBox (Msg, MB_OK + MB_ICONERROR);
 	}
 
 	mpMainFrame=(CMainFrame*)AfxGetMainWnd();
@@ -262,40 +296,61 @@ CFusionDoc::CFusionDoc() : CDocument (),
 
 	geVec3d_Clear(&SelectedGeoCenter);
 
-	AddCameraEntityToLevel ();
+	//AddCameraEntityToLevel ();
 
 	pUndoStack = UndoStack_Create ();
 }/* CFusionDoc::CFusionDoc */
 
 void CFusionDoc::AddCameraEntityToLevel (void)
 {
-	// Make default camera entity
-	CEntity CameraEntity ;
-	CString cstr;
+//	pCameraEntity = NULL;
+//	pCameraEntity = FindCameraEntity();
 
-	CreateEntityFromName( "Camera", CameraEntity ) ;
-	cstr.LoadString( IDS_CAMERAENTITYNAME ) ;
-	CameraEntity.SetKeyValue ("%name%", cstr );
-	CameraEntity.SetOrigin ( 0.0f, 0.0f, 0.0f, Level_GetEntityDefs (pLevel) );
-	Level_AddEntity (pLevel, CameraEntity);
+	CEntity* pCameraEntity = FindCameraEntity();
+	if (!pCameraEntity)
+	{
+		// Make default camera entity
+		CEntity CameraEntity ;
+		CString cstr;
+
+		CreateEntityFromName( "Camera", CameraEntity ) ;
+		cstr.LoadString( IDS_CAMERAENTITYNAME ) ;
+		CameraEntity.SetKeyValue ("%name%", cstr );
+		CameraEntity.SetOrigin ( 0.0f, 0.0f, 0.0f, Level_GetEntityDefs (pLevel) );
+		Level_AddEntity (pLevel, CameraEntity);
+
+//		pCameraEntity = FindCameraEntity();
+	}
 }
 
 CFusionDoc::~CFusionDoc()
 {
 	if (mWorldBsp != NULL)		Node_ClearBsp(mWorldBsp);
-	if (pLevel != NULL)			Level_Destroy (&pLevel);
+	mWorldBsp = NULL;
+	if (pLevel != NULL)				Level_Destroy (&pLevel);
+	pLevel = NULL;
 	if (BTemplate != NULL)		Brush_Destroy (&BTemplate);
+	BTemplate = NULL;
 	if (pUndoStack != NULL)		UndoStack_Destroy (&pUndoStack);
+	pUndoStack = NULL;
 	if (pSelBrushes != NULL)	SelBrushList_Destroy (&pSelBrushes);
+	pSelBrushes = NULL;
 	if (pTempSelBrushes != NULL)SelBrushList_Destroy (&pTempSelBrushes);
+	pTempSelBrushes = NULL;
 	if (LeakPoints != NULL)		geRam_Free(LeakPoints);
+	LeakPoints = NULL;
 	if (pSelFaces != NULL)		SelFaceList_Destroy (&pSelFaces);
+	pSelFaces = NULL;
 
-	OpenClipboard(mpMainFrame->GetSafeHwnd());
-	EmptyClipboard();
-	CloseClipboard();
+//	OpenClipboard(mpMainFrame->GetSafeHwnd());
+//	EmptyClipboard();
+//	CloseClipboard();
+
+//	DeleteBrushAttributes();
+//	DeleteFaceAttributes();
 }
 
+/*
 void CFusionDoc::DeleteFaceAttributes (void)
 {
 	if (mpFaceAttributes != NULL)
@@ -313,6 +368,7 @@ void CFusionDoc::DeleteBrushAttributes (void)
 		mpBrushAttributes = NULL;
 	}
 }
+*/
 
 static void fdocDrawEntity
 	(
@@ -371,6 +427,7 @@ static void fdocDrawEntity
 		pDC->LineTo (BottomRight);
 		pDC->MoveTo (TopRight);
 		pDC->LineTo (BottomLeft);
+
 	}
 
 	// and then show the aiming arrow and arc stuff...
@@ -722,6 +779,8 @@ BOOL CFusionDoc::OnNewDocument()
 		return FALSE;
 	}
 
+	AddCameraEntityToLevel ();
+
 	SetupDefaultFilename ();
 
 	UpdateGridInformation();
@@ -804,7 +863,7 @@ geBoolean CFusionDoc::Load(const char *FileName)
 		char WorkingDir[MAX_PATH];
 
 		FilePath_GetDriveAndDir (FileName, WorkingDir);
-		::SetCurrentDirectory (WorkingDir);
+//		::SetCurrentDirectory (WorkingDir);
 	}
 
 	NewLevel = Level_CreateFromFile (FileName, &Errmsg, Prefs_GetHeadersList (pPrefs));
@@ -820,7 +879,7 @@ geBoolean CFusionDoc::Load(const char *FileName)
 		CString Msg;
 
 		AfxFormatString1 (Msg, IDS_CANTLOADTXL, WadPath);
-		AfxMessageBox (Msg);
+		AfxMessageBox (Msg, MB_OK + MB_ICONERROR);
 	}
 	Level_EnumLeafBrushes (NewLevel, NewLevel, Level_FaceFixupCallback);
 
@@ -829,12 +888,13 @@ geBoolean CFusionDoc::Load(const char *FileName)
 		Level_Destroy (&pLevel);
 	}
 	pLevel = NewLevel;
+//	pCameraEntity = NULL;
 
 	// Validate data, groups are read after entities and brushes, so this must be last
 	if( ValidateEntities( ) == FALSE || ValidateBrushes( ) == FALSE )
 	{
 		SelectTab( CONSOLE_TAB ) ;
-		AfxMessageBox( IDS_LOAD_WARNING ) ;
+		AfxMessageBox( IDS_LOAD_WARNING, MB_OK + MB_ICONERROR ) ;
 	}
 
 	GroupIterator gi;
@@ -842,7 +902,6 @@ geBoolean CFusionDoc::Load(const char *FileName)
 
 	Groups = Level_GetGroups (pLevel);
 	mCurrentGroup = Group_GetFirstId (Groups, &gi);
-	AddCameraEntityToLevel ();
 
 	{
 		Brush *pBox = BrushTemplate_CreateBox (Level_GetBoxTemplate (pLevel));
@@ -859,13 +918,16 @@ geBoolean CFusionDoc::Load(const char *FileName)
 		Level_EnumEntities (pLevel, &pEntityView->pEntries[i], ::fdocSetEntityVisibility);
 	}
 
+	AddCameraEntityToLevel ();
+
+	DoGeneralSelect();
 	return GE_TRUE;
 LoadError:
 	if (NewLevel != NULL)
 	{
 		Level_Destroy (&NewLevel);
 	}
-	AfxMessageBox (Errmsg);
+	AfxMessageBox (Errmsg, MB_OK + MB_ICONERROR);
 	return GE_FALSE;
 }
 
@@ -882,47 +944,6 @@ static geBoolean fdocSetFaceScales (Face *pFace, void *lParam)
 	Face_SetTextureScale (pFace, pScales->DrawScale, pScales->DrawScale);
 	Face_SetLightScale (pFace, pScales->LightmapScale, pScales->LightmapScale);
 	return GE_TRUE;
-}
-
-
-// play a sound from a resource
-static geBoolean PlayResource (char const * pName) 
-{     
-	BOOL bRtn;
-	char * lpRes; 
-	HGLOBAL hRes;
-	HRSRC hResInfo;
-	HINSTANCE hInst = AfxGetInstanceHandle ();
-
-	// Find the WAVE resource.
-    hResInfo = ::FindResource (hInst, pName, "WAVE");
-	if (hResInfo == NULL)
-	{
-        return FALSE;
-	}
-
-	// Load the WAVE resource.  
-    hRes = ::LoadResource(hInst, hResInfo);     
-	if (hRes == NULL)
-	{
-        return FALSE;
-	}
-
-	// Lock the WAVE resource and play it.  
-    lpRes = (char *)::LockResource(hRes);     
-	if (lpRes != NULL) 
-	{
-        bRtn = (::sndPlaySound(lpRes, SND_MEMORY | SND_SYNC | SND_NODEFAULT) != 0);
-		::UnlockResource(hRes);
-	}
-	else 
-	{
-        bRtn = GE_FALSE;
-	}
-
-	// Free the WAVE resource and return success or failure. 
-    FreeResource (hRes);
-	return bRtn; 
 }
 
 void CFusionDoc::OnBrushAddtoworld() 
@@ -946,7 +967,7 @@ void CFusionDoc::OnBrushAddtoworld()
 			if (GotName)
 			{
 				Placed = PlaceObject (ObjectName, &mRegularEntity.mOrigin);
-				::PlayResource ("SND_WHOOSH");
+				mpMainFrame->m_wndTabControls->GrpTab->UpdateAfterAddBrush();
 				UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 			}
 		}
@@ -972,7 +993,7 @@ void CFusionDoc::OnBrushAddtoworld()
 					NewEnt.SetGroupId (mCurrentGroup);
 					Level_AddEntity (pLevel, NewEnt);
 					Placed = GE_TRUE;
-					::PlayResource ("SND_WHOOSH");
+					mpMainFrame->m_wndTabControls->GrpTab->UpdateAfterAddBrush();
 					UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 				}
 			}
@@ -1004,7 +1025,6 @@ void CFusionDoc::OnBrushAddtoworld()
 
 		Level_AppendBrush (pLevel, nb);
 
-		::PlayResource ("SND_WHOOSH");
 		if(!Brush_IsHollow(nb) && !Brush_IsMulti(nb))
 		{
 			mWorldBsp	=Node_AddBrushToTree(mWorldBsp, nb);
@@ -1016,10 +1036,22 @@ void CFusionDoc::OnBrushAddtoworld()
 		}
 
 		Placed = GE_TRUE;
+		mpMainFrame->m_wndTabControls->GrpTab->UpdateAfterAddBrush();
+
 	}
 	if (Placed)
 	{
-		SetModifiedFlag();
+	// MS: We need to simualate a "move", to finally place 
+	// Lib objects to where they were placed in Template mode
+	// switch to move mode
+	mCurrentTool=ID_TOOLS_BRUSH_MOVEROTATEBRUSH;
+	ConfigureCurrentTool();
+	// fake a move
+	DoneMove ();
+	// Back to select mode
+	DoGeneralSelect();
+	// ~MS
+	SetModifiedFlag();
 	}
 }
 
@@ -1053,6 +1085,10 @@ void CFusionDoc::OnBrushSubtractfromworld()
 
 		SetDefaultBrushTexInfo(nb);
 		Brush_Bound (nb);
+
+		// add to current group
+		Brush_SetGroupId (nb, mCurrentGroup);
+
 		BrushList_Append (BList, nb);
 	}
 	UpdateSelected();
@@ -1097,6 +1133,7 @@ void CFusionDoc::CopySelectedBrushes(void)
 	{
 		CEntity *pEnt = &(*Entities)[i];
 		if( pEnt->IsCamera() == GE_FALSE  )	// Exclude Cameras
+//		if( pEnt!=pCameraEntity )	// Exclude Cameras
 		{
 			if (pEnt->IsSelected ())
 			{
@@ -1120,7 +1157,7 @@ void CFusionDoc::CopySelectedBrushes(void)
 		}
 	}
 
-	ConPrintf("Cloned %d Brushes, %d Entities.\n", NumSelBrushes, NumSelEntities);
+//	ConPrintf("Cloned %d Brushes, %d Entities.\n", NumSelBrushes, NumSelEntities);
 
 	// Copying items places the new items in the same group, so we must update the UI
 	mpMainFrame->m_wndTabControls->GrpTab->UpdateTabDisplay( this ) ;
@@ -1172,8 +1209,9 @@ static geBoolean	BrushTexSetCB (Brush *b, void *lParam)
 
 	pData = (BrushTexSetData *)lParam;
 
-	Brush_SetName(b, pData->TexName);
-	char const * const BrushName = Brush_GetName (b);
+//	Brush_SetName(b, pData->TexName);
+	Brush_SetName(b, pData->pDoc->LastTemplateTypeName);
+//	char const * const BrushName = Brush_GetName (b);
 	const int NumFaces = Brush_GetNumFaces (b);
 
 	//copy face TexInfos
@@ -1182,9 +1220,12 @@ static geBoolean	BrushTexSetCB (Brush *b, void *lParam)
 		Face	*f	=Brush_GetFace(b, i);
 		WadFileEntry *pbmp;
 
-		Face_SetTextureName(f, BrushName);
-		Face_SetTextureDibId(f, Level_GetDibId (pData->pDoc->pLevel, BrushName));
-		pbmp = Level_GetWadBitmap (pData->pDoc->pLevel, BrushName);
+//		Face_SetTextureName(f, BrushName);
+//		Face_SetTextureDibId(f, Level_GetDibId (pData->pDoc->pLevel, BrushName));
+//		pbmp = Level_GetWadBitmap (pData->pDoc->pLevel, BrushName);
+		Face_SetTextureName(f, pData->TexName);
+		Face_SetTextureDibId(f, Level_GetDibId (pData->pDoc->pLevel, pData->TexName));
+		pbmp = Level_GetWadBitmap (pData->pDoc->pLevel, pData->TexName);
 		if (pbmp != NULL)
 		{
 			Face_SetTextureSize (f, pbmp->Width, pbmp->Height);
@@ -1203,7 +1244,8 @@ void CFusionDoc::SetDefaultBrushTexInfo(Brush *b)
 	CallbackData.pDoc = this;
 	CallbackData.TexName = TexName;
 
-	Brush_SetName(b, TexName);
+//	Brush_SetName(b, TexName);
+	Brush_SetName(b, LastTemplateTypeName);
 	if(Brush_IsMulti(b))
 	{
 		BrushList_EnumLeafBrushes (Brush_GetBrushList(b), &CallbackData, ::BrushTexSetCB) ;
@@ -1251,6 +1293,7 @@ geBoolean CFusionDoc::EntityIsVisible( const CEntity *pEntity ) const
 	int			GroupId ;
 
 	if (pEntity->IsCamera ())
+//	if (pEntity==pCameraEntity)
 	{
 		return pEntity->IsVisible ();
 	}
@@ -1312,7 +1355,8 @@ void CFusionDoc::CreateNewTemplateBrush
 void CFusionDoc::OnUpdateBrushPrimitives (CCmdUI *pCmdUI)
 {
 	// This function is used by all the primitive UI OnUpdateXXX's
-	pCmdUI->Enable( (mModeTool == ID_TOOLS_TEMPLATE ) ? TRUE : FALSE ) ;
+//	pCmdUI->Enable( (mModeTool == ID_TOOLS_TEMPLATE ) ? TRUE : FALSE ) ;
+	pCmdUI->Enable( TRUE ) ;
 }
 
 void CFusionDoc::OnBrushPrimitivesCube() 
@@ -1328,11 +1372,15 @@ void CFusionDoc::CreateCube()
 
 	if( mBoxCreation.DoModal((Level_GetGridType (pLevel) == GridMetric), pBoxTemplate) == IDOK )
 	{
+		if (mModeTool != ID_TOOLS_TEMPLATE)
+			OnToolsTemplate();
+
 		Brush *pCube;
 
 		pCube = ::BrushTemplate_CreateBox (pBoxTemplate);
 		if (pCube != NULL)
 		{
+			LastTemplateTypeName = "Box";
 			CreateNewTemplateBrush (pCube);
 		}
 	}
@@ -1351,11 +1399,15 @@ void CFusionDoc::CreateSpheroid()
 
 	if( mSpheroidCreation.DoModal(Level_GetGridType (pLevel) == GridMetric, pTemplate) == IDOK )
 	{
+		if (mModeTool != ID_TOOLS_TEMPLATE)
+			OnToolsTemplate();
+
 		Brush *pBrush;
 
 		pBrush = BrushTemplate_CreateSpheroid (pTemplate);
 		if (pBrush != NULL)
 		{
+			LastTemplateTypeName = "Spheroid";
 			CreateNewTemplateBrush (pBrush);
 		}
 	}
@@ -1374,11 +1426,15 @@ void CFusionDoc::CreateCylinder()
 
 	if( mCylCreation.DoModal ((Level_GetGridType (pLevel) == GridMetric), pCylTemplate) == IDOK )
 	{
+		if (mModeTool != ID_TOOLS_TEMPLATE)
+			OnToolsTemplate();
+
 		Brush *pCyl;
 
 		pCyl = BrushTemplate_CreateCylinder (pCylTemplate);
 		if (pCyl != NULL)
 		{
+			LastTemplateTypeName = "Cylinder";
 			CreateNewTemplateBrush (pCyl);
 		}
 	}
@@ -1397,11 +1453,15 @@ void CFusionDoc::CreateStaircase()
 
 	if( mStairCreation.DoModal(Level_GetGridType (pLevel) == GridMetric, pStairTemplate) == IDOK )
 	{
+		if (mModeTool != ID_TOOLS_TEMPLATE)
+			OnToolsTemplate();
+
 		Brush *pStair;
 
 		pStair = BrushTemplate_CreateStaircase (pStairTemplate);
 		if (pStair != NULL)
 		{
+			LastTemplateTypeName = "Staircase";
 			CreateNewTemplateBrush (pStair);
 		}
 	}
@@ -1419,12 +1479,16 @@ void CFusionDoc::CreateArch()
 
 	if( mArchCreation.DoModal((Level_GetGridType (pLevel) == GridMetric), pArchTemplate) == IDOK )
 	{
+		if (mModeTool != ID_TOOLS_TEMPLATE)
+			OnToolsTemplate();
+
 		Brush *pArch;
 
 		pArch = BrushTemplate_CreateArch (pArchTemplate);
 
 		if (pArch != NULL)
 		{
+			LastTemplateTypeName = "Arch";
 			CreateNewTemplateBrush (pArch);
 		}
 	}
@@ -1442,11 +1506,15 @@ void CFusionDoc::CreateCone()
 
 	if( mConeCreation.DoModal ((Level_GetGridType (pLevel) == GridMetric), pConeTemplate) == IDOK )
 	{
+		if (mModeTool != ID_TOOLS_TEMPLATE)
+			OnToolsTemplate();
+
 		Brush *pCone;
 
 		pCone = BrushTemplate_CreateCone (pConeTemplate);
 		if (pCone != NULL)
 		{
+			LastTemplateTypeName = "Cone";
 			CreateNewTemplateBrush (pCone);
 		}
 	}
@@ -1881,10 +1949,13 @@ static geBoolean fdocBrushIsSubtract (const Brush *b)
 
 CEntity *CFusionDoc::FindCameraEntity (void)
 {
+//	if (pCameraEntity) return pCameraEntity;
+
 	CEntityArray *Entities = Level_GetEntities (pLevel);
 	int i;
+	int j = Entities->GetSize ();
 
-	for (i = 0; i < Entities->GetSize (); ++i)
+	for (i = 0; i < j; ++i)
 	{
 		CEntity *pEnt;
 
@@ -1895,6 +1966,7 @@ CEntity *CFusionDoc::FindCameraEntity (void)
 		}
 	}
 	return NULL;
+
 }
 
 //need to put this somewhere
@@ -1929,6 +2001,7 @@ void CFusionDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 	CPen	PenClipBrush (PS_SOLID, 1, RGB(128, 0, 128));
 	CPen	PenSheetFaces (PS_SOLID, 1, RGB(255, 255, 0));
 	CPen	PenSelectedFaces (PS_SOLID, 1, RGB(255,0,255));
+	CPen	PenCamera (PS_SOLID, 1, RGB(0,255,0));
 
 	geVec3d		XTemp;
 	Box3d ViewBox;
@@ -1981,21 +2054,26 @@ void CFusionDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 		  Otherwise we always want to render the regular grid.  If the
 		  snap grid is larger than the regular grid, then render it, too.
 		*/
+/*
 		if (GridSize == GridSnapSize)
 		{
 			pDC->SelectObject (&PenSnapGrid);
 			Render_RenderOrthoGridFromSize (v, GridSize, pDC->m_hDC);
 		}
 		else
+*/
 		{
-			pDC->SelectObject (&PenGrid);
-			Render_RenderOrthoGridFromSize (v, GridSize, pDC->m_hDC);
-			if (GridSnapSize > GridSize)
+//			if (GridSnapSize > GridSize)
+			if (GridSnapSize >= GridSize)
 			{
 				// render snap grid
 				pDC->SelectObject (&PenSnapGrid);
 				Render_RenderOrthoGridFromSize (v, GridSnapSize, pDC->m_hDC);
 			}
+			pDC->SelectObject (&PenGrid);
+//			Render_RenderOrthoGridFromSize (v, GridSize, pDC->m_hDC);
+			Render_RenderOrthoGridFromSize (v, 128, pDC->m_hDC);
+
 		}
 		pDC->SelectObject (oldpen);
 	}
@@ -2064,14 +2142,6 @@ void CFusionDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 			pDC->SelectObject (&PenAllItems);
 		}
 		GroupId	=Group_GetNextId(Groups, &gi);	
-	}
-
-	// find and render the camera entity
-	CEntity *pCameraEntity = FindCameraEntity ();
-	if ((pCameraEntity != NULL) && pCameraEntity->IsVisible ())
-	{
-		pDC->SelectObject (&PenAllItems);
-		fdocDrawEntity (pCameraEntity, v, pDC, Level_GetEntityDefs (pLevel), GE_FALSE);
 	}
 
 	brushDrawData.GroupId = fdoc_SHOW_ALL_GROUPS;
@@ -2153,6 +2223,20 @@ void CFusionDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 		}
 	}
 
+	// find and render the camera entity
+	CEntity *pCameraEntity = FindCameraEntity ();
+//	if ((pCameraEntity != NULL) && pCameraEntity->IsVisible ())
+	if ((pCameraEntity != NULL))
+	{
+		if (pCameraEntity->IsSelected())
+			pDC->SelectObject (&PenSelected);
+		else
+			pDC->SelectObject (&PenCamera);
+//		fdocDrawEntity (pCameraEntity, v, pDC, Level_GetEntityDefs (pLevel), GE_FALSE);
+		fdocDrawEntity (pCameraEntity, v, pDC, Level_GetEntityDefs (pLevel), GE_TRUE);
+	}
+
+
 	pDC->SelectObject(oldpen);
 }/* CFusionDoc::RenderOrthoView */
 
@@ -2168,7 +2252,8 @@ void CFusionDoc::OnToolsBrushAdjustmentmode()
 		!IsSelectionLocked() && */
 		mCurrentTool == CURTOOL_NONE )
 	{
-		SetAdjustmentMode( ADJUST_MODE_BRUSH ) ;
+//		SetAdjustmentMode( ADJUST_MODE_BRUSH ) ;
+		SetAdjustmentMode( ADJUST_MODE_FACE ) ;
 	}
 }
 
@@ -2190,18 +2275,28 @@ void CFusionDoc::OnToolsFaceAdjustmentmode()
 
 void CFusionDoc::OnToolsToggleadjustmode() 
 {
+//MS change to select mode before changing to face adjustment
+	DoGeneralSelect();
+	if( /*mModeTool == ID_GENERALSELECT && 
+		!IsSelectionLocked() && */
+		mCurrentTool == CURTOOL_NONE )
+	{
+		SetAdjustmentMode( ADJUST_MODE_FACE ) ;
+	}
+
+}
+
+void CFusionDoc::OnUpdateToolsToggleadjustmode(CCmdUI* pCmdUI) 
+{
+//MS change to select mode before changing to face adjustment
+	DoGeneralSelect();	
 	if( /*mModeTool == ID_GENERALSELECT && 
 		!IsSelectionLocked() && */
 		mCurrentTool == CURTOOL_NONE )
 	{
 		SetAdjustmentMode( ADJUST_MODE_TOGGLE ) ;	// Flip between Brush & face 
 	}
-	
-}
 
-void CFusionDoc::OnUpdateToolsToggleadjustmode(CCmdUI* pCmdUI) 
-{
-	pCmdUI->Enable (TRUE);//(mModeTool == ID_GENERALSELECT) ? TRUE : FALSE);
 }
 
 
@@ -2436,7 +2531,7 @@ void CFusionDoc::DoBrushSelection
 
 	ModelLocked = GE_FALSE;
 	GroupLocked = FALSE;
-	if(mAdjustMode != ADJUST_MODE_FACE)
+//	if(mAdjustMode != ADJUST_MODE_FACE)
 	{
 		// don't do this stuff if we're in face mode...
 		ModelId = Brush_GetModelId (pBrush);
@@ -2605,6 +2700,23 @@ static geBoolean fdocSelectBrush (Brush *pBrush, void *lParam)
 	return GE_TRUE;
 }
 
+static geBoolean SelAllBrushFaces (Brush *pBrush, void *lParam)
+{
+	int iFace, nFaces;
+	CFusionDoc *pDoc = (CFusionDoc *)lParam;
+
+	nFaces = Brush_GetNumFaces (pBrush);
+	for (iFace = 0; iFace < nFaces; ++iFace)
+	{
+		Face *pFace;
+
+		pFace = Brush_GetFace (pBrush, iFace);
+		Face_SetSelected (pFace, GE_TRUE);
+		SelFaceList_Add (pDoc->pSelFaces, pFace);
+	}
+	return GE_TRUE;
+}
+
 void CFusionDoc::SelectAll (void)
 {
 	DoGeneralSelect ();
@@ -2613,7 +2725,74 @@ void CFusionDoc::SelectAll (void)
 	Level_EnumEntities (pLevel, this, ::fdocSelectEntity);
 	Level_EnumBrushes (pLevel, this, ::fdocSelectBrush);	
 
+	// Select all faces on all selected brushes
+	int iBrush;
+	int NumSelBrushes = SelBrushList_GetSize (pSelBrushes);
+
+	for (iBrush = 0; iBrush < NumSelBrushes; ++iBrush)
+	{
+		Brush *pBrush;
+
+		pBrush = SelBrushList_GetBrush (pSelBrushes, iBrush);
+		if (Brush_IsMulti (pBrush))
+		{
+			BrushList_EnumLeafBrushes (Brush_GetBrushList (pBrush), this, ::SelAllBrushFaces);
+		}
+		else
+		{
+			::SelAllBrushFaces (pBrush, this);
+		}
+	}
+
 	UpdateSelected();
+
+	ConfigureCurrentTool();
+}
+
+void CFusionDoc::SelectAllBrushes (void)
+{
+	DoGeneralSelect ();
+
+	Level_EnumBrushes (pLevel, this, ::fdocSelectBrush);	
+
+	UpdateSelected();
+}
+
+void CFusionDoc::SelectAllEntities (void)
+{
+	DoGeneralSelect ();
+
+	NumSelEntities = 0;
+	Level_EnumEntities (pLevel, this, ::fdocSelectEntity);
+
+	UpdateSelected();
+}
+
+void CFusionDoc::SelectAllFacesInBrushes (void)
+{
+	DoGeneralSelect ();
+
+	// Select all faces on all selected brushes
+	int iBrush;
+	int NumSelBrushes = SelBrushList_GetSize (pSelBrushes);
+
+	for (iBrush = 0; iBrush < NumSelBrushes; ++iBrush)
+	{
+		Brush *pBrush;
+
+		pBrush = SelBrushList_GetBrush (pSelBrushes, iBrush);
+		if (Brush_IsMulti (pBrush))
+		{
+			BrushList_EnumLeafBrushes (Brush_GetBrushList (pBrush), this, ::SelAllBrushFaces);
+		}
+		else
+		{
+			::SelAllBrushFaces (pBrush, this);
+		}
+	}
+	UpdateSelected ();
+
+	ConfigureCurrentTool();
 }
 
 BOOL CFusionDoc::IsEntitySelected(void)
@@ -2673,6 +2852,7 @@ void CFusionDoc::AdjustEntityAngle( const ViewVars * v, const geFloat dx )
 
 	
 	if (pEnt->IsCamera ())
+//	if (pEnt==pCameraEntity)
 	{
 		Render_ViewDeltaToRotation ( v, -dx, &Vec);
 		// disallow roll for camera
@@ -2749,7 +2929,7 @@ void CFusionDoc::SelectOrtho(CPoint point, ViewVars *v)
 	}
 
 	// if Control key isn't pressed, then clear all current selections
-	if ((GetAsyncKeyState(VK_CONTROL) & 0x8000) == 0)
+	if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) == 0)
 	{
 		ResetAllSelections ();
 	}
@@ -2761,7 +2941,7 @@ void CFusionDoc::SelectOrtho(CPoint point, ViewVars *v)
 		{
 			case fctBRUSH :
 				DoBrushSelection (pMinBrush, brushSelToggle);
-				UpdateBrushAttributesDlg ();
+//				UpdateBrushAttributesDlg ();
 				break;
 			case fctENTITY :
 				DoEntitySelection (pMinEntity);
@@ -2771,12 +2951,17 @@ void CFusionDoc::SelectOrtho(CPoint point, ViewVars *v)
 				assert (0);
 		}
 	}
+/*
 	if (SelBrushList_GetSize (pSelBrushes) == 0)
 	{
 		DeleteBrushAttributes ();
 	}
+*/
 
 	UpdateSelected ();
+
+//	UpdateBrushAttributesDlg ();
+//	UpdateFaceAttributesDlg ();
 }
 
 
@@ -2801,7 +2986,7 @@ void CFusionDoc::SelectOrthoRect(CPoint ptStart, CPoint ptEnd, ViewVars *v)
 	}
 
 	// if Control key isn't pressed, then clear all current selections
-	if ((GetAsyncKeyState(VK_CONTROL) & 0x8000) == 0)
+	if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) == 0)
 	{
 		ResetAllSelections ();
 	}
@@ -2882,6 +3067,64 @@ void CFusionDoc::ResizeSelected(float dx, float dy, int sides, int inidx)
 				BrushList_RebuildHollowFaces((BrushList *)Brush_GetBrushList(pBrush), Brush_GetModelId(pBrush), ::fdocBrushCSGCallback, this);
 			}
 		}
+	}
+}
+
+void CFusionDoc::ScaleSelectedBrushes(geVec3d *ScaleVector)
+{
+	mLastOp				=BRUSH_SCALE;
+
+	geVec3d	VecOrigin	={ 0.0f, 0.0f, 0.0f };
+
+	geVec3d MoveTo;
+	geVec3d MoveBack;
+	geVec3d_Subtract(&VecOrigin, &SelectedGeoCenter, &MoveTo);
+	geVec3d_Subtract(&SelectedGeoCenter, &VecOrigin, &MoveBack);
+
+	if(mModeTool == ID_TOOLS_TEMPLATE)
+	{
+		Brush_Scale3d(CurBrush, ScaleVector);
+		if(Brush_IsMulti(CurBrush))
+		{
+			BrushList_ClearCSGAndHollows((BrushList *)Brush_GetBrushList(CurBrush), Brush_GetModelId(CurBrush));
+			BrushList_RebuildHollowFaces((BrushList *)Brush_GetBrushList(CurBrush), Brush_GetModelId(CurBrush), ::fdocBrushCSGCallback, this);
+		}
+	}
+	else
+	{
+		int i;
+		int NumSelBrushes = SelBrushList_GetSize (pSelBrushes);
+
+		for (i = 0; i < NumSelBrushes; ++i)
+		{
+			Brush *pBrush;
+			
+			pBrush = SelBrushList_GetBrush (pSelBrushes, i);
+
+			Brush_Move(pBrush, &MoveTo);
+			Brush_Scale3d(pBrush, ScaleVector);
+			Brush_Move(pBrush, &MoveBack);
+
+			if (Brush_IsMulti(pBrush))
+			{
+				BrushList_ClearCSGAndHollows((BrushList *)Brush_GetBrushList(pBrush), Brush_GetModelId(pBrush));
+				BrushList_RebuildHollowFaces((BrushList *)Brush_GetBrushList(pBrush), Brush_GetModelId(pBrush), ::fdocBrushCSGCallback, this);
+			}
+		}
+
+		CEntityArray *Entities = Level_GetEntities (pLevel);
+		const EntityTable *EntityDefs = Level_GetEntityDefs (pLevel);
+		int NumEntities = Entities->GetSize();
+		for(i=0;i < NumEntities;i++)
+		{
+			if ((*Entities)[i].IsSelected())
+			{
+				(*Entities)[i].Move(&MoveTo);
+				(*Entities)[i].Scale3d(ScaleVector, EntityDefs);
+				(*Entities)[i].Move(&MoveBack);
+			}
+		}
+
 	}
 }
 
@@ -3147,7 +3390,7 @@ void CFusionDoc::SelectRay(CPoint point, ViewVars *v)
 
 				if(MinEDist < pDist)
 				{
-					if((GetAsyncKeyState(VK_CONTROL) & 0x8000) == 0)
+					if((GetAsyncKeyState(VK_SHIFT) & 0x8000) == 0)
 					{
 						ResetAllSelections ();
 					}
@@ -3161,7 +3404,7 @@ void CFusionDoc::SelectRay(CPoint point, ViewVars *v)
 	if(!EntitySelected && bdat.CurBrush)
 	{
 		// if Control key isn't pressed, then clear all current selections
-		if ((GetAsyncKeyState(VK_CONTROL) & 0x8000) == 0)
+		if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) == 0)
 		{
 			ResetAllSelections ();
 		}
@@ -3259,6 +3502,7 @@ void CFusionDoc::SelectRay(CPoint point, ViewVars *v)
 
 	UpdateSelected();
 
+/*
 	if ((bdat.CurFace == NULL) ||
 	    ((mAdjustMode == ADJUST_MODE_FACE) && (SelFaceList_GetSize (pSelFaces) == 0)))
 	{
@@ -3270,6 +3514,7 @@ void CFusionDoc::SelectRay(CPoint point, ViewVars *v)
 		UpdateFaceAttributesDlg ();
 		UpdateBrushAttributesDlg ();
 	}
+*/
 }
 
 //selects the texture of the face clicked (doesn't select the face)
@@ -3298,17 +3543,21 @@ void CFusionDoc::SelectTextureFromFace3D(CPoint point, ViewVars *v)
 
 void CFusionDoc::UpdateFaceAttributesDlg (void)
 {
-	if (mpFaceAttributes != NULL)
+//	if (mpFaceAttributes != NULL)
+	if (mpMainFrame->mpFaceAttributes != NULL)
 	{
-		mpFaceAttributes->UpdatePolygonFocus ();
+//		mpFaceAttributes->UpdatePolygonFocus ();
+		mpMainFrame->mpFaceAttributes->UpdatePolygonFocus ();
 	}
 }
 
 void CFusionDoc::UpdateBrushAttributesDlg (void)
 {
-	if (mpBrushAttributes != NULL)
+//	if (mpBrushAttributes != NULL)
+	if (mpMainFrame->mpBrushAttributes != NULL)
 	{
-		mpBrushAttributes->UpdateBrushFocus ();
+//		mpBrushAttributes->UpdateBrushFocus ();
+		mpMainFrame->mpBrushAttributes->UpdateBrushFocus ();
 	}
 }
 
@@ -3318,6 +3567,7 @@ void CFusionDoc::UpdateCameraEntity( const ViewVars *v )
 	geVec3d		Vec ;
 
 	pEnt = EntityList_FindByClassName( Level_GetEntities (pLevel), "Camera" ) ;
+//	pEnt = pCameraEntity;
 	if( pEnt )
 	{
 		Render_GetCameraPos( v, &Vec ) ;
@@ -3347,7 +3597,7 @@ void CFusionDoc::SetRenderedViewCamera( const geVec3d * pVec, const geVec3d * pP
 	}
 }/* CFusionDoc::SetRenderedViewCamera */
 
-void CFusionDoc::GetCursorInfo(char *info, int MaxSize)
+geBoolean CFusionDoc::GetCursorInfo(char *info, int MaxSize)
 {
 	CFusionView	*pView;
 	CPoint		CursorPos, ViewCursorPos;
@@ -3358,75 +3608,103 @@ void CFusionDoc::GetCursorInfo(char *info, int MaxSize)
 	info[0]	=0;
 
 	GetCursorPos(&CursorPos);
+	HWND CursorWindow = WindowFromPoint(CursorPos);
 
-	while(pos!=NULL)
+	while (pos)
 	{
 		pView	=(CFusionView*)GetNextView(pos);
-		pView->GetClientRect(&ClientRect);
-		pView->ClientToScreen(&ClientRect);
-		if(ClientRect.PtInRect(CursorPos))
+		if (CursorWindow == pView->m_hWnd)
 		{
-			if(pView->mViewType!=(unsigned)mActiveView)
+			pView->GetClientRect(&ClientRect);
+			pView->ClientToScreen(&ClientRect);
+			if(ClientRect.PtInRect(CursorPos))
 			{
-				if(!pView->IsPanning && mCurrentTool!=ID_TOOLS_BRUSH_SCALEBRUSH
-					&& mCurrentTool!=ID_TOOLS_BRUSH_SHEARBRUSH)
+/*
+				if(pView->mViewType!=(unsigned)mActiveView)
 				{
-					SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+					if(!pView->IsPanning && mCurrentTool!=ID_TOOLS_BRUSH_SCALEBRUSH
+						&& mCurrentTool!=ID_TOOLS_BRUSH_SHEARBRUSH)
+					{
+						if (mCurrentTool==ID_TOOLS_BRUSH_MOVEROTATEBRUSH)
+							SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZEALL));
+						else
+							SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+					}
+					return;
 				}
-				return;
-			}
-			ViewCursorPos=CursorPos;
-			pView->ScreenToClient(&ViewCursorPos);
+*/
+				ViewCursorPos=CursorPos;
+				pView->ScreenToClient(&ViewCursorPos);
 
-
-			if(Render_GetViewType(pView->VCam) < VIEWTOP) //3d?
-			{
-				if(!pView->IsPanning)
+				if(Render_GetViewType(pView->VCam) < VIEWTOP) //3d?
 				{
-					SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
-				}
-			}
-			else
-			{
-				if(!pView->IsPanning && mCurrentTool!=ID_TOOLS_BRUSH_SCALEBRUSH
-					&& mCurrentTool!=ID_TOOLS_BRUSH_SHEARBRUSH)
-				{
-					int FoundThingType;
-					Brush *pMinBrush;
-					CEntity *pMinEntity;
-					geFloat Dist;
-					FoundThingType = FindClosestThing (&ViewCursorPos, pView->VCam, &pMinBrush, &pMinEntity, &Dist);
-					if ((FoundThingType == fctNOTHING) || (Dist > MAX_PIXEL_SELECT_DIST) || (mCurrentTool != CURTOOL_NONE))
+					if (pView->RMouseButtonDown && !pView->LMouseButtonDown && !pView->IsKeyDown(VK_CONTROL))
+					{
+						SetCursor (AfxGetApp()->LoadCursor(IDC_EYEDROPPER));
+					}
+					else
+					if(!pView->IsPanning)
 					{
 						SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 					}
-					else
+					return GE_FALSE;
+				}
+				else
+				{
+					if(!pView->IsPanning && mCurrentTool!=ID_TOOLS_BRUSH_SCALEBRUSH
+						&& mCurrentTool!=ID_TOOLS_BRUSH_SHEARBRUSH)
 					{
-						switch (FoundThingType)
+
+						int FoundThingType;
+						Brush *pMinBrush;
+						CEntity *pMinEntity;
+						geFloat Dist;
+						FoundThingType = FindClosestThing (&ViewCursorPos, pView->VCam, &pMinBrush, &pMinEntity, &Dist);
+						if (mCurrentTool==ID_TOOLS_BRUSH_MOVEROTATEBRUSH)
+							SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZEALL));
+						else
+							SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+						if ((FoundThingType == fctNOTHING) || (Dist > MAX_PIXEL_SELECT_DIST) || (mCurrentTool != CURTOOL_NONE))
 						{
-							case fctBRUSH :
-								SetCursor(AfxGetApp()->LoadCursor(IDC_ARROWBRUSH));
-								strncpy (info, Brush_GetName(pMinBrush), MaxSize);
-								break;
-							case fctENTITY :
-								SetCursor(AfxGetApp()->LoadCursor(IDC_ARROWENTITY));
-								strncpy (info, pMinEntity->GetName (), MaxSize);
-								break;
-							default :
-								// bad value returned from FindClosestThing
-								assert (0);
+						}
+						else
+						{
+							switch (FoundThingType)
+							{
+								case fctBRUSH :
+									strncpy (info, Brush_GetName(pMinBrush), MaxSize);
+									break;
+								case fctENTITY :
+									strncpy (info, pMinEntity->GetName (), MaxSize);
+									break;
+								default :
+									// bad value returned from FindClosestThing
+									assert (0);
+							}
 						}
 					}
 				}
 			}
 		}
+		else
+			if ( pView->IsKindOf( RUNTIME_CLASS (CFusionView)) )
+			{
+				if	(Render_GetViewType(pView->VCam) < VIEWTOP) //3d?
+				{
+					pView->RMouseButtonDown = GE_FALSE;
+				}
+			}
 	}
+	return GE_TRUE;
 }
 
 void CFusionDoc::OnSelectedTypeCmdUI(CCmdUI* pCmdUI)
 {
+/*
 	if(mModeTool==ID_TOOLS_BRUSH_ADJUSTMENTMODE) pCmdUI->Enable();
 	else pCmdUI->Enable(0);
+*/
+	pCmdUI->Enable();
 }
 
 // NO UI EXISTS FOR THIS FUNCTION
@@ -3524,6 +3802,7 @@ void CFusionDoc::OnBrushSelectedDelete()
 	DeleteSelectedBrushes();
 }
 
+
 void CFusionDoc::SetupDefaultFilename (void)
 {
 	const CString DocPath = GetPathName ();
@@ -3532,12 +3811,15 @@ void CFusionDoc::SetupDefaultFilename (void)
 	{
 		// new file...
 		char NewFileName[MAX_PATH];
+		char NewTitle[MAX_PATH];
 		CString titl = GetTitle ();
 		strcpy (NewFileName, LastPath);
 		::FilePath_AppendName (NewFileName, titl, NewFileName);
 		::FilePath_SetExt (NewFileName, ".3dt", NewFileName);
-		strlwr (NewFileName);
-		SetPathName (NewFileName, FALSE);
+		::FilePath_SetExt (titl, ".3dt", NewTitle);
+		//strlwr (NewFileName);
+		SetTitle(NewTitle);
+		SetPathName(NewFileName, FALSE);
 	}
 }
 
@@ -3561,13 +3843,14 @@ void CFusionDoc::OnFileSaveAs()
 	CDocument::OnFileSaveAs ();
 }
 
+
 BOOL CFusionDoc::OnSaveDocument(LPCTSTR lpszPathName)
 {
 	::FilePath_GetDriveAndDir (lpszPathName, LastPath);
 
 	if (Save( lpszPathName ) == GE_FALSE)
 	{
-		AfxMessageBox ("Error saving file.\rThe disk may be full.");
+		AfxMessageBox ("Error: Unable to save file.\rThe disk may be full, write protected, or you may not have sufficient permissions.", MB_OK + MB_ICONERROR);
 		return FALSE;
 	}
 	IsNewDocument = 0;
@@ -3657,6 +3940,8 @@ void	CFusionDoc::InvalidateDrawTreeOriginalFaces(void)
 
 void	CFusionDoc::RebuildTrees(void)
 {
+	CWaitCursor w;
+
 	ModelIterator	mi;
 	int				i, CurId = 0;
 	Node			*n;
@@ -3712,6 +3997,7 @@ void	CFusionDoc::RebuildTrees(void)
 	{
 		UpdateFaceAttributesDlg ();
 	}
+
 }
 
 void CFusionDoc::OnGbspnowater() 
@@ -3729,9 +4015,13 @@ void CFusionDoc::DeleteCurrentThing()
 {
 	BOOL	ReBuild;
 
-	if(mAdjustMode==ADJUST_MODE_BRUSH
-		&& mModeTool==ID_GENERALSELECT)
+//	if(mAdjustMode==ADJUST_MODE_BRUSH
+//		&& mModeTool==ID_GENERALSELECT)
+	if(mModeTool==ID_GENERALSELECT)
 	{
+		// set wait cursor
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+
 		ResetAllSelectedFaces();
 		ReBuild	=(GetSelState() & ANYBRUSH);
 		DeleteSelectedBrushes();
@@ -3744,6 +4034,9 @@ void CFusionDoc::DeleteCurrentThing()
 		{
 			UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 		}
+
+		// put cursor back
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 	}
 }
 
@@ -3982,7 +4275,6 @@ void CFusionDoc::MoveSelectedBrushList
 	)
 {
 	int		i;
-	CEntityArray *Entities = Level_GetEntities (pLevel);
 	int NumBrushes;
 
 	mLastOp	=BRUSH_MOVE;
@@ -3999,7 +4291,9 @@ void CFusionDoc::MoveSelectedBrushList
 		Brush_Move (pBrush, v);
 	}
 
-	for(i=0;i < Entities->GetSize();i++)
+	CEntityArray *Entities = Level_GetEntities (pLevel);
+	int NumEntities = Entities->GetSize();
+	for(i=0;i < NumEntities;i++)
 	{
 		if ((*Entities)[i].IsSelected ())
 		{
@@ -4045,6 +4339,7 @@ void CFusionDoc::RotateTemplateBrush(geVec3d *v)
 
 	mLastOp	=BRUSH_ROTATE;
 
+	geVec3d_Add(v, &FinalRot, &FinalRot);
 	geXForm3d_SetEulerAngles(&rm, v);
 	Brush_Rotate (CurBrush, &rm, &SelectedGeoCenter);
 }
@@ -4110,6 +4405,17 @@ void CFusionDoc::RotateSelectedBrushList
 		Brush *pBrush = SelBrushList_GetBrush (pList, i);
 		Brush_Rotate (pBrush, &rm, &RotationPoint);
 	}
+
+	CEntityArray *Entities = Level_GetEntities (pLevel);
+	const EntityTable *EntityTable = Level_GetEntityDefs (pLevel);
+	for(i=0;i < Entities->GetSize();i++)
+	{
+		if ((*Entities)[i].IsSelected ())
+		{
+			(*Entities)[i].DoneRotate(&rm, &RotationPoint, EntityTable);
+		}
+	}
+
 }/* CFusionDoc::RotateSelectedBrushList */
 
 void CFusionDoc::RotateSelectedBrushes(geVec3d const *v)
@@ -4152,6 +4458,9 @@ void CFusionDoc::DoneRotate(void)
 	geFloat	RSnap;
 	geXForm3d		rm;
 	geVec3d RotationPoint;
+	geVec3d TemplateReversalRot;
+
+	TemplateReversalRot = FinalRot;
 
 	mLastOp		=BRUSH_ROTATE;
 
@@ -4168,7 +4477,22 @@ void CFusionDoc::DoneRotate(void)
 		FinalRot.Z	=((float)((int)(FinalRot.Z / RSnap))) * RSnap;
 	}
 
+	if(mModeTool == ID_TOOLS_TEMPLATE)
+		geVec3d_Subtract(&FinalRot, &TemplateReversalRot, &FinalRot);
+
 	geXForm3d_SetEulerAngles(&rm, &FinalRot);
+
+	if(mModeTool == ID_TOOLS_TEMPLATE)
+	{
+		if (TempEnt)
+		{
+		}
+		else
+		{
+			Brush_Rotate (CurBrush, &rm, &RotationPoint);
+		}
+		return;
+	}
 
 	int NumSelBrushes = SelBrushList_GetSize (pSelBrushes);
 
@@ -4363,6 +4687,7 @@ void CFusionDoc::DoneMoveEntity(void)
 			{
 				pEnt->DoneMove (SnapSize, Level_GetEntityDefs (pLevel));
 				if( pEnt->IsCamera() == GE_TRUE )	// Camera Entity?
+//				if( pEnt==pCameraEntity )	// Camera Entity?
 				{				
 					geVec3d	PitchRollYaw ;
 
@@ -4504,10 +4829,11 @@ void CFusionDoc::UpdateAllViews(int Mode, CView* pSender, BOOL Override)
 	}
 }
 
+/*
 void CFusionDoc::FaceAttributesDialog ()
 {
 	//	Has a face been selected?  Are we selecting faces...
-	if ((mAdjustMode == ADJUST_MODE_FACE) && (SelFaceList_GetSize (pSelFaces) > 0))
+//	if ((mAdjustMode == ADJUST_MODE_FACE) && (SelFaceList_GetSize (pSelFaces) > 0))
 	{
 		if (mpFaceAttributes == NULL)
 		{
@@ -4520,6 +4846,7 @@ void CFusionDoc::NullFaceAttributes()
 {
 	mpFaceAttributes = NULL;
 }
+*/
 
 //	This function basically sets up everything required
 //  for each tool before its use...
@@ -4530,8 +4857,8 @@ void CFusionDoc::ConfigureCurrentTool(void)
 	if(mModeTool==ID_TOOLS_CAMERA)
 	{
 		mCurrentTool		=CURTOOL_NONE;
-		mShowSelectedFaces	=(mAdjustMode==ADJUST_MODE_FACE);
 		mShowSelectedBrushes=(mAdjustMode==ADJUST_MODE_BRUSH);
+		mShowSelectedFaces	=(mAdjustMode==ADJUST_MODE_FACE);
 		UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 		return;
 	}
@@ -4621,9 +4948,16 @@ void CFusionDoc::UpdateSelected(void)
 
 	if (mModeTool==ID_TOOLS_TEMPLATE)
 	{
-		Brush_Center (CurBrush, &SelectedGeoCenter);
+		if (TempEnt)
+		{
+			SelectedGeoCenter = mRegularEntity.mOrigin;
+		}
+		else
+		{
+			Brush_Center (CurBrush, &SelectedGeoCenter);
+		}
 	}
-	else if((SelState & MULTIBRUSH) || (SelState & ONEBRUSH))
+	else if (SelState != NOSELECTIONS)
 	{
 		Model *pModel;
 		ModelInfo_Type *ModelInfo = Level_GetModelInfo (pLevel);
@@ -4636,19 +4970,34 @@ void CFusionDoc::UpdateSelected(void)
 		}
 		else
 		{
-			Box3d ViewBox;
-			Brush *pBrush;
-			
-			pBrush = SelBrushList_GetBrush (pSelBrushes, 0);
-			ViewBox = *Brush_GetBoundingBox (pBrush);
-			for(i = 1;i < NumSelBrushes;i++)
+			if (NumSelBrushes)
 			{
-				pBrush = SelBrushList_GetBrush (pSelBrushes, i);
-				Box3d_Union (Brush_GetBoundingBox(pBrush), &ViewBox, &ViewBox);
+				SelBrushList_Center(pSelBrushes, &SelectedGeoCenter);
 			}
-			Box3d_GetCenter (&ViewBox, &SelectedGeoCenter);
+			else if (NumSelEntities)
+			{
+				geVec3d EntitySelectionCenter = {0.0f,0.0f,0.0f};
+
+				CEntityArray *Entities;
+				Entities = Level_GetEntities (pLevel);
+				if (Entities)
+				{
+					int NumEntities = Entities->GetSize();
+
+					for (int i=0;i<NumEntities;i++)
+					{
+						if ((*Entities)[i].IsSelected())
+						{
+							geVec3d_Add(&EntitySelectionCenter, &(*Entities)[i].mOrigin, &EntitySelectionCenter);
+						}
+					}
+				}
+
+				geVec3d_Scale(&EntitySelectionCenter, 1/(float)(NumSelEntities), &SelectedGeoCenter);
+			}
 		}
 	}
+
 	if(SelState & ONEENTITY)
 	{
 		CEntityArray *Entities = Level_GetEntities (pLevel);
@@ -4659,13 +5008,16 @@ void CFusionDoc::UpdateSelected(void)
 	else
 		mCurrentEntity	=-1;
 
+	UpdateFaceAttributesDlg ();
+	UpdateBrushAttributesDlg ();
+
 	assert( mpMainFrame->m_wndTabControls ) ;
 	assert( mpMainFrame->m_wndTabControls->GrpTab ) ;
 	mpMainFrame->m_wndTabControls->GrpTab->UpdateGroupSelection( ) ;
 
 }/* CFusionDoc::UpdateSelected */
 
-void CFusionDoc::NullBrushAttributes(void){  mpBrushAttributes=NULL;  }
+//void CFusionDoc::NullBrushAttributes(void){  mpBrushAttributes=NULL;  }
 
 void CFusionDoc::AddBrushToWorld(void)
 {
@@ -4673,6 +5025,7 @@ void CFusionDoc::AddBrushToWorld(void)
 		OnBrushAddtoworld();
 	else
 		OnBrushSubtractfromworld();
+	SetModifiedFlag();
 }
 
 void CFusionDoc::ResetAllSelectedBrushes(void)
@@ -4734,6 +5087,7 @@ Face *CFusionDoc::FindSelectedFace (void)
 void CFusionDoc::OnConstrainhollows()
 {
 	mConstrainHollows = ! mConstrainHollows ;
+	SetModifiedFlag();
 }
 
 void CFusionDoc::OnUpdateConstrainhollows(CCmdUI* pCmdUI)
@@ -4757,23 +5111,6 @@ void CFusionDoc::DoGeneralSelect (void)
 void CFusionDoc::OnUpdateGeneralselect(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck ((mModeTool == ID_GENERALSELECT) ? 1 : 0);
-}
-
-static geBoolean SelAllBrushFaces (Brush *pBrush, void *lParam)
-{
-	int iFace, nFaces;
-	CFusionDoc *pDoc = (CFusionDoc *)lParam;
-
-	nFaces = Brush_GetNumFaces (pBrush);
-	for (iFace = 0; iFace < nFaces; ++iFace)
-	{
-		Face *pFace;
-
-		pFace = Brush_GetFace (pBrush, iFace);
-		Face_SetSelected (pFace, GE_TRUE);
-		SelFaceList_Add (pDoc->pSelFaces, pFace);
-	}
-	return GE_TRUE;
 }
 
 static geBoolean fdocSelectBrushesFromFaces (Brush *pBrush, void *lParam)
@@ -4804,7 +5141,8 @@ void CFusionDoc::SetAdjustmentMode( fdocAdjustEnum nCmdIDMode )
 
 	if (nCmdIDMode == ADJUST_MODE_TOGGLE)
 	{
-		nCmdIDMode = (mAdjustMode == ADJUST_MODE_BRUSH) ? ADJUST_MODE_FACE : ADJUST_MODE_BRUSH;
+//		nCmdIDMode = (mAdjustMode == ADJUST_MODE_BRUSH) ? ADJUST_MODE_FACE : ADJUST_MODE_BRUSH;
+		nCmdIDMode = ADJUST_MODE_FACE;
 	}
 
 	switch (nCmdIDMode)
@@ -4820,7 +5158,7 @@ void CFusionDoc::SetAdjustmentMode( fdocAdjustEnum nCmdIDMode )
 			UpdateSelected();
 
 			//remove face attributes dialog if present...
-			DeleteFaceAttributes ();
+//			DeleteFaceAttributes ();
 			ConfigureCurrentTool();
 			break;
 
@@ -4848,7 +5186,7 @@ void CFusionDoc::SetAdjustmentMode( fdocAdjustEnum nCmdIDMode )
 			}
 			UpdateSelected ();
 			//remove brush attributes dialog if present...
-			DeleteBrushAttributes ();
+//			DeleteBrushAttributes ();
 			ConfigureCurrentTool();
 			break;
 		}
@@ -4864,6 +5202,7 @@ void CFusionDoc::OnCloseDocument()
 	CDocument::OnCloseDocument();
 }
 
+/*
 void CFusionDoc::OnThingAttributes() 
 {
 	switch( mAdjustMode )
@@ -4881,6 +5220,7 @@ void CFusionDoc::OnThingAttributes()
 			break;
 	}
 }
+*/
 
 void CFusionDoc::OnUpdateEditCopy(CCmdUI* pCmdUI) 
 {
@@ -4890,7 +5230,7 @@ void CFusionDoc::OnUpdateEditCopy(CCmdUI* pCmdUI)
 
 void CFusionDoc::OnUpdateEditPaste(CCmdUI* pCmdUI) 
 {
-	COleDataObject dobj;
+/*	COleDataObject dobj;
 
 	dobj.AttachClipboard();
 
@@ -4899,7 +5239,12 @@ void CFusionDoc::OnUpdateEditPaste(CCmdUI* pCmdUI)
 		dobj.IsDataAvailable( (unsigned short)(mpMainFrame->m_CB_FUSION_ENTITY_FORMAT) ) )
 		pCmdUI->Enable( TRUE );
 	else
-		pCmdUI->Enable( FALSE );	
+		pCmdUI->Enable( FALSE );
+*/
+	if ( (((CFusionApp *)AfxGetApp())->NumCopiedBrushes) ||	(((CFusionApp *)AfxGetApp())->NumCopiedEntities) )
+		pCmdUI->Enable( TRUE );
+	else
+		pCmdUI->Enable( FALSE );
 }
 
 //	Place selected brushes on clipboard and then delete them...
@@ -4914,11 +5259,14 @@ void CFusionDoc::OnEditCut()
 		UpdateAllViews(UAV_ALL3DVIEWS | REBUILD_QUICK, NULL);
 	else
 		UpdateAllViews( UAV_ALL3DVIEWS, NULL );
+
+	SetModifiedFlag();
 }
 
 void CFusionDoc::OnEditDelete() 
 {
-	DeleteCurrentThing ();	
+	DeleteCurrentThing ();
+	SetModifiedFlag();
 }
 
 void CFusionDoc::OnUpdateEditCut(CCmdUI* pCmdUI) 
@@ -4927,6 +5275,148 @@ void CFusionDoc::OnUpdateEditCut(CCmdUI* pCmdUI)
 	else pCmdUI->Enable( FALSE );
 }
 
+//	Place selected brushes on clipboard
+void CFusionDoc::OnEditCopy() 
+{
+	int	*NumCopiedBrushes = &(((CFusionApp *)AfxGetApp())->NumCopiedBrushes);
+	int	*NumCopiedEntities = &(((CFusionApp *)AfxGetApp())->NumCopiedEntities);
+	Brush ***CopiedBrushes = &((CFusionApp *)AfxGetApp())->CopiedBrushes;
+	CEntity ***CopiedEntities = &((CFusionApp *)AfxGetApp())->CopiedEntities;
+	
+	((CFusionApp *)AfxGetApp())->ClearClipboard();
+
+	int		i;
+	int		NumSelBrushes;
+
+	NumSelBrushes = SelBrushList_GetSize (pSelBrushes);
+	
+	if( NumSelBrushes )
+	{
+		(*CopiedBrushes) = (Brush**)malloc(sizeof(Brush*) * NumSelBrushes);
+
+		if (*CopiedBrushes) {
+
+			for(i=0;i < NumSelBrushes;i++)
+			{
+				Brush *pBrush;
+				Brush *pClone;
+
+				pBrush = SelBrushList_GetBrush (pSelBrushes, i);
+				pClone = Brush_Clone (pBrush);
+
+				(*CopiedBrushes)[i] = pClone;
+			}
+
+			*NumCopiedBrushes = NumSelBrushes;
+		}
+	}
+
+
+	CEntity  TEnt;
+	CEntityArray *Entities;
+	int cnt;
+	CEntity *pEnt;
+
+	int		NumSelEntities = 0;
+
+	Entities = Level_GetEntities (pLevel);
+
+	cnt = Entities->GetSize() ;
+	for( i=0 ; i < cnt; i++ )
+	{
+		pEnt = &(*Entities)[i];
+		if( pEnt->IsCamera() == GE_FALSE  )	// Exclude Cameras
+		{
+			if (pEnt->IsSelected ())
+			{
+				NumSelEntities++;
+			}
+		}
+	}
+
+	if (NumSelEntities) {
+
+		(*CopiedEntities) = (CEntity**)malloc(sizeof(CEntity*) * NumSelEntities);
+
+		if (*CopiedEntities) {
+
+			*NumCopiedEntities = NumSelEntities;
+			NumSelEntities = 0;
+
+			for( i=0 ; i < cnt; i++ )
+			{
+				pEnt = &(*Entities)[i];
+				if( pEnt->IsCamera() == GE_FALSE  )	// Exclude Cameras
+				{
+					if (pEnt->IsSelected ())
+					{
+						(*CopiedEntities)[NumSelEntities] = new CEntity;
+						if ((*CopiedEntities)[NumSelEntities])
+						{
+							(*(*CopiedEntities)[NumSelEntities]) = *pEnt;
+							(*CopiedEntities)[NumSelEntities]->DeSelect();
+						}
+
+						NumSelEntities++;
+					}
+				}
+			}
+		}
+	}
+}
+
+
+void CFusionDoc::OnEditPaste() 
+{
+
+	int	*NumCopiedBrushes = &(((CFusionApp *)AfxGetApp())->NumCopiedBrushes);
+	int	*NumCopiedEntities = &(((CFusionApp *)AfxGetApp())->NumCopiedEntities);
+	Brush ***CopiedBrushes = &((CFusionApp *)AfxGetApp())->CopiedBrushes;
+	CEntity ***CopiedEntities = &((CFusionApp *)AfxGetApp())->CopiedEntities;
+
+	if ((*NumCopiedBrushes) || (*NumCopiedEntities)) {
+		
+		ResetAllSelections();
+	
+		int		i;
+
+		for(i=0;i < (*NumCopiedBrushes);i++)
+		{
+			if ((*CopiedBrushes)[i]) {
+
+				Brush *pClone;
+
+				pClone = Brush_Clone ((*CopiedBrushes)[i]);
+				Level_AppendBrush (pLevel, pClone);
+				SelBrushList_Add (pSelBrushes, pClone);
+			}
+		}
+
+		CEntityArray *Entities;
+		Entities = Level_GetEntities (pLevel);
+
+		for(i=0;i < (*NumCopiedEntities);i++)
+		{
+			if ((*CopiedEntities)[i]) {
+
+				CEntity CloneEntity;
+				int		Index;
+
+				CloneEntity = (*(*CopiedEntities)[i]);
+
+				Index = Level_AddEntity(pLevel, CloneEntity);
+
+				SelectEntity( &(*Entities)[Index] );
+			}
+		}
+	}
+	// Copying items places the new items in the same group, so we must update the UI
+	mpMainFrame->m_wndTabControls->GrpTab->UpdateTabDisplay( this ) ;
+	UpdateSelected();
+	UpdateAllViews( UAV_ALL3DVIEWS, NULL );
+	
+	SetModifiedFlag();
+}
 
 void CFusionDoc::ShearSelected(float dx, float dy, int sides, int inidx)
 {
@@ -4954,6 +5444,8 @@ void CFusionDoc::ShearSelected(float dx, float dy, int sides, int inidx)
 			Brush_ShearFixed(pBrush, dx, dy, sides, inidx, &FinalScale, &ScaleNum);
 		}
 	}
+
+	SetModifiedFlag();
 }
 
 void CFusionDoc::DoneShear(int sides, int inidx)
@@ -4962,6 +5454,8 @@ void CFusionDoc::DoneShear(int sides, int inidx)
 	const Box3d	*bx1, *bx2;
 	int			snapside	=0;
 	geFloat		bsnap;
+
+	SetModifiedFlag();
 	
 	mLastOp	=BRUSH_SHEAR;
 
@@ -5040,12 +5534,14 @@ int CFusionDoc::DoCompileDialog
 	// Build output file if none there...
 	if (CompileParams->Filename[0] == '\0')
 	{
-		FilePath_SetExt (GetPathName (), ".map", CompileParams->Filename);
+		FilePath_SetExt (GetPathName (), ".prebsp", CompileParams->Filename);
 	}
 
 	CCompileDialog CompileDlg (AfxGetMainWnd (), CompileParams);
 
 	return CompileDlg.DoModal ();
+
+	SetModifiedFlag();
 }
 
 static char *SkyFaceNames[6] =
@@ -5293,20 +5789,28 @@ geBoolean CFusionDoc::WriteLevelToMap
 	EntityTable_WriteTypesToMap (Level_GetEntityDefs (pLevel), exfile);
 	fclose(exfile);
 
-
 	return GE_TRUE;
 }
 
 
 void CFusionDoc::OnCompile() 
 {
+	int MsgBoxResult;
+	MsgBoxResult = AfxMessageBox ("Save changes before compile?", MB_ICONEXCLAMATION + MB_YESNOCANCEL);
+	
+	if (MsgBoxResult == IDCANCEL)
+		return;
+
+	if (MsgBoxResult == IDYES)
+		OnFileSave();
+	
 	geBoolean		NoErrors;
 	CompilerErrorEnum CompileRslt;
 	CompileParamsType *CompileParams = Level_GetCompileParams (pLevel);
 
 	if (Compiler_CompileInProgress ())
 	{
-		if (AfxMessageBox ("Abort current compile?", MB_YESNO) == IDYES)
+		if (AfxMessageBox ("Abort current compile?", MB_ICONQUESTION + MB_YESNO + MB_DEFBUTTON2) == IDYES)
 		{
 			Compiler_CancelCompile ();
 		}
@@ -5341,7 +5845,7 @@ void CFusionDoc::OnCompile()
 			CString MsgString;
 
 			MsgString.LoadString (IDS_MAPERROR);
-			int rslt = AfxMessageBox (MsgString, MB_OKCANCEL);
+			int rslt = AfxMessageBox (MsgString, MB_ICONEXCLAMATION + MB_OKCANCEL + MB_DEFBUTTON2);
 			KeepGoing = (rslt == IDOK);
 		}
 	} while (KeepGoing);
@@ -5365,16 +5869,16 @@ void CFusionDoc::OnCompile()
 
 	if (!NoErrors)
 	{
-		AfxMessageBox ("Unable to start compile");
+		AfxMessageBox ("Error: Unable to start compile.", MB_OK + MB_ICONERROR);
 	}
 }
 
 void CFusionDoc::CompileDone (CompilerErrorEnum CompileRslt)
 {
-	static const char SuccessMessage[] = "Level compile completed successfully.";
-	static const char ErrorMessage[] = "Error compiling level.";
+	static const char SuccessMessage[] = "Compile completed successfully.";
+	static const char ErrorMessage[] = "Error: Unable to compile.";
 	static const char PreviewMessage[] = "Run preview?";
-	static const char CancelMessage[] = "Level compile cancelled by user";
+	static const char CancelMessage[] = "Compile cancelled by user.";
 	CompileParamsType *CompileParams = Level_GetCompileParams (pLevel);
 
 	switch (CompileRslt)
@@ -5385,7 +5889,7 @@ void CFusionDoc::CompileDone (CompilerErrorEnum CompileRslt)
 			{
 				char BigMessage[sizeof (SuccessMessage) + sizeof (PreviewMessage)];
 				sprintf (BigMessage, "%s\r%s", SuccessMessage, PreviewMessage);
-				if (AfxMessageBox (BigMessage, MB_YESNO) == IDYES)
+				if (AfxMessageBox (BigMessage, MB_YESNO + MB_ICONQUESTION) == IDYES)
 				{
 					char BspFilename[_MAX_PATH];
 					char MotionFilename[_MAX_PATH];
@@ -5406,7 +5910,7 @@ void CFusionDoc::CompileDone (CompilerErrorEnum CompileRslt)
 			AfxMessageBox (CancelMessage);
 			break;
 		default :
-			AfxMessageBox (ErrorMessage);
+			AfxMessageBox (ErrorMessage, MB_OK + MB_ICONERROR);
 			break;
 	}
 }
@@ -5439,16 +5943,13 @@ void CFusionDoc::ScaleWorld(geFloat ScaleFactor)
 	ScaleInfo.ScaleValue = ScaleFactor;
 	Level_EnumEntities (pLevel, &ScaleInfo, ::fdocScaleEntityCallback);
 
-
 	// and scale the models
 	ModelList_ScaleAll (Level_GetModelInfo(pLevel)->Models, ScaleFactor);
 
 	UpdateAllViews( UAV_ALL3DVIEWS, NULL );
+
+	SetModifiedFlag();
 }
-
-
-void CFusionDoc::OnEditPaste(){}
-void CFusionDoc::OnEditCopy(){}
 
 typedef struct
 {
@@ -5519,6 +6020,8 @@ BOOL CFusionDoc::MakeNewBrushGroup
 
 	if( ModalResult == IDOK )
 	{
+		SetModifiedFlag();
+
 		szName.TrimLeft() ;
 		szName.TrimRight() ;
 		if( szName.IsEmpty() == FALSE )
@@ -5532,7 +6035,7 @@ BOOL CFusionDoc::MakeNewBrushGroup
 			}//Good new Group ID
 			else
 			{
-				AfxMessageBox( IDS_CREATEGROUPFAILED ) ;
+				AfxMessageBox( IDS_CREATEGROUPFAILED, MB_OK + MB_ICONERROR ) ;
 			}
 		}//Not empty name
 	}// OK return from name dialog
@@ -5591,6 +6094,8 @@ void CFusionDoc::AddSelToGroup
 	}
 	// tag all selected entities with this group id...
 	Level_EnumEntities (pLevel, &entData, ::fdocAddEntityToGroupCallback);
+
+	SetModifiedFlag();
 }
 
 static geBoolean fdocRemoveEntityFromGroupCallback (CEntity &Ent, void *lParam)
@@ -5612,6 +6117,8 @@ void CFusionDoc::RemovesSelFromGroup
 // removed selected brushes/entities from current group, do no UI
 {
 //	Brush	*	b;
+	SetModifiedFlag();
+
 	fdocAddEntityData entData;
 	int NumSelBrushes = SelBrushList_GetSize (pSelBrushes);
 
@@ -5668,41 +6175,6 @@ void CFusionDoc::OnUpdateBrushSubtractfromworld(CCmdUI* pCmdUI)
 	pCmdUI->Enable (EnableFlag);
 }
 
-void CFusionDoc::OnUpdateThingAttributes(CCmdUI* pCmdUI) 
-{
-	if(mModeTool==ID_GENERALSELECT)
-	{
-		switch (mAdjustMode)
-		{
-			case ADJUST_MODE_BRUSH :
-				pCmdUI->Enable (SelBrushList_GetSize (pSelBrushes) > 0);
-				break;
-			case ADJUST_MODE_FACE :
-				pCmdUI->Enable (SelFaceList_GetSize (pSelFaces) > 0);
-				break;
-			default :
-				assert (0);
-				break;
-		}
-	} 
-	else 
-	{
-		pCmdUI->Enable(0);
-	}
-}
-
-void CFusionDoc::OnUpdateToolsBrushShowassociatedentity(CCmdUI* pCmdUI) 
-{
-	if((mModeTool==ID_GENERALSELECT) && (mAdjustMode==ADJUST_MODE_BRUSH))
-	{
-		pCmdUI->Enable (SelBrushList_GetSize (pSelBrushes)==1);
-	}
-	else 
-	{
-		pCmdUI->Enable(0);
-	}
-}
-
 void CFusionDoc::OnUpdateEntitiesEditor(CCmdUI* pCmdUI) 
 {
 	BOOL	bEnable ;
@@ -5724,7 +6196,7 @@ static geBoolean GetObjectName (char *Name, char *Path, CFusionDoc *pDoc)
 	do
 	{
 		rslt = IDYES;
-		pEditDlg = new CKeyEditDlg (AfxGetMainWnd (), "Enter object name", &ObjName);
+		pEditDlg = new CKeyEditDlg (AfxGetMainWnd (), "Object Name", &ObjName);
 		if (pEditDlg->DoModal () != IDOK)
 		{
 			return GE_FALSE;
@@ -5735,10 +6207,10 @@ static geBoolean GetObjectName (char *Name, char *Path, CFusionDoc *pDoc)
 		if (_access (WorkPath, 0) == 0)
 		{
 			static const char Prompt[] =
-				"An object of that name already exists.\r"
+				"An object of that name already exists in the library.\r"
 				"Do you want to replace it?";
 
-			rslt = AfxMessageBox (Prompt, MB_YESNOCANCEL);
+			rslt = AfxMessageBox (Prompt, MB_ICONQUESTION + MB_YESNOCANCEL + MB_DEFBUTTON2);
 		}
 	} while (rslt == IDNO);
 
@@ -5817,7 +6289,7 @@ void CFusionDoc::OnNewLibObject()
 	NewLevel = Level_Create (Level_GetWadPath (pLevel), Level_GetHeadersDirectory (pLevel));
 	if (NewLevel == NULL)
 	{
-		AfxMessageBox ("Error creating object.");
+		AfxMessageBox ("Error: Unable to create object.", MB_OK + MB_ICONERROR);
 		return;
 	}
 
@@ -5856,7 +6328,7 @@ void CFusionDoc::OnNewLibObject()
 	// ok, everything's added.  Write it to the file.
 	if (!Level_WriteToFile (NewLevel, NewObjectFullPath))
 	{
-		AfxMessageBox ("Error writing object to file.");
+		AfxMessageBox ("Error: Unable to write object to file.", MB_OK + MB_ICONERROR);
 	}
 	else
 	{
@@ -5880,6 +6352,8 @@ static geBoolean fdocAddPremadeEntity (CEntity &Ent, void *lParam)
 	CEntity *NewEnt;
 	int Index;
 
+	if (!(Ent.IsCamera()))
+	{
 	pData = (fdocAddPremadeData *)lParam;
 
 	Index = Level_AddEntity (pData->pDoc->pLevel, Ent);
@@ -5887,6 +6361,7 @@ static geBoolean fdocAddPremadeEntity (CEntity &Ent, void *lParam)
 	NewEnt = &((*Entities)[Index]);
 
 	pData->pDoc->SelectEntity (NewEnt);
+	}
 
 	return GE_TRUE;
 }
@@ -5903,11 +6378,17 @@ geBoolean CFusionDoc::PlaceObject( const char *ObjectName, const geVec3d *locati
 	::FilePath_AppendName (Prefs_GetObjectsDir (GetPrefs ()), ObjectName, WorkPath);
 	::FilePath_SetExt (WorkPath, ".3dt", WorkPath);
 
+	SetModifiedFlag();
+
 	return ImportFile (WorkPath, location);
 }
 
 geBoolean CFusionDoc::ImportFile (const char *PathName, const geVec3d *location)
 {
+	SetModifiedFlag();
+
+	SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+
 	const char		*ErrMsg = "#ERROR#";
 	Level			*NewLevel;
 	EntityViewList	*pEntityView;
@@ -5917,7 +6398,8 @@ geBoolean CFusionDoc::ImportFile (const char *PathName, const geVec3d *location)
 	NewLevel = Level_CreateFromFile (PathName, &ErrMsg, Prefs_GetHeadersList (pPrefs));
 	if (NewLevel == NULL)
 	{
-		AfxMessageBox (ErrMsg);
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		AfxMessageBox (ErrMsg, MB_OK + MB_ICONERROR);
 		return GE_FALSE;
 	}
 
@@ -6041,6 +6523,9 @@ geBoolean CFusionDoc::ImportFile (const char *PathName, const geVec3d *location)
 	}
 
 	Level_Destroy (&NewLevel);
+
+	SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+
 	return GE_TRUE;
 }
 
@@ -6091,8 +6576,9 @@ void CFusionDoc::SnapScaleNearest(int sides, int inidx, ViewVars *v)
 {
 	geFloat	bsnap;
 
-	mLastOp		=BRUSH_SCALE;
+	SetModifiedFlag();
 
+	mLastOp		=BRUSH_SCALE;
 
 	bsnap = 1.0f ;
 	if (Level_UseGrid (pLevel))
@@ -6225,59 +6711,62 @@ void CFusionDoc::OnFileOpen()
 {
 	static const char	FDTitle[]	="Open";
 
-	CFileDialog dlg(TRUE, "3dt", NULL, OFN_HIDEREADONLY	| OFN_OVERWRITEPROMPT,
-		"GEDIT Files (*.3DT)|*.3DT|MAP Files (*.MAP)|*.MAP|Leak Files (*.PNT)|*.PNT||");
+	CFileDialog dlg(TRUE, "3dt", NULL, (OFN_HIDEREADONLY	| OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST),
+									"World Files (*.3dt)|*.3dt|All Files (*.*)|*.*||");
 
 	dlg.m_ofn.lpstrTitle	=FDTitle;
 	dlg.m_ofn.lpstrInitialDir = LastPath;
 	if(dlg.DoModal()==IDOK)
 	{
-		switch(dlg.m_ofn.nFilterIndex)
-		{
-		case 1 :
 			AfxGetApp()->OpenDocumentFile(dlg.GetPathName());
-			break;
-		case 2 :
-			LoadMapFile(dlg.GetPathName());
-			break;
-		case 3 :
-			bLeakLoaded	=LoadLeakFile(dlg.GetPathName());
-			break;
-		default:
-			assert(0);
-		}
 	}
 }
+
 
 void CFusionDoc::OnFileImport() 
 {
 	static const char FDTitle[] = "Import";
-	CFileDialog dlg(TRUE, "3dt", NULL, OFN_OVERWRITEPROMPT,	"GEDIT Files (*.3DT)|*.3DT||");
+	CFileDialog dlg(TRUE, "3dt", NULL, (OFN_HIDEREADONLY	| OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST),
+									"World Files (*.3dt)|*.3dt|Map Files (*.map)|*.map|BSP Leak Files (*.pnt)|*.pnt|All Files (*.*)|*.*||");
 
 	dlg.m_ofn.lpstrTitle = FDTitle;	
 	if (dlg.DoModal () == IDOK)
 	{
-		if (dlg.m_ofn.nFilterIndex == 1)
+		switch(dlg.m_ofn.nFilterIndex)
 		{
+		case 1 :
 			char Name[MAX_PATH];
 			geVec3d loc;
 
 			geVec3d_Clear (&loc);
 			::FilePath_SetExt (dlg.GetPathName (), ".3dt", Name);
 			ImportFile (Name, &loc);
+			break;
+		case 2 :
+			LoadMapFile(dlg.GetPathName());
+			break;
+		case 3 :
+			bLeakLoaded	=LoadLeakFile(dlg.GetPathName());
 		}
+		SetModifiedFlag();
+
+		UpdateAllViews(UAV_ALLVIEWS | REBUILD_QUICK, FALSE);
+		mpMainFrame->m_wndTabControls->GrpTab->UpdateAfterAddBrush();
 	}
 }
 
 geBoolean	CFusionDoc::LoadLeakFile(const char *Filename)
 {
+	SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+
 	CFile	Infile;
 	int		sig;
 	int		PointsToRead;
 
 	if(!Infile.Open(Filename, CFile::modeRead))
 	{
-		AfxMessageBox("Error opening the Leak File!", MB_OK|MB_ICONEXCLAMATION);
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		AfxMessageBox("Error: Unable to read the leak file!", MB_OK + MB_ICONERROR);
 		return FALSE;
 	}
 
@@ -6285,19 +6774,23 @@ geBoolean	CFusionDoc::LoadLeakFile(const char *Filename)
 
 	if(sig!=0x4b41454c)
 	{
-		AfxMessageBox("File is not a leakfile!", MB_OK|MB_ICONEXCLAMATION);
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		AfxMessageBox("File is not a leak file!", MB_OK + MB_ICONEXCLAMATION);
 		return FALSE;
 	}
 
 	Infile.Read(&PointsToRead, sizeof(int));
 
-	ConPrintf("Loaded leak file %s with %d Points...\n", Filename, PointsToRead);
+//	ConPrintf("Loaded leak file %s with %d Points...\n", Filename, PointsToRead);
 
 	NumLeakPoints = (PointsToRead > 1) ? PointsToRead : 2;
 	LeakPoints	=(geVec3d *)geRam_Allocate(sizeof(geVec3d)*NumLeakPoints);
 
 	if (!LeakPoints)
+	{
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 		return FALSE;
+	}
 
 	Infile.Read(LeakPoints, sizeof(geVec3d)*PointsToRead);
 	if (PointsToRead == 1)
@@ -6305,44 +6798,53 @@ geBoolean	CFusionDoc::LoadLeakFile(const char *Filename)
 		geVec3d_Clear (&LeakPoints[1]);
 	}
 
+	SetShowLeakFinder(GE_TRUE);
+
+	SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+
 	return TRUE;
 }
 // Quake 2 flag sets for importing
 enum	Q2ContentsFlags
 {
-	CONTENTS_SOLID			=1,
-	CONTENTS_WINDOW			=2,
-	CONTENTS_AUX			=4,
-	CONTENTS_LAVA			=8,
-	CONTENTS_SLIME			=16,
-	CONTENTS_WATER			=32,
-	CONTENTS_MIST			=64,
-	LAST_VISIBLE_CONTENTS	=64,
-	CONTENTS_PLAYERCLIP		=0x10000,
-	CONTENTS_MONSTERCLIP	=0x20000,
-	CONTENTS_CURRENT_0		=0x40000,
-	CONTENTS_CURRENT_90		=0x80000,
-	CONTENTS_CURRENT_180	=0x100000,
-	CONTENTS_CURRENT_270	=0x200000,
-	CONTENTS_CURRENT_UP		=0x400000,
-	CONTENTS_CURRENT_DOWN	=0x800000,
-	CONTENTS_ORIGIN			=0x1000000,
-	CONTENTS_MONSTER		=0x2000000,
-	CONTENTS_DEADMONSTER	=0x4000000,
-	CONTENTS_DETAIL			=0x8000000,
-	CONTENTS_TRANSLUCENT	=0x10000000
+	CONTENTS_SOLID			=0x1,
+	CONTENTS_WINDOW			=0x2,
+	CONTENTS_EMPTY			=0x4,
+	CONTENTS_SUBTRACT		=0x8,
+	CONTENTS_WAVY			=0x10,
+	CONTENTS_DETAIL			=0x20,
+	CONTENTS_CLIP			=0x40,
+	CONTENTS_HINT			=0x80,
+	CONTENTS_AREA			=0x100,
+	CONTENTS_FLOCKING		=0x200,
+	CONTENTS_SHEET			=0x400,
+	CONTENTS_AIR			=0x800,
+	CONTENTS_WATER			=0x1000,
+	CONTENTS_LAVA			=0x2000,
+	CONTENTS_TOXICGAS		=0x4000,
+	CONTENTS_ZEROG			=0x8000,
+	CONTENTS_FROZEN			=0x10000,
+	CONTENTS_SLUDGE			=0x20000,
+	CONTENTS_SLOWMOTION		=0x40000,
+	CONTENTS_FASTMOTION		=0x80000,
+	CONTENTS_LADDER			=0x100000,
+	CONTENTS_IMPENETRABLE	=0x200000,
+	CONTENTS_UNCLIMBABLE	=0x400000,
 };
 
 enum	Q2SurfaceFlags
 {
-	SURF_LIGHT		=0x1,		// value will hold the light strength
-	SURF_SLICK		=0x2,		// effects game physics
-	SURF_SKY		=0x4,		// don't draw, but add to skybox
-	SURF_WARP		=0x8,		// turbulent water warp
+	SURF_LIGHT		=0x8,		// value will hold the light strength
+	SURF_SKY		=0x100,		// don't draw, but add to skybox
 	SURF_TRANS33	=0x10,
 	SURF_TRANS66	=0x20,
-	SURF_FLOWING	=0x40,	// scroll towards angle
-	SURF_NODRAW		=0x80	// don't bother referencing the texture
+	SURF_TRANS		=0x40,
+	SURF_MIRROR		=0x80,
+	SURF_FULLBRIGHT	=0x1,
+	SURF_GOURAUD	=0x2,
+	SURF_FLAT		=0x4,
+	SURF_TEXTURELOCK =0x200,
+	SURF_NODRAW		=0x400,
 };
 
 static geBoolean fdocCheckAddFace (FaceList **ppList, Face *f)
@@ -6361,6 +6863,10 @@ static geBoolean fdocCheckAddFace (FaceList **ppList, Face *f)
 
 geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 {
+	SetModifiedFlag();
+
+	CWaitCursor w;
+
 	FaceList	*fl, *mfl;
 	Face		*f;
 	Brush		*b;
@@ -6373,6 +6879,10 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 	char		szTex[_MAX_PATH];
 	uint16		dibid;
 
+//MRB BEGIN
+	geBoolean IsHintBrush;
+//MRB END
+
 	assert (FileName != NULL);
 
 	mf	=fopen(FileName, "r");
@@ -6380,7 +6890,8 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 
 	if(!mf)
 	{
-		AfxMessageBox (IDS_CANT_OPEN_FILE);
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		AfxMessageBox (IDS_CANT_OPEN_FILE, MB_OK + MB_ICONERROR);
 		return GE_FALSE;
 	}
 	//get open brace
@@ -6395,6 +6906,9 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 			{
 				surfflags	=value=0;
 				contents	=CONTENTS_SOLID;	//default
+//MRB BEGIN
+				IsHintBrush = GE_FALSE;
+//MRB END
 				for(k=0;;)
 				{
 
@@ -6452,6 +6966,31 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 								Face_SetLight(f, (surfflags	&	SURF_LIGHT));
 								Face_SetSky(f, (surfflags	&	SURF_SKY));
 								Face_SetLightIntensity(f, value);
+
+//MRB BEGIN
+								Face_SetMirror(f, (surfflags	&	SURF_MIRROR));
+								Face_SetFullBright(f, (surfflags	&	SURF_FULLBRIGHT));
+								Face_SetGouraud(f, (surfflags	&	SURF_GOURAUD));
+								Face_SetFlat(f, (surfflags	&	SURF_FLAT));
+								Face_SetTextureLock(f, (surfflags	&	SURF_TEXTURELOCK));
+								Face_SetVisible(f, (!(surfflags & SURF_NODRAW)));
+								
+								geFloat Translucency = 255;
+								if (surfflags	&	SURF_TRANS33)
+									Translucency = 85;
+								if (surfflags	&	SURF_TRANS66)
+									Translucency = 170;
+								if (surfflags	&	SURF_TRANS)
+									Translucency = 0;
+								Face_SetTranslucency(f, Translucency);
+
+								if ((Translucency < 255) && (!(surfflags & SURF_MIRROR)))
+								{
+									Face_SetTransparent(f, GE_TRUE);
+								}
+
+//MRB END
+
 							}
 						}
 						if(f)
@@ -6487,13 +7026,24 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 					{
 						Level_AppendBrush	(pLevel, b);
 						Brush_SetSolid		(b, (contents	&	CONTENTS_SOLID));
+						Brush_SetEmpty		(b, (contents	&	CONTENTS_EMPTY));
 						Brush_SetWindow		(b, (contents	&	CONTENTS_WINDOW));
-						Brush_SetWavy		(b, (contents	&	CONTENTS_WATER));
-						Brush_SetTranslucent(b, (contents	&	CONTENTS_WATER));
-						Brush_SetClip		(b, (contents	&	CONTENTS_PLAYERCLIP));
-						Brush_SetClip		(b, (contents	&	CONTENTS_MONSTERCLIP));
+						Brush_SetWavy		(b, (contents	&	CONTENTS_WAVY));
+						Brush_SetClip		(b, (contents	&	CONTENTS_CLIP));
 						Brush_SetDetail		(b, (contents	&	CONTENTS_DETAIL));
-						Brush_SetTranslucent(b, (contents	&	CONTENTS_TRANSLUCENT));
+//						Brush_SetTranslucent(b, (contents	&	CONTENTS_TRANSLUCENT));
+//MRB BEGIN
+						Brush_SetSubtract		(b, (contents	&	CONTENTS_SUBTRACT));
+						Brush_SetArea		(b, (contents	&	CONTENTS_AREA));
+						Brush_SetFlocking		(b, (contents	&	CONTENTS_FLOCKING));
+						Brush_SetSheet		(b, (contents	&	CONTENTS_SHEET));
+						IsHintBrush = IsHintBrush || (contents & CONTENTS_HINT);
+						Brush_SetHint		(b, (IsHintBrush));
+						Brush_SetUserFlags (b, contents);
+						if(!((contents & CONTENTS_EMPTY) || (contents	& CONTENTS_WINDOW) || (contents	& CONTENTS_CLIP) ||
+							(contents & CONTENTS_HINT) || (contents	& CONTENTS_SUBTRACT)))
+							Brush_SetSolid(b, GE_TRUE);
+//MRB END
 					}
 				}
 			}
@@ -6562,24 +7112,12 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 					{
 						strcpy(Value, "PlayerStart");
 					}
-					else if(!strnicmp(Value, "monster_", 8))
-					{
-						strcpy(Value, "AIPlayerStart");
-					}
 					else if(!stricmp(Key, "origin"))
 					{
 						geVec3d	TempVec;
 						sscanf((char const *)Value, "%f %f %f", &TempVec.X, &TempVec.Z, &TempVec.Y);
 						TempVec.Z	=-TempVec.Z;
 						sprintf(Value, "%d %d %d", Units_Round(TempVec.X), Units_Round(TempVec.Y), Units_Round(TempVec.Z));					
-					}
-					else if(!strnicmp(Value, "weapon_", 7))
-					{
-						strcpy(Value, "PowerUp");
-					}
-					else if(!strnicmp(Value, "path_", 5))
-					{
-						strcpy(Value, "AIMapWayPoint");
 					}
 					NewEnt.SetKeyValue(Key, Value);
 				}
@@ -6592,6 +7130,9 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 						{
 							surfflags	=value=0;
 							contents	=CONTENTS_SOLID;	//default
+//MRB BEGIN
+							IsHintBrush = GE_FALSE;
+//MRB END
 							for(k=0;;)
 							{
 								for(i=0;i<3;i++)
@@ -6630,10 +7171,13 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 									}
 									f	=Face_Create(3, FaceVerts, dibid);
 									for(;*sp=='#' || *sp=='*' || *sp=='+';sp++);	//strip illegal chars
-									Face_SetTextureName(f, sp);
-									Face_SetTextureScale(f, scx, scy);
-									Face_SetTextureShift(f, sx, sy);
-									Face_SetTextureRotate(f, (float)rot);
+									if (f)
+									{
+										Face_SetTextureName(f, sp);
+										Face_SetTextureScale(f, scx, scy);
+										Face_SetTextureShift(f, sx, sy);
+										Face_SetTextureRotate(f, (float)rot);
+									}
 
 									//look for flags
 									for(bc=fgetc(mf);bc!=EOF && bc <=32 && bc && bc!='\n';bc=fgetc(mf));
@@ -6641,16 +7185,44 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 									{
 										ungetc(bc, mf);
 										fscanf(mf, "%i %i %i", &contents, &surfflags, &value);
-										Face_SetLight(f, (surfflags	&	SURF_LIGHT));
-										Face_SetSky(f, (surfflags	&	SURF_SKY));
-										Face_SetLightIntensity(f, value);
+										if (f)
+										{
+											Face_SetLight(f, (surfflags	&	SURF_LIGHT));
+											Face_SetSky(f, (surfflags	&	SURF_SKY));
+											Face_SetLightIntensity(f, value);
+//MRB BEGIN
+											Face_SetMirror(f, (surfflags	&	SURF_MIRROR));
+											Face_SetFullBright(f, (surfflags	&	SURF_FULLBRIGHT));
+											Face_SetGouraud(f, (surfflags	&	SURF_GOURAUD));
+											Face_SetFlat(f, (surfflags	&	SURF_FLAT));
+											Face_SetTextureLock(f, (surfflags	&	SURF_TEXTURELOCK));
+											Face_SetVisible(f, (!(surfflags & SURF_NODRAW)));
+											
+											geFloat Translucency = 255;
+											if (surfflags	&	SURF_TRANS33)
+												Translucency = 85;
+											if (surfflags	&	SURF_TRANS66)
+												Translucency = 170;
+											if (surfflags	&	SURF_TRANS)
+												Translucency = 0;
+											Face_SetTranslucency(f, Translucency);
+
+											if ((Translucency < 255) && (!(surfflags & SURF_MIRROR)))
+											{
+												Face_SetTransparent(f, GE_TRUE);
+											}
+//MRB END
+										}
 									}
-									if (!fdocCheckAddFace (&mfl, f))
+									if (f)
 									{
-										k = 0;
-										break;
+										if (!fdocCheckAddFace (&mfl, f))
+										{
+											k = 0;
+											break;
+										}
+										k++;
 									}
-									k++;
 								}
 								else
 								{
@@ -6674,12 +7246,22 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 									Level_AppendBrush	(pLevel, b);
 									Brush_SetSolid		(b, (contents	&	CONTENTS_SOLID));
 									Brush_SetWindow		(b, (contents	&	CONTENTS_WINDOW));
-									Brush_SetWavy		(b, (contents	&	CONTENTS_WATER));
-									Brush_SetTranslucent(b, (contents	&	CONTENTS_WATER));
-									Brush_SetClip		(b, (contents	&	CONTENTS_PLAYERCLIP));
-									Brush_SetClip		(b, (contents	&	CONTENTS_MONSTERCLIP));
+									Brush_SetWavy		(b, (contents	&	CONTENTS_WAVY));
+									Brush_SetClip		(b, (contents	&	CONTENTS_CLIP));
 									Brush_SetDetail		(b, (contents	&	CONTENTS_DETAIL));
-									Brush_SetTranslucent(b, (contents	&	CONTENTS_TRANSLUCENT));
+									//						Brush_SetTranslucent(b, (contents	&	CONTENTS_TRANSLUCENT));
+									//MRB BEGIN
+									Brush_SetSubtract		(b, (contents	&	CONTENTS_SUBTRACT));
+									Brush_SetArea		(b, (contents	&	CONTENTS_AREA));
+									Brush_SetFlocking		(b, (contents	&	CONTENTS_FLOCKING));
+									Brush_SetSheet		(b, (contents	&	CONTENTS_SHEET));
+									IsHintBrush = IsHintBrush || (contents & CONTENTS_HINT);
+									Brush_SetHint		(b, (IsHintBrush));
+									Brush_SetUserFlags (b, contents);
+									if(!((contents & CONTENTS_EMPTY) || (contents	& CONTENTS_WINDOW) || (contents	& CONTENTS_CLIP) ||
+										(contents & CONTENTS_HINT) || (contents	& CONTENTS_SUBTRACT)))
+										Brush_SetSolid(b, GE_TRUE);
+									//MRB END
 								}
 								SelBrushList_Add (pSelBrushes, b);
 							}
@@ -6689,8 +7271,9 @@ geBoolean	CFusionDoc::LoadMapFile(const char *FileName)
 							break;
 						}
 					}
-					strcpy(Key, NewEnt.GetClassname());
+					//strcpy(Key, NewEnt.GetClassname());
 					i	=0;
+					sprintf(Key, "%s%d", NewEnt.GetClassname(), i++);
 
 					ModelInfo_Type *ModelInfo = Level_GetModelInfo (pLevel);
 					while (ModelList_FindByName (ModelInfo->Models, Key) != NULL)
@@ -6776,46 +7359,57 @@ void CFusionDoc::OnUpdateViewShowHint(CCmdUI* pCmdUI)
 	pCmdUI->SetCheck(bShowHintBrushes);
 }
 
+/*
 void CFusionDoc::OnToolsBrushAttributes() 
 {
 	if ((mModeTool == ID_GENERALSELECT) && (mAdjustMode == ADJUST_MODE_BRUSH))
 	{
 		if ((SelBrushList_GetSize (pSelBrushes) > 0) && 
 		    (mAdjustMode == ADJUST_MODE_BRUSH) && (mpBrushAttributes == NULL))
+		if (!mpBrushAttributes)
 		{
 			mpBrushAttributes = new CBrushAttributesDialog (this);
 		}
 		SetModifiedFlag ();
 	}	
 }
+*/
 
+/*
 void CFusionDoc::OnUpdateToolsBrushAttributes(CCmdUI* pCmdUI) 
 {
 	pCmdUI->Enable ((mModeTool == ID_GENERALSELECT) && 
 					(mAdjustMode == ADJUST_MODE_BRUSH) && 
 					(SelBrushList_GetSize (pSelBrushes) > 0));
 }
+*/
 
+/*
 void CFusionDoc::OnToolsFaceAttributes() 
 {
-	if ((mModeTool == ID_GENERALSELECT) && (mAdjustMode == ADJUST_MODE_FACE))
+//	if ((mModeTool == ID_GENERALSELECT) && (mAdjustMode == ADJUST_MODE_FACE))
 	{
 		FaceAttributesDialog ();
 		SetModifiedFlag ();
 	}	
 	
 }
+*/
+
+/*
 
 void CFusionDoc::OnUpdateToolsFaceAttributes(CCmdUI* pCmdUI) 
 {
 	pCmdUI->Enable ((mModeTool == ID_GENERALSELECT) && 
 					(mAdjustMode == ADJUST_MODE_FACE) && 
 					(SelFaceList_GetSize (pSelFaces) > 0));
-	
 }
+*/
 
 void CFusionDoc::OnEntityVisibility() 
 {
+	SetModifiedFlag();
+
 	EntityViewList *pListCopy;
 	EntityViewList *pEntityView;
 
@@ -6864,7 +7458,15 @@ void CFusionDoc::OnEntityVisibility()
 
 void CFusionDoc::OnRebuildBsp() 
 {
+	SetModifiedFlag();
+
 	Level_SetBspRebuild (pLevel, !Level_RebuildBspAlways (pLevel));
+
+	if (Level_RebuildBspAlways (pLevel))
+	{
+		RebuildTrees();
+		UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+	}
 }
 
 void CFusionDoc::OnUpdateRebuildBsp(CCmdUI* pCmdUI) 
@@ -6896,6 +7498,8 @@ static geBoolean fdocUpdateBrushFaceTextures (Brush *pBrush, void *pVoid)
 
 void CFusionDoc::OnLeveloptions() 
 {
+	SetModifiedFlag();
+
 	CLevelOptions  Dlg;
 
 	Dlg.m_DrawScale = Level_GetDrawScale (pLevel);
@@ -6910,42 +7514,7 @@ void CFusionDoc::OnLeveloptions()
 		if (Dlg.m_TxlChanged)
 		{
 			Level_SetWadPath (pLevel, Dlg.m_TextureLib);
-			if (!Level_LoadWad (pLevel))
-			{
-				CString Msg;
-
-				AfxFormatString1 (Msg, IDS_CANTLOADTXL, Dlg.m_TextureLib);
-				AfxMessageBox (Msg);
-			}
-
-			// update textures tab
-			mCurTextureSelection = 0;
-			mpMainFrame->m_wndTabControls->UpdateTextures ();
-
-			// update all brush faces
-			BrushList_EnumLeafBrushes (Level_GetBrushes (pLevel), this, ::fdocUpdateBrushFaceTextures);
-			{
-				// find the rendered view and set the wad size infos for it
-				POSITION		pos;
-				CFusionView	*	pView;
-
-				pos = GetFirstViewPosition();
-				while( pos != NULL )
-				{
-					pView = (CFusionView*)GetNextView(pos) ;
-					if( Render_GetViewType( pView->VCam ) & (VIEWSOLID|VIEWTEXTURE|VIEWWIRE) )
-					{
-						Render_SetWadSizes (pView->VCam, Level_GetWadSizeInfos (pLevel));
-						break ;	// Only 1 rendered view for now
-					}
-				}
-			}
-
-			if (Level_RebuildBspAlways (pLevel))
-			{
-				RebuildTrees();
-				UpdateAllViews (UAV_ALL3DVIEWS, NULL);
-			}
+			UpdateAfterWadChange();
 		}
 		if (Dlg.m_HeadersChanged)
 		{
@@ -6953,10 +7522,1200 @@ void CFusionDoc::OnLeveloptions()
 			if (ValidateEntities( ) == FALSE)
 			{
 				SelectTab( CONSOLE_TAB ) ;
-				AfxMessageBox( IDS_ENTITY_WARNING ) ;
+				AfxMessageBox( IDS_ENTITY_WARNING, MB_OK + MB_ICONEXCLAMATION ) ;
 			}
 			mpMainFrame->m_wndTabControls->UpdateTabs ();
 		}
 
 	}
+}
+
+void CFusionDoc::UpdateAfterWadChange()
+{
+	SetModifiedFlag();
+
+	if (!Level_LoadWad (pLevel))
+	{
+		CString Msg;
+
+		AfxFormatString1 (Msg, IDS_CANTLOADTXL, Level_GetWadPath(pLevel));
+		AfxMessageBox (Msg, MB_OK + MB_ICONERROR);
+	}
+
+	// update textures tab
+	mCurTextureSelection = 0;
+	mpMainFrame->m_wndTabControls->UpdateTextures ();
+
+	// update all brush faces
+	BrushList_EnumLeafBrushes (Level_GetBrushes (pLevel), this, ::fdocUpdateBrushFaceTextures);
+	{
+		// find the rendered view and set the wad size infos for it
+		POSITION		pos;
+		CFusionView	*	pView;
+
+		pos = GetFirstViewPosition();
+		while( pos != NULL )
+		{
+			pView = (CFusionView*)GetNextView(pos) ;
+			if( Render_GetViewType( pView->VCam ) & (VIEWSOLID|VIEWTEXTURE|VIEWWIRE) )
+			{
+				Render_SetWadSizes (pView->VCam, Level_GetWadSizeInfos (pLevel));
+				break ;	// Only 1 rendered view for now
+			}
+		}
+	}
+
+	if (Level_RebuildBspAlways (pLevel))
+	{
+		RebuildTrees();
+		UpdateAllViews (UAV_ALL3DVIEWS, NULL);
+	}
+
+}
+
+void CFusionDoc::OnCameraForward()
+{
+	SetModifiedFlag();
+
+	CEntity *pCameraEntity = FindCameraEntity ();
+
+	if (pCameraEntity)
+	{
+		geVec3d Angles;
+		pCameraEntity->GetAngles( &Angles, Level_GetEntityDefs (pLevel) );
+
+		geXForm3d TransformOrigin;
+		geXForm3d_SetIdentity(&TransformOrigin);
+
+		geXForm3d_RotateZ(&TransformOrigin, Angles.X);
+		geXForm3d_RotateX(&TransformOrigin, Angles.Z);
+		geXForm3d_RotateY(&TransformOrigin, (-Angles.Y-M_PI/2.0f));
+
+		geXForm3d_Translate(&TransformOrigin, pCameraEntity->mOrigin.X, pCameraEntity->mOrigin.Y, pCameraEntity->mOrigin.Z);
+
+		geXForm3d Delta;
+		geXForm3d_SetTranslation(&Delta, CAMERA_MOVEMENT_DISTANCE, 0, 0);
+
+		geXForm3d_Multiply(&TransformOrigin, &Delta, &TransformOrigin);
+
+		geVec3d_Copy(&(TransformOrigin.Translation), &(pCameraEntity->mOrigin));
+
+		SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+		UpdateAllViews( UAV_ALLVIEWS, NULL );
+	}
+}
+
+void CFusionDoc::OnCameraBack()
+{
+	SetModifiedFlag();
+
+	CEntity *pCameraEntity = FindCameraEntity ();
+
+	if (pCameraEntity)
+	{
+		geVec3d Angles;
+		pCameraEntity->GetAngles( &Angles, Level_GetEntityDefs (pLevel) );
+
+		geXForm3d TransformOrigin;
+		geXForm3d_SetIdentity(&TransformOrigin);
+
+		geXForm3d_RotateZ(&TransformOrigin, Angles.X);
+		geXForm3d_RotateX(&TransformOrigin, Angles.Z);
+		geXForm3d_RotateY(&TransformOrigin, (-Angles.Y-M_PI/2.0f));
+
+		geXForm3d_Translate(&TransformOrigin, pCameraEntity->mOrigin.X, pCameraEntity->mOrigin.Y, pCameraEntity->mOrigin.Z);
+
+		geXForm3d Delta;
+		geXForm3d_SetTranslation(&Delta, -CAMERA_MOVEMENT_DISTANCE, 0, 0);
+
+		geXForm3d_Multiply(&TransformOrigin, &Delta, &TransformOrigin);
+
+		geVec3d_Copy(&(TransformOrigin.Translation), &(pCameraEntity->mOrigin));
+
+		SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+		UpdateAllViews( UAV_ALLVIEWS, NULL );
+	}
+}
+
+void CFusionDoc::OnCameraLeft()
+{
+	SetModifiedFlag();
+
+	CEntity *pCameraEntity = FindCameraEntity ();
+
+	if (pCameraEntity)
+	{
+		geVec3d Angles;
+		pCameraEntity->GetAngles( &Angles, Level_GetEntityDefs (pLevel) );
+		Angles.Y = Render_NormalizeAngle(Angles.Y - CAMERA_MOVEMENT_ANGLE);
+		pCameraEntity->SetAngles( &Angles, Level_GetEntityDefs (pLevel) ) ;
+		SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+		UpdateAllViews( UAV_ALLVIEWS, NULL );
+	}
+}
+
+void CFusionDoc::OnCameraRight()
+{
+	SetModifiedFlag();
+
+	CEntity *pCameraEntity = FindCameraEntity ();
+
+	if (pCameraEntity)
+	{
+		geVec3d Angles;
+		pCameraEntity->GetAngles( &Angles, Level_GetEntityDefs (pLevel) );
+		Angles.Y = Render_NormalizeAngle(Angles.Y + CAMERA_MOVEMENT_ANGLE);
+		pCameraEntity->SetAngles( &Angles, Level_GetEntityDefs (pLevel) ) ;
+		SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+		UpdateAllViews( UAV_ALLVIEWS, NULL );
+	}
+}
+
+void CFusionDoc::OnCameraLookUp()
+{
+	SetModifiedFlag();
+
+	CEntity *pCameraEntity = FindCameraEntity ();
+
+	if (pCameraEntity)
+	{
+		geVec3d Angles;
+		pCameraEntity->GetAngles( &Angles, Level_GetEntityDefs (pLevel) );
+		Angles.X = Angles.X - CAMERA_MOVEMENT_ANGLE;
+		if (Angles.X < (M_PI / 2))
+			Angles.X = (M_PI / 2);
+		Render_NormalizeAngle(Angles.X);
+		pCameraEntity->SetAngles( &Angles, Level_GetEntityDefs (pLevel) ) ;
+		SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+		UpdateAllViews( UAV_ALLVIEWS, NULL );
+	}
+}
+
+void CFusionDoc::OnCameraLookDown()
+{
+	SetModifiedFlag();
+
+	CEntity *pCameraEntity = FindCameraEntity ();
+
+	if (pCameraEntity)
+	{
+		geVec3d Angles;
+		pCameraEntity->GetAngles( &Angles, Level_GetEntityDefs (pLevel) );
+		Angles.X = Angles.X + CAMERA_MOVEMENT_ANGLE;
+		if (Angles.X > (3 * M_PI / 2))
+			Angles.X = (3 * M_PI / 2);
+		Render_NormalizeAngle(Angles.X);
+		pCameraEntity->SetAngles( &Angles, Level_GetEntityDefs (pLevel) ) ;
+		SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+		UpdateAllViews( UAV_ALLVIEWS, NULL );
+	}
+}
+
+void CFusionDoc::OnCameraUp()
+{
+	SetModifiedFlag();
+
+	CEntity *pCameraEntity = FindCameraEntity ();
+
+	if (pCameraEntity)
+	{
+		geVec3d Angles;
+		pCameraEntity->GetAngles( &Angles, Level_GetEntityDefs (pLevel) );
+		pCameraEntity->mOrigin.Y = pCameraEntity->mOrigin.Y + CAMERA_MOVEMENT_DISTANCE;
+		SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+		UpdateAllViews( UAV_ALLVIEWS, NULL );
+	}
+}
+
+void CFusionDoc::OnCameraDown()
+{
+	SetModifiedFlag();
+
+	CEntity *pCameraEntity = FindCameraEntity ();
+
+	if (pCameraEntity)
+	{
+		geVec3d Angles;
+		pCameraEntity->GetAngles( &Angles, Level_GetEntityDefs (pLevel) );
+		pCameraEntity->mOrigin.Y = pCameraEntity->mOrigin.Y - CAMERA_MOVEMENT_DISTANCE;
+		SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+		UpdateAllViews( UAV_ALLVIEWS, NULL );
+	}
+}
+
+
+void CFusionDoc::ExportWorldFile(const char *FileName)
+{
+
+	SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+
+	Level *NewLevel;
+	int i;
+	AddPremadeEnumData EnumData;
+
+	NewLevel = Level_Create (Level_GetWadPath (pLevel), Level_GetHeadersDirectory (pLevel));
+	if (NewLevel == NULL)
+	{
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		AfxMessageBox ("Error: Unable to export objects.", MB_OK + MB_ICONERROR);
+		return;
+	}
+
+	EnumData.NewLevel = NewLevel;
+	EnumData.OldLevel = pLevel;
+
+	int NumSelBrushes = SelBrushList_GetSize (pSelBrushes);
+
+	// add all selected brushes and entities to the new level
+	for (i = 0; i < NumSelBrushes; ++i)
+	{
+		Brush *NewBrush;
+		Brush *OldBrush;
+
+		OldBrush = SelBrushList_GetBrush (pSelBrushes, i);
+		NewBrush = Brush_Clone (OldBrush);
+		Level_AppendBrush (NewLevel, NewBrush);
+
+		// add any group or model that's referenced
+		::fdocAddReferencedModel (&EnumData, Brush_GetModelId (NewBrush));
+		::fdocAddReferencedGroup (&EnumData, Brush_GetGroupId (NewBrush));
+	}
+
+	Level_EnumEntities (pLevel, &EnumData, ::fdocAddSelectedEntities);
+
+	// ok, everything's added.  Write it to the file.
+	if (!Level_WriteToFile (NewLevel, FileName))
+	{
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		AfxMessageBox ("Error: Unable to export objects to file.", MB_OK + MB_ICONERROR);
+	}
+	else
+	{
+		// possibly add level name to objects list...
+		mpMainFrame->m_wndTabControls->m_pBrushEntityDialog->SetupObjectListCombo ();
+	}
+
+	Level_Destroy (&NewLevel);
+
+	SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+}
+
+static geBoolean ExportBrushToMapFile( Brush *pBrush, void *lParam)
+{
+	ofstream *pMapFile = (ofstream*)lParam ;
+
+  int NumFaces;
+	int NumPoints;
+
+	int FaceIndex;
+	int TriangleIndex;
+
+	Face *pFace;
+	const geVec3d *pPoints;
+
+	const char *pTextureName;
+	geFloat TextureRotate;
+	int TextureOffsetX;
+	int TextureOffsetY;
+	geFloat TextureScaleX;
+	geFloat TextureScaleY;
+
+	int Contents;
+	int Surface;
+	int Value;
+
+	geFloat Translucency;
+
+	Contents = 0;
+	if (Brush_IsSolid(pBrush))
+		Contents += CONTENTS_SOLID;
+	if (Brush_IsWindow(pBrush))
+		Contents += CONTENTS_WINDOW;
+	if (Brush_IsWavy(pBrush))
+		Contents += CONTENTS_WAVY;
+	if (Brush_IsDetail(pBrush))
+		Contents += CONTENTS_DETAIL;
+	if (Brush_IsSubtract(pBrush))
+		Contents += CONTENTS_SUBTRACT;
+	if (Brush_IsClip(pBrush))
+		Contents += CONTENTS_CLIP;
+	if (Brush_IsArea(pBrush))
+		Contents += CONTENTS_AREA;
+	if (Brush_IsFlocking(pBrush))
+		Contents += CONTENTS_FLOCKING;
+	if (Brush_IsSheet(pBrush))
+		Contents += CONTENTS_SHEET;
+	if (Brush_IsHint(pBrush))
+		Contents += CONTENTS_HINT;
+	Contents += Brush_GetUserFlags(pBrush);
+
+	(*pMapFile) << "{\n";
+	
+	NumFaces = Brush_GetNumFaces(pBrush);
+
+	for (FaceIndex = 0; FaceIndex < NumFaces; ++FaceIndex)
+	{
+		pFace = Brush_GetFace(pBrush, FaceIndex);
+
+		NumPoints = Face_GetNumPoints(pFace);
+
+		if (NumPoints > 2)
+		{
+
+			pPoints = Face_GetPoints(pFace);
+
+			pTextureName = Face_GetTextureName(pFace);
+			Face_GetTextureShift(pFace, &TextureOffsetX, &TextureOffsetY);
+			TextureRotate = Face_GetTextureRotate(pFace);
+			Face_GetTextureScale(pFace, &TextureScaleX, &TextureScaleY);
+
+			Surface = 0;
+			if (Face_IsLight(pFace))
+				Surface += SURF_LIGHT;
+			if (Face_IsMirror(pFace))
+				Surface += SURF_MIRROR;
+			if (Face_IsFullBright(pFace))
+				Surface += SURF_FULLBRIGHT;
+			if (Face_IsSky(pFace))
+				Surface += SURF_SKY;
+			if (Face_IsGouraud(pFace))
+				Surface += SURF_GOURAUD;
+			if (Face_IsFlat(pFace))
+				Surface += SURF_FLAT;
+			if (Face_IsTextureLocked(pFace))
+				Surface += SURF_TEXTURELOCK;
+			if ((!(Face_IsVisible(pFace))) || Brush_IsClip(pBrush))
+				Surface += SURF_NODRAW;
+			if (Face_IsTransparent(pFace) || Face_IsMirror(pFace))
+			{
+				Translucency = Face_GetTranslucency(pFace);
+				if (Translucency > 127)
+				{
+					Surface += SURF_TRANS66;
+				}
+				else if (Translucency > 0)
+				{
+					Surface += SURF_TRANS33;
+				}
+				else
+					Surface += SURF_TRANS;
+			}
+
+			Value = Face_GetLightIntensity(pFace);
+
+			for (TriangleIndex = 1; TriangleIndex < (NumPoints - 1); ++TriangleIndex)
+			{
+				(*pMapFile) << "( ";
+				(*pMapFile) << pPoints[0].X;
+				(*pMapFile) << " ";
+				(*pMapFile) << -(pPoints[0].Z);
+				(*pMapFile) << " ";
+				(*pMapFile) << pPoints[0].Y;
+				(*pMapFile) << " ) ";
+
+				(*pMapFile) << "( ";
+				(*pMapFile) << pPoints[TriangleIndex].X;
+				(*pMapFile) << " ";
+				(*pMapFile) << -(pPoints[TriangleIndex].Z);
+				(*pMapFile) << " ";
+				(*pMapFile) << pPoints[TriangleIndex].Y;
+				(*pMapFile) << " ) ";
+
+				(*pMapFile) << "( ";
+				(*pMapFile) << pPoints[TriangleIndex+1].X;
+				(*pMapFile) << " ";
+				(*pMapFile) << -(pPoints[TriangleIndex+1].Z);
+				(*pMapFile) << " ";
+				(*pMapFile) << pPoints[TriangleIndex+1].Y;
+				(*pMapFile) << " ) ";
+
+				(*pMapFile) << pTextureName;
+				(*pMapFile) << " ";
+
+				(*pMapFile) << TextureOffsetX;
+				(*pMapFile) << " ";
+				(*pMapFile) << TextureOffsetY;
+				(*pMapFile) << " ";
+
+				(*pMapFile) << TextureRotate;
+				(*pMapFile) << " ";
+
+				(*pMapFile) << TextureScaleX;
+				(*pMapFile) << " ";
+				(*pMapFile) << TextureScaleY;
+				(*pMapFile) << " ";
+
+				(*pMapFile) << Contents;
+				(*pMapFile) << " ";
+				(*pMapFile) << Surface;
+				(*pMapFile) << " ";
+				(*pMapFile) << Value;
+				(*pMapFile) << "\n";
+			}
+		}
+	}
+	(*pMapFile) << "}\n";
+
+	return GE_TRUE ;
+}
+
+void CFusionDoc::ExportMapFile(const char *FileName)
+{
+	try {
+
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+
+		ofstream MapFile( FileName, ofstream::out | ofstream::trunc );
+
+		int BrushIndex;
+		
+		int NumSelBrushes = SelBrushList_GetSize (pSelBrushes);
+
+		if (NumSelBrushes)
+		{
+			MapFile << "{\n";
+			MapFile << "\"classname\" \"worldspawn\"\n";
+			
+			Brush *pBrush;
+
+			// add all selected brushes and entities to the new level
+			for (BrushIndex = 0; BrushIndex < NumSelBrushes; ++BrushIndex)
+			{
+				pBrush = SelBrushList_GetBrush (pSelBrushes, BrushIndex);
+
+				if(Brush_IsMulti(pBrush))
+				{
+					BrushList_EnumLeafBrushes(Brush_GetBrushList(pBrush), &MapFile, ::ExportBrushToMapFile);
+				}
+				else
+				{
+					::ExportBrushToMapFile(pBrush, &MapFile);
+				}
+			}
+			MapFile << "}\n";
+		}
+
+		int EntityIndex;
+		int NumEntityKeyValuePairs;
+		int KeyValuePairIndex;
+		CString Key;
+		CString Value;
+
+		CEntityArray *Entities = Level_GetEntities (pLevel);
+		int NumEntities = Entities->GetSize() ;
+
+		for (EntityIndex = 0 ; EntityIndex < NumEntities; EntityIndex++)
+		{
+
+			CEntity *pEntity = &(*Entities)[EntityIndex];
+
+			if (pEntity->IsCamera() == GE_FALSE)	// Exclude Cameras
+			{
+				if (pEntity->IsSelected())
+				{
+
+					MapFile << "{\n";
+
+					NumEntityKeyValuePairs = pEntity->GetNumKeyValuePairs();
+					for (KeyValuePairIndex = 0; KeyValuePairIndex < NumEntityKeyValuePairs; KeyValuePairIndex++)
+					{
+						pEntity->GetKeyValuePair(KeyValuePairIndex, Key, Value);
+
+						MapFile << '"';
+						MapFile << Key;
+						MapFile << '"';
+
+						MapFile << ' ';
+
+						MapFile << '"';
+						MapFile << Value;
+						MapFile << '"';
+
+						MapFile << '\n';
+					}
+
+					MapFile << "}\n";
+				}
+			}
+		}
+
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+	}
+	catch(CException e)
+	{
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+
+		AfxMessageBox ("Error: Unable to export objects to file.", MB_OK + MB_ICONERROR);
+	}
+
+}
+
+void CFusionDoc::OnFileExport() 
+{
+	static const char FDTitle[] = "Export";
+	CFileDialog dlg(FALSE, "3dt", NULL, (OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY | OFN_NOREADONLYRETURN | OFN_PATHMUSTEXIST | OFN_NOREADONLYRETURN),
+									"World Files (*.3dt)|*.3dt|Map Files (*.map)|*.map|All Files (*.*)|*.*||");
+
+	dlg.m_ofn.lpstrTitle = FDTitle;	
+	if (dlg.DoModal () == IDOK)
+	{
+		switch(dlg.m_ofn.nFilterIndex)
+		{
+		case 1 :
+			ExportWorldFile(dlg.GetPathName());
+			break;
+		case 2 :
+			ExportMapFile(dlg.GetPathName());
+		}
+	}
+}
+
+void CFusionDoc::OnUpdateFileExport(CCmdUI* pCmdUI) 
+{
+	BOOL		bEnable ;
+	
+	bEnable = ((GetSelState() & ANYBRUSH) ? TRUE : FALSE) || ((GetSelState() & ANYENTITY) ? TRUE : FALSE);
+	
+	pCmdUI->Enable( bEnable ) ;	
+	
+}
+
+const char* CFusionDoc::ReturnThingUnderPoint(CPoint point, ViewVars *v)
+{
+	Brush *pMinBrush;
+	CEntity *pMinEntity;
+	geFloat Dist;
+	int FoundThingType;
+
+	FoundThingType = FindClosestThing (&point, v, &pMinBrush, &pMinEntity, &Dist);
+	if ((FoundThingType != fctNOTHING) && (Dist <= MAX_PIXEL_SELECT_THINGNAME))
+	{
+		switch (FoundThingType)
+		{
+			case fctBRUSH :
+				return Brush_GetName(pMinBrush);
+				break;
+			case fctENTITY :
+				return pMinEntity->GetName();
+				break;
+			default :
+				break;
+		}
+	}
+
+	return "";
+}
+
+
+const char* CFusionDoc::GetObjectName3D(CPoint point, ViewVars *v)
+{
+	int			CurEnt = 0;
+	geFloat		MinEDist;
+	CEntityArray *Entities = Level_GetEntities (pLevel);
+	BrushList	*BList = Level_GetBrushes (pLevel);
+	SelectBrush3DCBData	bdat;
+	geVec3d ClickPosWorld;
+//	geBoolean	EntitySelected	=FALSE;
+
+	Render_ViewToWorld(v, point.x, point.y, &bdat.vp);
+	Render_BackRotateVector(v, &bdat.vp, &bdat.wp);
+	Render_GetCameraPos(v, &bdat.vp);
+
+	Render_ViewToWorld (v, point.x, point.y, &ClickPosWorld);
+
+	MinEDist = bdat.MinBDist = 999999.0f;
+
+	for(int i=0;i < Entities->GetSize();i++)
+	{
+
+		CEntity *pEnt = &(*Entities)[i];
+
+		if (EntityIsVisible (pEnt))
+		{
+			bdat.CurDist=pEnt->RayDistance (point, v);
+			if ((bdat.CurDist < 900.0f)
+				&& (bdat.CurDist < MinEDist)
+				&& (bdat.CurDist > MIN_ENTITY_SELECT_DIST))
+			{
+					MinEDist=bdat.CurDist;
+					CurEnt	=i;
+			}
+		}
+	}
+	bdat.CurBrush	= NULL;
+	bdat.CurFace	= NULL;
+	bdat.pDoc		= this;
+	BrushList_EnumCSGBrushes(BList, &bdat, SelectBrush3DCB);
+		
+	if((bdat.MinBDist < 999999.0f) && (MinEDist > MIN_ENTITY_SELECT_DIST))
+	{
+		//check the distance of the hit wall
+		//see if the closest entity is occluded
+		if(bdat.CurBrush)
+		{
+			if(bdat.CurFace)
+			{
+				geFloat		pDist;
+				const Plane	*p;
+
+				//find the dist ratio from click ray to plane normal
+				p		=Face_GetPlane(bdat.CurFace);
+				pDist	=geVec3d_DotProduct(&bdat.wp, &p->Normal);
+
+				if(pDist != 0.0f)
+				{
+					pDist	=(Face_PlaneDistance(bdat.CurFace, &bdat.vp)  / pDist);
+				}
+				geVec3d_Scale(&bdat.wp, pDist, &ClickPosWorld);
+				pDist	=geVec3d_Length(&ClickPosWorld);
+
+				if(MinEDist < pDist)
+				{
+				
+					CEntity *pEnt = &(*Entities)[CurEnt];
+					return pEnt->GetName();
+					
+				}
+			}
+		}
+
+	}
+
+	if( bdat.CurBrush)
+	{
+		
+		
+		const Plane *p;
+		geFloat pDist;
+		geVec3d ClickPosWorld;
+		FaceSearchCallbackData fsData;
+		
+		if (Brush_GetType (bdat.CurBrush) == BRUSH_LEAF)
+		{
+			// if the found face is on a leaf brush, then skip the rest of the search
+			fsData.pFoundFace = bdat.CurFace;
+			fsData.Found = GE_TRUE;
+			fsData.pFoundBrush = bdat.CurBrush;
+		}
+		else
+		{
+			// determine the impact point
+			p		=Face_GetPlane(bdat.CurFace);
+			pDist	=geVec3d_DotProduct(&bdat.wp, &p->Normal);
+			if(pDist != 0.0f)
+			{
+				//grab plane distance and move inward by 16
+				pDist	=(Face_PlaneDistance(bdat.CurFace, &bdat.vp)) / pDist;
+			}
+			
+			geVec3d_Scale(&bdat.wp, pDist, &ClickPosWorld);
+			
+			//add in distance from the camera
+			geVec3d_Subtract(&ClickPosWorld, &bdat.vp, &ClickPosWorld);
+			geVec3d_Inverse (&ClickPosWorld);
+			
+			// OK, now search list for a face that contains this point and
+			// is coplanar with the matched face.
+			fsData.pFacePlane = p;
+			fsData.Found = GE_FALSE;
+			fsData.pFoundFace = NULL;
+			fsData.pFoundBrush = NULL;
+			fsData.ImpactPoint = ClickPosWorld;
+			
+			BrushList_EnumLeafBrushes (BList, &fsData, ::fdocFindLeafFace);
+			if (!fsData.Found)
+			{
+				BrushList_EnumLeafBrushes (BList, &fsData, ::fdocFindCutFace);
+			}
+		}
+		if (fsData.Found)
+		{
+			return Brush_GetName(fsData.pFoundBrush);
+			
+		}
+	}
+
+
+	return "";
+}
+
+
+CEntity* CFusionDoc::GetSelectedEntity()
+{
+	CEntity* pEnt = NULL;
+
+	if(SelState & ONEENTITY)
+	{
+		CEntityArray *Entities = Level_GetEntities (pLevel);
+
+		//for(int i=0;i < Entities->GetSize() && !((CEntity*)(Entities)[i]->IsSelected ());i++);
+			
+		for(int i=0;i < Entities->GetSize(); i++)
+		{
+			CEntity* p = &(*Entities)[i];
+			if(p->IsSelected())
+				break;
+		}
+		mCurrentEntity	= i;
+		if(mCurrentEntity > Entities->GetSize()-1 )
+			return NULL;
+	
+		pEnt = &(*Entities)[mCurrentEntity];
+
+		return pEnt;	
+	}
+
+	return pEnt;
+}
+
+// This is the range handler for the types of view that we have
+// make sure when we add more view types that we update this.
+void CFusionDoc::OnViewTypeWireFrame()
+{
+	SetModifiedFlag();
+
+	CFusionView* pFusionView = GetCameraView();
+	if (!pFusionView)
+		return;
+	
+	pFusionView->OnViewType(ID_VIEW_3DWIREFRAME);
+}
+
+void CFusionDoc::OnViewTypeTexture()
+{
+	SetModifiedFlag();
+
+	CFusionView* pFusionView = GetCameraView();
+	if (!pFusionView)
+		return;
+	
+	pFusionView->OnViewType(ID_VIEW_TEXTUREVIEW);
+}
+
+void CFusionDoc::OnUpdateViewTypeWireFrame(CCmdUI* pCmdUI)
+{
+	OnUpdateViewType(pCmdUI);
+}
+
+void CFusionDoc::OnUpdateViewTypeTexture(CCmdUI* pCmdUI)
+{
+	OnUpdateViewType(pCmdUI);
+}
+
+void CFusionDoc::OnUpdateViewType(CCmdUI* pCmdUI)
+{
+	BOOL	bEnable = FALSE ;
+
+	CFusionView* pFusionView = GetCameraView();
+	if (pFusionView)
+	{
+		if( pFusionView->mViewType == pCmdUI->m_nID )
+			pCmdUI->SetCheck();
+		else
+			pCmdUI->SetCheck(0);
+
+		bEnable = TRUE;
+	}
+
+	pCmdUI->Enable( bEnable ) ;
+}
+
+
+CFusionView* CFusionDoc::GetCameraView()
+{
+	CView* pView;
+	CFusionView* pFusionView;
+	POSITION pos = GetFirstViewPosition();
+
+	while (pos != NULL)
+	{
+		pView = GetNextView(pos);
+
+		if ( pView->IsKindOf( RUNTIME_CLASS (CFusionView)) )
+		{
+			pFusionView = (CFusionView*) pView;
+
+			if ( (pFusionView->mViewType == ID_VIEW_TEXTUREVIEW) || 
+					 (pFusionView->mViewType == ID_VIEW_3DWIREFRAME) )
+				return pFusionView;
+		}
+	}
+
+	return NULL;
+}
+
+void CFusionDoc::OnCameraCenteronselection() 
+{
+	CEntity *pCameraEntity = FindCameraEntity ();
+	if (!pCameraEntity)
+		return;
+
+	SetModifiedFlag();
+
+	// Get the current thing's position...
+	geVec3d CurrentThingPos;
+
+	if (TempEnt)
+	{
+		CurrentThingPos = mRegularEntity.mOrigin;
+	}
+	else
+	{
+		int NumSelBrushes = SelBrushList_GetSize( pSelBrushes );
+		
+		if ((!NumSelBrushes) && (!NumSelEntities))
+			return;
+		
+		geVec3d EntitySelectionCenter = {0.0f,0.0f,0.0f};
+
+		if (NumSelEntities)
+		{
+			CEntityArray *Entities;
+			Entities = Level_GetEntities (pLevel);
+			if (Entities)
+			{
+				int NumEntities = Entities->GetSize();
+
+				for (int i=0;i<NumEntities;i++)
+				{
+					if ((*Entities)[i].IsSelected())
+					{
+						geVec3d_Add(&EntitySelectionCenter, &(*Entities)[i].mOrigin, &EntitySelectionCenter);
+					}
+				}
+			}
+		}
+
+		geVec3d BrushSelectionCenter;
+		SelBrushList_Center( pSelBrushes, &BrushSelectionCenter);
+		geVec3d_Scale(&BrushSelectionCenter, (float)NumSelBrushes, &BrushSelectionCenter);
+
+		geVec3d_Add(&EntitySelectionCenter, &BrushSelectionCenter, &CurrentThingPos);
+
+		geVec3d_Scale(&CurrentThingPos, 1/(float)((NumSelEntities)+NumSelBrushes), &CurrentThingPos);
+	}
+	
+	if (geVec3d_DistanceBetween(&CurrentThingPos, &(pCameraEntity->mOrigin)) > 0)
+	{
+		geVec3d Angles;
+
+		geFloat x = (CurrentThingPos.X - pCameraEntity->mOrigin.X);
+		geFloat y = (CurrentThingPos.Y - pCameraEntity->mOrigin.Y);
+		geFloat z = (CurrentThingPos.Z - pCameraEntity->mOrigin.Z);
+
+		if ((x == 0) && (z == 0))
+		{
+			if (y<0)
+				Angles.X = 3 * (GE_PI/2);
+			else if (y>0)
+				Angles.X = (GE_PI/2);
+			else
+				Angles.X = GE_PI;
+		}
+		else
+		{
+			geFloat length = (float)sqrt( (x*x) + (z*z) );
+			Angles.X = (float)atan2(-y,length) + GE_PI;
+		}
+
+		if (z != 0)
+			Angles.Y = (float)atan2(-x, z) + GE_PI;
+		else
+			Angles.Y = GE_PI / 2;
+
+		Angles.Z = 0;
+
+		Angles.X = Render_NormalizeAngle(Angles.X);
+		Angles.Y = Render_NormalizeAngle(Angles.Y);
+
+		pCameraEntity->SetAngles( &Angles, Level_GetEntityDefs (pLevel) ) ;
+
+		SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+		UpdateAllViews( UAV_ALLVIEWS, NULL );
+	}
+}
+
+void CFusionDoc::OnUpdateCameraCenteronselection(CCmdUI* pCmdUI) 
+{
+	if(GetSelState()!=NOSELECTIONS)
+		pCmdUI->Enable( TRUE );
+	else
+		pCmdUI->Enable( FALSE );
+}
+
+void CFusionDoc::OnToolsTemplate()
+{
+	ResetAllSelectedEntities();
+	ResetAllSelectedFaces();
+	ResetAllSelectedBrushes();
+
+	UpdateBrushAttributesDlg();
+	UpdateFaceAttributesDlg();
+	
+	mModeTool = ID_TOOLS_TEMPLATE;
+//	if(pDoc->TempEnt) 
+//	{
+		mCurrentTool = ID_TOOLS_BRUSH_MOVEROTATEBRUSH;
+//	}
+//	else 
+//	{
+//		SetTool(ID_TOOLS_BRUSH_SCALEBRUSH);
+//	}
+
+//	pDoc->SetAdjustmentMode( ADJUST_MODE_BRUSH ) ;
+	SetAdjustmentMode( ADJUST_MODE_FACE ) ;
+	ConfigureCurrentTool();
+	mpMainFrame->m_wndTabControls->m_pBrushEntityDialog->Update(this);
+}
+
+void CFusionDoc::OnPlaceOmniLight()
+{
+	mpMainFrame->m_wndTabControls->m_pBrushEntityDialog->PlaceOmniLight();
+}
+
+void CFusionDoc::OnPlaceSpotLight()
+{
+	mpMainFrame->m_wndTabControls->m_pBrushEntityDialog->PlaceSpotLight();
+}
+
+void CFusionDoc::OnCameraGoto() 
+{
+	CEntity *pCameraEntity = FindCameraEntity ();
+
+	if (pCameraEntity)
+	{
+		SetModifiedFlag();
+
+		geVec3d CameraPosition;
+		CameraPosition = pCameraEntity->mOrigin;
+
+		CMoveDialog MoveDialog;
+
+		if (MoveDialog.DoModal(&CameraPosition, GE_TRUE, GE_TRUE, GE_TRUE) == IDOK)
+		{
+			if ((CameraPosition.X == pCameraEntity->mOrigin.X) &&
+				  (CameraPosition.Y == pCameraEntity->mOrigin.Y) &&
+				  (CameraPosition.Z == pCameraEntity->mOrigin.Z))
+				return;
+			
+			pCameraEntity->mOrigin = CameraPosition;
+
+			geVec3d Angles;
+			pCameraEntity->GetAngles( &Angles, Level_GetEntityDefs (pLevel) );
+
+			SetRenderedViewCamera( &(pCameraEntity->mOrigin), &Angles) ;
+			UpdateAllViews( UAV_ALLVIEWS, NULL );
+		}
+	}
+}
+
+void CFusionDoc::OnModifyMove() 
+{
+	SetModifiedFlag();
+
+	geVec3d CenterOfSelection;
+	CenterOfSelection = SelectedGeoCenter;
+
+	CMoveDialog MoveDialog;
+
+	if (MoveDialog.DoModal(&CenterOfSelection, GE_TRUE, GE_TRUE, GE_TRUE) == IDOK)
+	{
+		if ( (CenterOfSelection.X != SelectedGeoCenter.X) ||
+				 (CenterOfSelection.Y != SelectedGeoCenter.Y) ||
+				 (CenterOfSelection.Z != SelectedGeoCenter.Z) )
+		{
+			geVec3d_Subtract(&CenterOfSelection, &SelectedGeoCenter, &CenterOfSelection);
+
+			if (mModeTool==ID_TOOLS_TEMPLATE)
+				MoveTemplateBrush(&CenterOfSelection);
+			else
+				MoveSelectedBrushList(pSelBrushes, &CenterOfSelection);
+
+			UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+		}
+	}
+}
+
+void CFusionDoc::OnUpdateModifyMove(CCmdUI* pCmdUI) 
+{
+	if ((GetSelState()!=NOSELECTIONS) || ((mModeTool==ID_TOOLS_TEMPLATE) && !PlaceObjectFlag))
+		pCmdUI->Enable( TRUE );
+	else
+		pCmdUI->Enable( FALSE );
+}
+
+void CFusionDoc::OnModifyScale() 
+{
+	SetModifiedFlag();
+
+	CScaleDialog ScaleDialog;
+	geVec3d ScaleVector = {1.0f, 1.0f, 1.0f};
+
+	if (ScaleDialog.DoModal(&ScaleVector) == IDOK)
+	{
+		ScaleSelectedBrushes(&ScaleVector);
+
+		UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+	}
+}
+
+void CFusionDoc::OnUpdateModifyScale(CCmdUI* pCmdUI) 
+{
+	if ((GetSelState()!=NOSELECTIONS) || ((mModeTool==ID_TOOLS_TEMPLATE) && !PlaceObjectFlag))
+		pCmdUI->Enable( TRUE );
+	else
+		pCmdUI->Enable( FALSE );
+}
+
+void CFusionDoc::OnToolsBrushMakenewest() 
+{
+	SetModifiedFlag();
+	MakeSelectedBrushNewest();	
+}
+
+void CFusionDoc::OnUpdateToolsBrushMakenewest(CCmdUI* pCmdUI) 
+{
+	if (GetSelState()==ONEBRUSHONLY)
+		pCmdUI->Enable( TRUE );
+	else
+		pCmdUI->Enable( FALSE );
+}
+
+void CFusionDoc::LinkViewports()
+{
+	if (!Prefs_GetLinkViewports(((CFusionApp *)AfxGetApp())->GetPreferencesNormal()))
+		return;
+
+	CView	*pAView = NULL;
+	CFusionView	*pActiveView = NULL;
+
+	CMDIChildWnd *pMDIChild	=(CMDIChildWnd *)mpMainFrame->MDIGetActive();
+	if(pMDIChild)
+	{
+		pAView	= (CFusionView *)pMDIChild->GetActiveView();
+		if (!pAView)
+			return;
+
+		if ( pAView->IsKindOf( RUNTIME_CLASS (CFusionView)) )
+		{	
+			pActiveView	= (CFusionView *)pAView;
+		}
+		else
+			return;
+	}
+
+	if ( (pActiveView->mViewType != ID_VIEW_TOPVIEW) &&
+			 (pActiveView->mViewType != ID_VIEW_FRONTVIEW) &&
+			 (pActiveView->mViewType != ID_VIEW_SIDEVIEW)
+		 )
+		return;
+	
+	POSITION		pos;
+	pos = GetFirstViewPosition();
+	CFusionView	*pView;
+
+	while( pos != NULL )
+	{
+		pView = (CFusionView*)GetNextView(pos) ;
+		
+		if (pView != pActiveView)
+		{
+			switch (pActiveView->mViewType)
+			{
+				case ID_VIEW_TOPVIEW :
+					
+					switch (pView->mViewType)
+					{
+						case ID_VIEW_TOPVIEW :
+							pView->VCam->CamPos.X = pActiveView->VCam->CamPos.X;
+							pView->VCam->CamPos.Z = pActiveView->VCam->CamPos.Z;
+							break;
+
+						case ID_VIEW_FRONTVIEW :
+							pView->VCam->CamPos.X = pActiveView->VCam->CamPos.X;
+							break;
+
+						case ID_VIEW_SIDEVIEW :
+							pView->VCam->CamPos.Z = pActiveView->VCam->CamPos.Z;
+							break;
+					}
+
+					break;
+
+				case ID_VIEW_FRONTVIEW :
+					
+					switch (pView->mViewType)
+					{
+						case ID_VIEW_TOPVIEW :
+							pView->VCam->CamPos.X = pActiveView->VCam->CamPos.X;
+							break;
+
+						case ID_VIEW_FRONTVIEW :
+							pView->VCam->CamPos.X = pActiveView->VCam->CamPos.X;
+							pView->VCam->CamPos.Y = pActiveView->VCam->CamPos.Y;
+							break;
+
+						case ID_VIEW_SIDEVIEW :
+							pView->VCam->CamPos.Y = pActiveView->VCam->CamPos.Y;
+							break;
+					}
+
+					break;
+
+				case ID_VIEW_SIDEVIEW :
+					
+					switch (pView->mViewType)
+					{
+						case ID_VIEW_TOPVIEW :
+							pView->VCam->CamPos.Z = pActiveView->VCam->CamPos.Z;
+							break;
+
+						case ID_VIEW_FRONTVIEW :
+							pView->VCam->CamPos.Y = pActiveView->VCam->CamPos.Y;
+							break;
+
+						case VIEWSIDE :
+							pView->VCam->CamPos.Y = pActiveView->VCam->CamPos.Y;
+							pView->VCam->CamPos.Z = pActiveView->VCam->CamPos.Z;
+							break;
+					}
+
+					break;
+
+				default :
+					assert(0);
+			}
+		}
+	}
+
+	UpdateAllViews(UAV_GRID_ONLY, NULL, FALSE);
+}
+
+void CFusionDoc::OnLinkviewports() 
+{
+	Prefs *CurrentPrefs = ((CFusionApp *)AfxGetApp())->GetPreferencesNormal();
+
+	if (Prefs_GetLinkViewports(CurrentPrefs))
+	{
+		Prefs_SetLinkViewports(CurrentPrefs, FALSE);
+		return;
+	}
+	else
+	{
+		Prefs_SetLinkViewports(CurrentPrefs, TRUE);
+		LinkViewports();
+	}
+}
+
+void CFusionDoc::OnUpdateLinkviewports(CCmdUI* pCmdUI) 
+{
+	if (Prefs_GetLinkViewports(((CFusionApp *)AfxGetApp())->GetPreferencesNormal()))
+		pCmdUI->SetCheck(TRUE);
+	else
+		pCmdUI->SetCheck(FALSE);
+}
+
+void CFusionDoc::OnTemplateSunlight() 
+{
+	mpMainFrame->m_wndTabControls->m_pBrushEntityDialog->PlaceSunLight();
 }

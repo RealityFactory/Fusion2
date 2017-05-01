@@ -4,6 +4,7 @@
 /*  Author:       Jim Mischel, Ken Baird                                                */
 /*  Description:  Editor level structure                                                */
 /*                                                                                      */
+/*  Copyright (c) 1996-1999, Eclipse Entertainment, L.L.C.                              */
 /*                                                                                      */
 /*  The contents of this file are subject to the Genesis3D Public License               */
 /*  Version 1.01 (the "License"); you may not use this file except in                   */
@@ -16,8 +17,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -103,7 +103,8 @@ static void Level_AssignEntityName (Level *pLevel, CEntity *pEnt)
 
 	EntityClassname = pEnt->GetClassname ();
 	Num = EntTypeNameList_UpdateCount (pLevel->EntTypeNames, EntityClassname);
-	NewName.Format ("%s%d", EntityClassname, Num);
+//	NewName.Format ("%s%d", EntityClassname, Num);
+	NewName.Format ("%s%.3d", EntityClassname, Num);
 	pEnt->SetKeyValue ("%name%", NewName);
 }
 
@@ -123,6 +124,8 @@ static geBoolean Level_LoadEntities
 	if (!Parse3dt_GetInt (Parser, (*Expected = "EntCount"), &EntityCount)) return GE_FALSE;
 	if (!Parse3dt_GetInt (Parser, (*Expected = "CurEnt"), &i)) return GE_FALSE;	
 
+	geBoolean CameraEntityAlreadyLoaded = FALSE;
+
 	for (i=0; i < EntityCount; i++)
 	{
 		CEntity ent;
@@ -133,7 +136,8 @@ static geBoolean Level_LoadEntities
 		if (!Parse3dt_ScanExpectingText (Parser, (*Expected = "End"))) return GE_FALSE;
 		if (!Parse3dt_ScanExpectingText (Parser, (*Expected = "CEntity"))) return GE_FALSE;
 
-		if( ent.IsCamera() == GE_FALSE )	// Exclude cameras
+		//		if( ent.IsCamera() == GE_FALSE )	// Exclude cameras
+		if (!(ent.IsCamera() && CameraEntityAlreadyLoaded))
 		{
 			if (ent.GetKeyValue ("%name%", Value))
 			{
@@ -144,6 +148,9 @@ static geBoolean Level_LoadEntities
 				Level_AssignEntityName (pLevel, &ent);
 			}
 			pLevel->Entities->Add (ent);
+
+			if (ent.IsCamera())
+				CameraEntityAlreadyLoaded = TRUE;
 		}
 	}
 	return GE_TRUE;
@@ -302,7 +309,8 @@ Level *Level_Create (const char *pWadName, const char *HeadersDir)
 			pGridInfo->RotationSnap = 15;
 		}
 
-		pLevel->BspRebuildFlag = GE_TRUE;
+//		pLevel->BspRebuildFlag = GE_TRUE;
+		pLevel->BspRebuildFlag = GE_FALSE;
 		for (int iView = 0; iView < NUM_VIEWS; ++iView)
 		{
 			ViewStateInfo *pInfo;
@@ -469,6 +477,9 @@ uint16 Level_GetDibId (const Level *pLevel, const char *Name)
 WadFileEntry *Level_GetWadBitmap (Level *pLevel, const char *Name)
 {
 	uint16 i;
+
+	if( (!pLevel) || (!pLevel->WadFile) )
+		return NULL;
 
 	i = Level_GetDibIdFromWad (pLevel->WadFile, Name);
 	if (i != 0xffff)

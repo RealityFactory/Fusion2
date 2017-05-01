@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #if !defined(AFX_SKYDIALOG_H__EDBC3365_E973_11D1_B69D_004005424FA9__INCLUDED_)
@@ -90,8 +89,10 @@ protected:
 	afx_msg void OnSelchangeCbskybottom();
 	afx_msg void OnSelchangeCbskyfront();
 	afx_msg void OnSelchangeCbskyback();
-	afx_msg void OnKillfocusEditspeed();
 	afx_msg void OnAxisButton();
+	afx_msg void OnChangeEditspeed();
+	afx_msg void OnChangeEditscale();
+	afx_msg void OnKillfocusEditspeed();
 	afx_msg void OnKillfocusEditscale();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()

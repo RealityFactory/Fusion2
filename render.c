@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -98,33 +97,6 @@ typedef struct RenderFaceTag
 	int32		NumPoints;
 	geVec3d		Points[32];
 } RenderFace;
-
-typedef struct ViewVarsTag
-{
-	struct
-	{
-		BITMAPINFOHEADER	bmiHeader;
-		RGBQUAD				bmiColors[256];
-	} ViewBMI;
-
-	HBITMAP		hDibSec;
-	uint32		Flags;
-	uint8		*pBits;
-	uint32		*pZBuffer;
-	uint32		ViewType;
-	geFloat	ZoomFactor;//, GridInterval;
-
-	geVec3d		Vpn, Vright, Vup, CamPos;
-	geFloat	roll, pitch, yaw;
-	Plane		FrustPlanes[4];
-	geFloat	MaxScreenScaleInv, FieldOfView;
-	geFloat	XCenter, YCenter, MaxScale;
-	geFloat	SpeedScale, YScreenScale, XScreenScale;
-	long		Width, Height;
-	SizeInfo	*WadSizes;
-	Edge		*NewEdges, **RemoveEdges;
-	long		FacesDone;
-} ViewVars;
 
 geFloat Render_ComputeGridDist (const ViewVars *v, int GridType)
 {
@@ -296,7 +268,7 @@ void	Render_SetViewType(ViewVars *v, const int vt)
 	v->ViewType	=vt;
 }
 
-static geFloat Render_NormalizeAngle (float Rads)
+geFloat Render_NormalizeAngle (float Rads)
 {
 	geFloat NewAngle;
 	
@@ -329,8 +301,8 @@ ViewVars	*Render_AllocViewVars(void)
 
 	v	=(ViewVars *) geRam_Allocate(sizeof(ViewVars));
 	
-	if(!v)
-		ConPrintf("WARNING:  Allocation failure in Render_AllocViewVars()\n");
+//	if(!v)
+//		ConPrintf("WARNING:  Allocation failure in Render_AllocViewVars()\n");
 
 	memset(v, 0, sizeof(ViewVars));
 
@@ -423,10 +395,18 @@ void	Render_IncrementYaw(ViewVars *v, const geFloat YawIncr)
 
 void	Render_IncrementPitch(ViewVars *v, const geFloat PitchIncr)
 {
-	assert(v);
+	geFloat NewPitch;
 
+	assert(v);
+	
 	//this would be a nice place to put a range validation
-	v->pitch = Render_NormalizeAngle (v->pitch + (v->MaxScreenScaleInv * PitchIncr));
+	NewPitch = v->pitch + (v->MaxScreenScaleInv * PitchIncr);
+	if (NewPitch < (M_PI / 2))
+		NewPitch = (M_PI / 2);
+	if (NewPitch > (3 * M_PI / 2))
+		NewPitch = (3 * M_PI / 2);
+
+	v->pitch = Render_NormalizeAngle (NewPitch);
 }
 
 void	Render_IncrementRoll(ViewVars *v, const geFloat RollIncr)
@@ -2267,7 +2247,7 @@ void	Render_BlitViewDib(ViewVars *v, HDC ViewDC)
 					 0, 0, v->Width, v->Height, v->pBits, (BITMAPINFO *)&v->ViewBMI,
 					 DIB_RGB_COLORS, SRCCOPY)==GDI_ERROR)
 	{
-		ConPrintf("Could not blit to screen!");
+//		ConPrintf("Could not blit to screen!");
 		assert(0);
 	}
 }

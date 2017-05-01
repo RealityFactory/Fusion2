@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -25,9 +24,9 @@
 
 #include "resource.h"
 #include "ConsoleTab.h"
+#include "BrushEntityDialog.h"
 #include "brush.h"
 
-class CBrushEntityDialog;
 class CBrushGroupDialog;
 class CTextureDialog;
 class CMainFrame;
@@ -45,7 +44,7 @@ class CSkyDialog;
 #define FTC_BORDER_SIZE_TOP		4
 #define FTC_BORDER_SIZE_LEFT	4
 #define FTC_BORDER_SIZE_RIGHT	8
-#define FTC_BORDER_SIZE_BOTTOM	64
+#define FTC_BORDER_SIZE_BOTTOM	8
 
 
 // CFusionTabControls window

@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -113,10 +112,9 @@ void CCompileDialog::OnBrowse()
 	CString Filename;
 	CFileFind Finder;
 
-	Filename = "*.MAP";
-
 	// make the dialog
-	CFileDialog dlg(TRUE, "MAP", Filename);
+	CFileDialog dlg(TRUE, "prebsp", NULL, OFN_HIDEREADONLY,
+									"Uncompiled BSP Files (*.prebsp)|*.prebsp|All Files (*.*)|*.*||");
 
 	// show it to the user.
 	if( dlg.DoModal() == IDOK )

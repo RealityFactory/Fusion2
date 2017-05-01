@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -47,7 +46,7 @@ void CEntity::Move(geVec3d const *v)
 	geVec3d_Add (&mOrigin, v, &mOrigin);
 }
 
-void CEntity::Rotate
+void CEntity::DoneRotate
 	(
 	  geXForm3d const *pXfmRotate, 
 	  geVec3d const *pCenter,
@@ -65,6 +64,23 @@ void CEntity::Rotate
 	geVec3d_Add (&NewPos, pCenter, &NewPos);
 
 	SetOrigin (NewPos.X, NewPos.Y, NewPos.Z, pEntityDefs);
+
+	geVec3d CurAngles;
+	if (GetAngles(&CurAngles, pEntityDefs))
+	{
+		geVec3d AngleAdd;
+		geXForm3d_GetEulerAngles(pXfmRotate, &AngleAdd);
+
+		if (IsCamera())
+		{
+			AngleAdd.X = -AngleAdd.X;
+			AngleAdd.Y = -AngleAdd.Y;
+			AngleAdd.Z = 0;
+		}
+		
+		geVec3d_Add(&AngleAdd, &CurAngles, &CurAngles);
+		SetAngles(&CurAngles, pEntityDefs);
+	}
 }
 
 void CEntity::Scale(geFloat ScaleFactor, const EntityTable *pEntityDefs)
@@ -80,6 +96,28 @@ void CEntity::Scale(geFloat ScaleFactor, const EntityTable *pEntityDefs)
 
 	if(GetKeyValue("light", temp))
 	{
+		int	lval	=atoi(temp);
+		itoa((int)(((float)lval)*ScaleFactor), temp, 10);
+		SetKeyValue("light", temp);
+	}
+}
+
+void CEntity::Scale3d(geVec3d *ScaleVector, const EntityTable *pEntityDefs)
+{
+	char	temp[255];
+	geVec3d NewPos;
+
+	NewPos.X = mOrigin.X * ScaleVector->X;
+	NewPos.Y = mOrigin.Y * ScaleVector->Y;
+	NewPos.Z = mOrigin.Z * ScaleVector->Z;
+
+	SetOrigin(NewPos.X, NewPos.Y, NewPos.Z, pEntityDefs);
+
+	if(GetKeyValue("light", temp))
+	{
+		// Who knows what's best?
+		geFloat ScaleFactor = (ScaleVector->X + ScaleVector->Y + ScaleVector->Z) / 3;
+
 		int	lval	=atoi(temp);
 		itoa((int)(((float)lval)*ScaleFactor), temp, 10);
 		SetKeyValue("light", temp);
@@ -566,6 +604,7 @@ static float SnapToGrid
 	return (float)(RoundDouble ((x/GridSize) ) * GridSize) ;
 }
 
+
 void CEntity::DoneMove(double GridSize, const EntityTable *pEntityDefs)
 {
 	float x, y, z;
@@ -577,6 +616,7 @@ void CEntity::DoneMove(double GridSize, const EntityTable *pEntityDefs)
 
 	SetOrigin (x, y, z, pEntityDefs);
 }
+
 
 // update our origin
 void CEntity::UpdateOriginFirst(const EntityTable *pEntityDefs)

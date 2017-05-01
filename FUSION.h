@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef __AFXWIN_H__
@@ -31,6 +30,9 @@
 #include "activationwatch.h"
 #include "prefs.h"
 
+#include "brush.h"
+#include "Entity.h"
+
 #include <afxmt.h>	// required for single-instance checking
 
 /////////////////////////////////////////////////////////////////////////////
@@ -43,7 +45,7 @@
 #define TEMPLATE_CHILD_FRAME_CLASS		RUNTIME_CLASS( CChildFrame )
 #define TEMPLATE_VIEW_CLASS				RUNTIME_CLASS( CFusionView )
 
-#define FUSION_INIFILE_NAME "Gedit.ini"
+#define FUSION_INIFILE_NAME "WrldEdit.ini"
 
 class CFusionApp : public CWinApp
 {
@@ -55,8 +57,16 @@ public:
 	CFusionDoc * GetActiveFusionDoc( void ) const ;
 
 	const Prefs * GetPreferences( void ) { return pResolvedPrefs; } ;
+	Prefs * GetPreferencesNormal( void ) { return pPrefs; } ;
 	CEvent* pNewInstanceEvent;
 	CEvent* pShutdownEvent;
+
+	int NumCopiedBrushes;
+	int NumCopiedEntities;
+	Brush** CopiedBrushes;
+	CEntity** CopiedEntities;
+
+	void CFusionApp::ClearClipboard();
 
 // Overrides
 	// ClassWizard generated virtual function overrides

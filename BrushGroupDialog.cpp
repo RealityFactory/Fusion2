@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -94,7 +93,7 @@ BOOL CBrushGroupDialog::OnInitDialog()
 	rect.top = rect2.bottom + FTC_BORDER_SIZE_TOP;
 	rect.left = rect.left + FTC_BORDER_SIZE_LEFT;
 	rect.right = rect.right - FTC_BORDER_SIZE_RIGHT ;
-	rect.bottom = rect.bottom - FTC_BORDER_SIZE_BOTTOM ;
+	rect.bottom = rect.bottom - rect2.bottom - FTC_BORDER_SIZE_BOTTOM;
 
 	SetWindowPos(NULL, rect.left,
 			rect.top, rect.right, rect.bottom, SWP_NOZORDER );
@@ -128,7 +127,7 @@ static geBoolean ListboxAddBrushes (Brush *pBrush, void *lParam)
 	{
 		sprintf( szTempString, "(B) %s", Brush_GetName( pBrush ) ) ;
 		Index = pData->BrushListbox->AddString( szTempString ) ;
-		pData->ItemsInLB = GE_TRUE;
+//		pData->ItemsInLB = GE_TRUE;
 		if( Index >= 0 ) /* LB_ERR is -1, LB_ERRSPACE  is -2 */
 		{
 			pData->BrushListbox->SetItemData( Index, (DWORD)pBrush ) ;
@@ -153,7 +152,7 @@ static geBoolean ListboxAddEntities (CEntity &Ent, void *lParam)
 		sprintf( szTempString, "(E) %s", Ent.GetName() ) ;
 
 		Index = pData->BrushListbox->AddString (szTempString);
-		pData->ItemsInLB = GE_TRUE;
+//		pData->ItemsInLB = GE_TRUE;
 
 		if( Index >= 0 )	/* LB_ERR is -1, LB_ERRSPACE  is -2 */
 		{
@@ -163,6 +162,128 @@ static geBoolean ListboxAddEntities (CEntity &Ent, void *lParam)
 				pData->BrushListbox->SetSel( Index, TRUE );
 			}
 		}
+	}
+	return GE_TRUE;
+}
+
+static int GetIndexFromData(CListBox *BrushListbox, DWORD Data)
+{
+	int NumItemsInList;
+	int i;
+
+	NumItemsInList = BrushListbox->GetCount();
+
+	for (i=0; i<NumItemsInList; i++)
+	{
+		if (BrushListbox->GetItemData(i) == Data)
+			return i;
+	}
+	
+	return LB_ERR;
+}
+
+static geBoolean ListboxNotEmptyAddBrushes (Brush *pBrush, void *lParam)
+{
+	lbAddData *pData;
+	char	szTempString[32];
+	char	szTempString2[32];
+	int Index;
+	pData = (lbAddData *)lParam;
+
+	Index = GetIndexFromData( pData->BrushListbox, (DWORD)pBrush );
+
+	if (Brush_GetGroupId (pBrush) == pData->pDoc->mCurrentGroup)
+	{
+		sprintf( szTempString, "(B) %s", Brush_GetName( pBrush ) ) ;
+
+		if (Index != LB_ERR)
+		{
+			pData->BrushListbox->GetText(Index, szTempString2);
+
+			if (strcmp(szTempString, szTempString2) != 0)
+			{
+				pData->BrushListbox->DeleteString(Index);
+				Index = LB_ERR;
+			}
+		}
+		
+		if (Index == LB_ERR)
+		{
+			Index = pData->BrushListbox->AddString( szTempString ) ;
+	//		pData->ItemsInLB = GE_TRUE;
+		}
+
+		if( Index >= 0 ) /* LB_ERR is -1, LB_ERRSPACE  is -2 */
+		{
+			pData->BrushListbox->SetItemData( Index, (DWORD)pBrush ) ;
+			if ( pData->pDoc->BrushIsSelected( pBrush ) )
+			{
+				pData->BrushListbox->SetSel( Index, TRUE );
+			}
+			else
+			{
+				if (pData->BrushListbox->GetSel(Index))
+					pData->BrushListbox->SetSel( Index, FALSE );
+			}
+		}
+	}
+	else
+	{
+		if (Index != LB_ERR)
+			pData->BrushListbox->DeleteString(Index);
+	}
+	return GE_TRUE;
+}
+
+static geBoolean ListboxNotEmptyAddEntities (CEntity &Ent, void *lParam)
+{
+	lbAddData *pData = (lbAddData *)lParam;
+
+	int Index;
+	Index = GetIndexFromData( pData->BrushListbox, (DWORD)&Ent );
+
+	if (Ent.GetGroupId () == pData->pDoc->mCurrentGroup)
+	{
+		char	szTempString[32];
+		char	szTempString2[32];
+
+		sprintf( szTempString, "(E) %s", Ent.GetName() ) ;
+
+		if (Index != LB_ERR)
+		{
+			pData->BrushListbox->GetText(Index, szTempString2);
+
+			if (strcmp(szTempString, szTempString2) != 0)
+			{
+				pData->BrushListbox->DeleteString(Index);
+				Index = LB_ERR;
+			}
+		}
+
+		if (Index == LB_ERR)
+		{
+			Index = pData->BrushListbox->AddString (szTempString);
+			//pData->ItemsInLB = GE_TRUE;
+		}
+
+		if( Index >= 0 )	/* LB_ERR is -1, LB_ERRSPACE  is -2 */
+		{
+			pData->BrushListbox->SetItemData( Index, (DWORD)&Ent ) ;
+			if( Ent.IsSelected() )
+			{
+				pData->BrushListbox->SetSel( Index, TRUE );
+			}
+			else
+			{
+				if (pData->BrushListbox->GetSel(Index))
+					pData->BrushListbox->SetSel( Index, FALSE );
+			}
+		}
+	}
+	else
+	{
+		if (Index != LB_ERR)
+			pData->BrushListbox->DeleteString(Index);
 	}
 	return GE_TRUE;
 }
@@ -330,6 +451,7 @@ void CBrushGroupDialog::OnCreateNewGroup(void)
 		OnOK( );
 		UpdateTabDisplay( pDoc ) ;
 		pDoc->mpMainFrame->UpdateActiveDoc() ;
+		pDoc->SetModifiedFlag();
 	}
 
 }/* CBrushGroupDialog::OnCreateNewGroup */
@@ -339,6 +461,7 @@ void CBrushGroupDialog::OnAddToCurrent(void)
 	pDoc->AddSelToGroup() ;
 	OnOK();
 	UpdateTabDisplay(pDoc);
+	pDoc->SetModifiedFlag();
 }
 
 void CBrushGroupDialog::OnSelChangeGroupCombo() 
@@ -379,6 +502,7 @@ void CBrushGroupDialog::OnRemovefromcurrent(void)
 	pDoc->RemovesSelFromGroup() ;
 	OnOK();
 	UpdateTabDisplay(pDoc);
+	pDoc->SetModifiedFlag();
 }
 
 void CBrushGroupDialog::OnBrushlock() 
@@ -475,8 +599,10 @@ void CBrushGroupDialog::OnSelchangeBrushlist()
 void CBrushGroupDialog::UpdateGroupSelection( void ) 
 {
 #if 1
-	#pragma message ("Group selection stuff badly farkled")
+
 #else
+
+#pragma message ("Group selection stuff badly farkled")
 	int			c ;
 	int			i ;
 	Brush	*	b;
@@ -552,3 +678,16 @@ LRESULT CBrushGroupDialog::OnChangeColor( WPARAM wParam, LPARAM lParam )
 	wParam;
 	lParam;
 }/* CBrushGroupDialog::OnChangeColor */
+
+void CBrushGroupDialog::UpdateAfterAddBrush()
+{
+	lbAddData CallbackData;
+
+	// fill brush list box with names of current brushes and entities
+	CallbackData.BrushListbox = &m_BrushList;
+	CallbackData.pDoc = pDoc;
+	CallbackData.ItemsInLB = GE_FALSE;
+
+	Level_EnumBrushes (pDoc->pLevel, &CallbackData, ::ListboxNotEmptyAddBrushes);
+	Level_EnumEntities (pDoc->pLevel, &CallbackData, ::ListboxNotEmptyAddEntities);
+}

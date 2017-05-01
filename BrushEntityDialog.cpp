@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -69,6 +68,19 @@ void CBrushEntityDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CBrushEntityDialog)
+	DDX_Control(pDX, IDC_PLACE_SUN_LIGHT, m_SunLightButton);
+	DDX_Control(pDX, IDC_PLACE_SPOT_LIGHT, m_SpotLightButton);
+	DDX_Control(pDX, IDC_PLACE_LIGHT, m_OmniLightButton);
+	DDX_Control(pDX, IDC_CUBE_PRIMITIVE, m_CubeButton);
+	DDX_Control(pDX, IDC_CYLINDER_PRIMITIVE, m_CylinderButton);
+	DDX_Control(pDX, IDC_CONE_PRIMITIVE, m_ConeButton);
+	DDX_Control(pDX, IDC_SPHEROID_PRIMITIVE, m_SpheroidButton);
+	DDX_Control(pDX, IDC_STAIRCASE_PRIMITIVE, m_StaircaseButton);
+	DDX_Control(pDX, IDC_ARCH_PRIMITIVE, m_ArchButton);
+	DDX_Control(pDX, IDC_ENTITIES, m_EntityButton);
+	DDX_Control(pDX, IDC_ENTITY_COMBO, m_EntityCombo);
+	DDX_Control(pDX, IDC_PLACE_OBJECT_BUTTON, m_PlaceObjectButton);
+	DDX_Control(pDX, IDC_OBJECT_COMBO, m_ObjectListCombo);
 	//}}AFX_DATA_MAP
 }
 
@@ -84,6 +96,9 @@ BEGIN_MESSAGE_MAP(CBrushEntityDialog, CDialog)
 	ON_BN_CLICKED(IDC_PLACE_OBJECT_BUTTON, OnPlaceObject)
 	ON_BN_CLICKED(IDC_ENTITIES, OnEntities)
 	ON_CBN_SELCHANGE(IDC_ENTITY_COMBO, OnSelchangeEntitycombo)
+	ON_BN_CLICKED(IDC_PLACE_LIGHT, OnPlaceOmniLight)
+	ON_BN_CLICKED(IDC_PLACE_SPOT_LIGHT, OnPlaceSpotLight)
+	ON_BN_CLICKED(IDC_PLACE_SUN_LIGHT, OnPlaceSunLight)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -100,8 +115,8 @@ struct ButtonInfoType
 
 void CBrushEntityDialog::SetupDialog()
 {
-	DWORD ButtonStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_ICON;
-	RECT rect;
+//	DWORD ButtonStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_ICON;
+//	RECT rect;
 	HICON icon;
 
 	//	Create the buttons for brushes
@@ -112,28 +127,36 @@ void CBrushEntityDialog::SetupDialog()
 		{IDI_CYLINDER_PRIMITIVE,  &this->m_CylinderButton,	IDC_CYLINDER_PRIMITIVE},
 		{IDI_STAIRCASE_PRIMITIVE, &this->m_StaircaseButton, IDC_STAIRCASE_PRIMITIVE},
 		{IDI_ARCH_PRIMITIVE,	  &this->m_ArchButton,		IDC_ARCH_PRIMITIVE},
-		{IDI_CONE_PRIMITIVE,	  &this->m_ConeButton,		IDC_CONE_PRIMITIVE}
+		{IDI_CONE_PRIMITIVE,	  &this->m_ConeButton,		IDC_CONE_PRIMITIVE},
+		{IDI_OMNI_LIGHT_ENTITY, &this->m_OmniLightButton, IDC_PLACE_LIGHT},
+		{IDI_SPOT_LIGHT_ENTITY,	  &this->m_SpotLightButton,		IDC_PLACE_SPOT_LIGHT},
+		{IDI_SUN_LIGHT_ENTITY,	  &this->m_SunLightButton,		IDC_PLACE_SUN_LIGHT}
 	};
 	static const int NUM_BUTTONS = sizeof (BtnInfo) / sizeof (ButtonInfoType);
 
+/*
 	rect.top = DLG_BORDER_SIZE_TOP + BRUSH_BUTTON_BORDER_TOP;
 	rect.left = DLG_BORDER_SIZE_LEFT + BRUSH_BUTTON_BORDER_LEFT;
 	rect.bottom = rect.top + BUTTON_SIZE;
 	rect.right = rect.left + BUTTON_SIZE;
+*/
+
+	
 
 	for (int btn = 0; btn < NUM_BUTTONS; btn++)
 	{
 	    ButtonInfoType *pInfo;
 
 		pInfo = &BtnInfo[btn];
-		pInfo->Btn->Create (NULL, ButtonStyle, rect, this, pInfo->Cmd);
+		//pInfo->Btn->Create (NULL, ButtonStyle, rect, this, pInfo->Cmd);
 		icon = AfxGetApp ()->LoadIcon (pInfo->IconId);
 		pInfo->Btn->SetIcon (icon);
 
-		rect.left = rect.right + BRUSH_BUTTON_BORDER_LEFT;
-		rect.right = rect.left + BUTTON_SIZE;
+		//rect.left = rect.right + BRUSH_BUTTON_BORDER_LEFT;
+		//rect.right = rect.left + BUTTON_SIZE;
 	}
 
+/*
 	//	Entities button and combo box...
 	rect.top = rect.bottom + BUTTON_SIZE;
 	rect.bottom = rect.top + BUTTON_SIZE;
@@ -141,7 +164,9 @@ void CBrushEntityDialog::SetupDialog()
 	rect.right = rect.left + BUTTON_SIZE;
 
 	m_EntityButton.Create (NULL, ButtonStyle, rect, this, IDC_ENTITIES);
+*/
 
+/*
 	// combo box....
 	int ComboStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_SORT;
 	rect.left = rect.right + (2*BRUSH_BUTTON_BORDER_LEFT);
@@ -149,10 +174,12 @@ void CBrushEntityDialog::SetupDialog()
 	rect.top = rect.bottom - COMBO_BOX_EDIT_HEIGHT;
 	rect.bottom = rect.top + COMBO_BOX_HEIGHT;
 	m_EntityCombo.Create (ComboStyle, rect, this, IDC_ENTITY_COMBO);
+*/
 	
 	FillEntitiesCombo ();
 	DisplayEntityButtonBitmap ();
 
+/*
 	// Library object selection button and combo box...
 	rect.top = rect.top + BUTTON_SIZE + BRUSH_BUTTON_BORDER_TOP;
 	rect.bottom = rect.top + BUTTON_SIZE;
@@ -160,19 +187,24 @@ void CBrushEntityDialog::SetupDialog()
 	rect.right = rect.left + BUTTON_SIZE;
 
 	m_PlaceObjectButton.Create( NULL, ButtonStyle, rect, this, IDC_PLACE_OBJECT_BUTTON );
+*/
+
 	icon = AfxGetApp ()->LoadIcon (IDI_LIBOBJECT);
 	m_PlaceObjectButton.SetIcon( icon );
 
+/*
 	// object list combo box
 	rect.left = rect.right + (2*BRUSH_BUTTON_BORDER_LEFT);
 	rect.right = rect.left + COMBO_BOX_WIDTH;
 	rect.top = rect.bottom - COMBO_BOX_EDIT_HEIGHT;
 	rect.bottom = rect.top + COMBO_BOX_HEIGHT;
 	m_ObjectListCombo.Create( ComboStyle, rect, this, IDC_OBJECT_SELECT_COMBO );
+*/
 
 	// now add all of the object names to the combo list
 	SetupObjectListCombo();
 }
+
 void CBrushEntityDialog::FillEntitiesCombo ()
 {
 	m_EntityCombo.ResetContent ();
@@ -281,16 +313,19 @@ void CBrushEntityDialog::DisplayEntityButtonBitmap (void)
 
 BOOL CBrushEntityDialog::OnInitDialog()
 {
+
+	CDialog::OnInitDialog();
+
 	//	Position the new dialog on the tab...
 	RECT rect;
 	RECT rect2;
 
 	m_pParentCtrl->GetClientRect( &rect );
 	m_pParentCtrl->GetItemRect( 0, &rect2 );
-	rect.top = rect2.bottom + DLG_BORDER_SIZE_TOP;
-	rect.left = rect.left + DLG_BORDER_SIZE_LEFT;
-	rect.right = rect.left + DLG_WIDTH;
-	rect.bottom = rect.top + DLG_HEIGHT;
+	rect.top = rect2.bottom + FTC_BORDER_SIZE_TOP;
+	rect.left = rect.left + FTC_BORDER_SIZE_LEFT;
+	rect.right = rect.right - FTC_BORDER_SIZE_RIGHT ;
+	rect.bottom = rect.bottom - rect2.bottom - FTC_BORDER_SIZE_BOTTOM;
 
 	SetWindowPos( NULL, rect.left,
 			rect.top, rect.right, rect.bottom, SWP_NOZORDER );
@@ -303,8 +338,8 @@ void CBrushEntityDialog::Update( CFusionDoc* pDoc )
 	m_pFusionDoc = pDoc;
 
 	FillEntitiesCombo ();
-	if(pDoc->mModeTool==ID_TOOLS_TEMPLATE)
-	{
+//	if(pDoc->mModeTool==ID_TOOLS_TEMPLATE)
+//	{
 		//enable all
 		m_CubeButton.EnableWindow(TRUE);
 		m_SpheroidButton.EnableWindow(TRUE);
@@ -313,9 +348,14 @@ void CBrushEntityDialog::Update( CFusionDoc* pDoc )
 		m_ArchButton.EnableWindow(TRUE);
 		m_ConeButton.EnableWindow(TRUE);
 		m_EntityButton.EnableWindow (TRUE);
+
+		m_OmniLightButton.EnableWindow(TRUE);
+		m_SpotLightButton.EnableWindow(TRUE);
+		m_SunLightButton.EnableWindow(TRUE);
+
 		// enable the object placement button
 		EnablePlaceObjectButton( TRUE );
-	} 
+/*	} 
 	else 
 	{
 		//grey all
@@ -329,6 +369,7 @@ void CBrushEntityDialog::Update( CFusionDoc* pDoc )
 		// disable object placement button
 		m_PlaceObjectButton.EnableWindow( FALSE );
 	}
+*/
 }
 
 void CBrushEntityDialog::OnCubePrimitive() 
@@ -372,6 +413,10 @@ void CBrushEntityDialog::OnEntities()
 		CWnd *LastView;
 
 		m_EntityCombo.GetLBText (Cur, EntityName);
+
+		if (m_pFusionDoc->mModeTool != ID_TOOLS_TEMPLATE)
+			m_pFusionDoc->OnToolsTemplate();
+
 		/*
 		  We create a "light" entity as the template entity.
 		  In future, we'll have a "template" entity.
@@ -382,6 +427,8 @@ void CBrushEntityDialog::OnEntities()
 		{
 			LastView->SetFocus ();
 		}
+
+		m_EntityCombo.SetCurSel(Cur);
 	}
 }
 
@@ -452,6 +499,8 @@ void CBrushEntityDialog::OnPlaceObject()
 	CWnd *mainWnd = AfxGetMainWnd();
 	ASSERT( mainWnd );
 
+	if (m_pFusionDoc->mModeTool != ID_TOOLS_TEMPLATE)
+		m_pFusionDoc->OnToolsTemplate();
 
 	// tell the fusion doc to create a template entity for the user to specify the location
 	// of the objects with
@@ -500,6 +549,10 @@ void CBrushEntityDialog::SetupObjectListCombo()
 		// couldn't set it...probably nothing in there
 		EnablePlaceObjectButton (FALSE);
 	}
+	else
+	{
+		EnablePlaceObjectButton (TRUE);
+	}
 }
 
 // -------------------------------------------------------------------------
@@ -525,4 +578,35 @@ void CBrushEntityDialog::EnablePlaceObjectButton( BOOL flag )
 
 	// if there are no objects in the library don't allow setting the flag
 	m_PlaceObjectButton.EnableWindow (flag & (nItems > 0));
+}
+
+void CBrushEntityDialog::OnPlaceOmniLight() 
+{
+	int i = m_EntityCombo.FindStringExact(-1, "light");
+	if (i != LB_ERR)
+	{
+		m_EntityCombo.SetCurSel(i);
+		OnEntities();
+	}
+}
+
+void CBrushEntityDialog::OnPlaceSpotLight() 
+{
+	int i = m_EntityCombo.FindStringExact(-1, "spotlight");
+	if (i != LB_ERR)
+	{
+		m_EntityCombo.SetCurSel(i);
+		OnEntities();
+	}
+}
+
+
+void CBrushEntityDialog::OnPlaceSunLight() 
+{
+	int i = m_EntityCombo.FindStringExact(-1, "sun");
+	if (i != LB_ERR)
+	{
+		m_EntityCombo.SetCurSel(i);
+		OnEntities();
+	}
 }

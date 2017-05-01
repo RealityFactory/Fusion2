@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -96,11 +95,13 @@ BEGIN_MESSAGE_MAP(CSkyDialog, CDialog)
 	ON_CBN_SELCHANGE(IDC_CBSKYBOTTOM, OnSelchangeCbskybottom)
 	ON_CBN_SELCHANGE(IDC_CBSKYFRONT, OnSelchangeCbskyfront)
 	ON_CBN_SELCHANGE(IDC_CBSKYBACK, OnSelchangeCbskyback)
+	ON_EN_CHANGE(IDC_EDITSPEED, OnChangeEditspeed)
+	ON_EN_CHANGE(IDC_EDITSPEED, OnChangeEditscale)
 	ON_EN_KILLFOCUS(IDC_EDITSPEED, OnKillfocusEditspeed)
+	ON_EN_KILLFOCUS(IDC_EDITSCALE, OnKillfocusEditscale)
 	ON_BN_CLICKED(IDC_AXISX, OnAxisButton)
 	ON_BN_CLICKED(IDC_AXISY, OnAxisButton)
 	ON_BN_CLICKED(IDC_AXISZ, OnAxisButton)
-	ON_EN_KILLFOCUS(IDC_EDITSCALE, OnKillfocusEditscale)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -119,7 +120,7 @@ BOOL CSkyDialog::OnInitDialog()
 	rect.top = rect2.bottom + FTC_BORDER_SIZE_TOP;
 	rect.left = rect.left + FTC_BORDER_SIZE_LEFT;
 	rect.right = rect.right - FTC_BORDER_SIZE_RIGHT ;
-	rect.bottom = rect.bottom - FTC_BORDER_SIZE_BOTTOM ;
+	rect.bottom = rect.bottom - rect2.bottom - FTC_BORDER_SIZE_BOTTOM;
 
 	SetWindowPos( NULL, rect.left,
 			rect.top, rect.right, rect.bottom, SWP_NOZORDER );
@@ -209,6 +210,8 @@ void CSkyDialog::UpdateSkyFaceUI (CButton &FaceButton, CComboBox &FaceCombo, int
 	FaceCombo.EnableWindow (Checked);
 	if (m_pFusionDoc != NULL)
 	{
+		m_pFusionDoc->SetModifiedFlag();
+
 		SkyFaceTexture *SkyFaces;
 		geVec3d Axis;
 		geFloat Speed, Scale;
@@ -263,6 +266,8 @@ void CSkyDialog::UpdateFaceTextureName (CComboBox &FaceCombo, int FaceIndex)
 		FaceCombo.GetLBText (Index, FaceString);
 		if (m_pFusionDoc != NULL)
 		{
+			m_pFusionDoc->SetModifiedFlag();
+
 			char *pFaceName;
 			SkyFaceTexture *SkyFaces;
 			geVec3d Axis;
@@ -322,19 +327,34 @@ static const geVec3d AxisVectors[3] =
 void CSkyDialog::OnAxisButton() 
 {
 	UpdateData (TRUE);
+	m_pFusionDoc->SetModifiedFlag();
 	Level_SetSkyRotationAxis (m_pFusionDoc->pLevel, &AxisVectors[m_RotationAxis]);
 }
+
+void CSkyDialog::OnChangeEditspeed()
+{
+	UpdateData (TRUE);
+	m_pFusionDoc->SetModifiedFlag();
+	Level_SetSkyRotationSpeed (m_pFusionDoc->pLevel, m_RotationSpeed);
+}	
 
 void CSkyDialog::OnKillfocusEditspeed() 
 {
 	UpdateData (TRUE);
-
+	m_pFusionDoc->SetModifiedFlag();
 	Level_SetSkyRotationSpeed (m_pFusionDoc->pLevel, m_RotationSpeed);
+}
+
+void CSkyDialog::OnChangeEditscale()
+{
+	UpdateData (TRUE);
+	m_pFusionDoc->SetModifiedFlag();
+	Level_SetSkyTextureScale(m_pFusionDoc->pLevel, m_TextureScale);
 }
 
 void CSkyDialog::OnKillfocusEditscale() 
 {
 	UpdateData (TRUE);
-
-	Level_SetSkyTextureScale(m_pFusionDoc->pLevel, m_RotationSpeed);
+	m_pFusionDoc->SetModifiedFlag();
+	Level_SetSkyTextureScale(m_pFusionDoc->pLevel, m_TextureScale);
 }

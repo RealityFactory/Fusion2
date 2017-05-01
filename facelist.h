@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef FACELIST_H
@@ -56,7 +55,10 @@ void		FaceList_AddFace(FaceList *pList, Face *pFace);
 void		FaceList_Rotate(FaceList *pList, const geXForm3d *pXfm, const geVec3d *pCenter);
 void		FaceList_Move(FaceList *pList, const geVec3d *trans);
 void		FaceList_Transform(FaceList *pList, const geXForm3d *pXfm);
-void		FaceList_Scale(FaceList *pList, const geVec3d *ScaleVec);
+//MRB BEGIN
+//void		FaceList_Scale(FaceList *pList, const geVec3d *ScaleVec);
+geBoolean		FaceList_Scale(FaceList *pList, const geVec3d *ScaleVec);
+//MRB END
 void		FaceList_Shear(FaceList *pList, const geVec3d *ScaleVec, const geVec3d *ShearAxis);
 void		FaceList_ClipFaceToList(const FaceList *fl, Face **f);
 void		FaceList_CopyFaceInfo(const FaceList *src, FaceList *dst);

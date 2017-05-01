@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef UNITS_H
@@ -36,6 +35,8 @@
 
 #define PI2				((geFloat)(2.0f * (M_PI)))
 #define ONE_OVER_2PI	((geFloat)(1.0f/(PI2)))
+#define PI_OVER_2 ((geFloat)(M_PI / 2))
+#define PI3_OVER_2 ((geFloat)(3.0f * (M_PI) / 2))
 
 // some useful unit conversions
 #define UNITS_DEGREES_TO_RADIANS(d) Units_DegreesToRadians(d)

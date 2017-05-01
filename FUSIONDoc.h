@@ -4,6 +4,7 @@
 /*  Author:       Jim Mischel, Ken Baird, Jeff Lomax                                    */
 /*  Description:  Genesis world editor header file                                      */
 /*                                                                                      */
+/*  Copyright (c) 1996-1999, Eclipse Entertainment, L.L.C.                              */
 /*                                                                                      */
 /*  The contents of this file are subject to the Genesis3D Public License               */
 /*  Version 1.01 (the "License"); you may not use this file except in                   */
@@ -16,8 +17,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef FUSIONDOC_H
@@ -100,6 +100,8 @@ enum fdocAdjustEnum
 	ADJUST_MODE_FACE
 };
 
+class CFusionView;
+
 class CMainFrame;
 
 class CFusionDoc : public CDocument
@@ -140,9 +142,7 @@ public:
 
 	//dialogs / controls
 	CFrameWnd *mpActiveViewFrame;
-	CBrushAttributesDialog *mpBrushAttributes;
 	CMainFrame *mpMainFrame;
-	CFaceAttributesDialog *mpFaceAttributes;
 
 	geBoolean BrushIsVisible( const Brush * pBrush ) const ;
 	geBoolean EntityIsVisible( const CEntity *pEntity ) const ;
@@ -169,6 +169,8 @@ public:
 
 	void CenterThingInActiveView( Brush* pBrush, CEntity* pEntity );
 	void SelectAllBrushes();
+	void SelectAllEntities();
+	void SelectAllFacesInBrushes();
 	void ResetAllSelections();
 	void SelectGroupBrushes (BOOL Select, int WhichGroup);
 	void SelectModelBrushes (BOOL Select, int ModelId);
@@ -209,7 +211,7 @@ public:
 	void ConfigureCurrentTool();
 	void UpdateCameraEntity( const ViewVars *v ) ;
 	void SetRenderedViewCamera( const geVec3d * pVec, const geVec3d * pPRY ) ;
-	void GetCursorInfo(char *info, int MaxSize);
+	geBoolean GetCursorInfo(char *info, int MaxSize);
 	void NullFaceAttributes();
 	void FaceAttributesDialog ();
 	void UpdateAllViews(int Mode, CView* pSender, BOOL Override = FALSE );
@@ -288,6 +290,30 @@ public:
 	const Prefs *GetPrefs (void);
 	void	RebuildTrees(void);
 	void	InvalidateDrawTreeOriginalFaces(void);
+
+	void ExportWorldFile(const char *FileName);
+	void ExportMapFile(const char *FileName);
+
+	const char* ReturnThingUnderPoint(CPoint point, ViewVars *v);
+	const char* GetObjectName3D(CPoint point, ViewVars *v);
+
+	CEntity *FindCameraEntity (void);
+
+	CEntity* GetSelectedEntity();
+
+	void OnUpdateViewType(CCmdUI* pCmdUI);
+
+	CFusionView* GetCameraView();
+
+	void UpdateAfterWadChange();
+
+	CString LastTemplateTypeName;
+
+	void MoveSelectedBrushList (SelBrushList *pList, geVec3d const *v);
+
+	void ScaleSelectedBrushes(geVec3d *ScaleVector);
+
+
 public:
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -302,6 +328,8 @@ public:
 
 // Implementation
 public:
+	void LinkViewports();
+	void OnToolsTemplate();
 	virtual ~CFusionDoc();
 
 protected:
@@ -334,7 +362,6 @@ protected:
 	afx_msg void OnUpdateConstrainhollows(CCmdUI* pCmdUI);
 	afx_msg void OnGeneralselect();
 	afx_msg void OnUpdateGeneralselect(CCmdUI* pCmdUI);
-	afx_msg void OnThingAttributes();
 	afx_msg void OnBrushSubtractfromworld();
 	afx_msg void OnEditCopy();
 	afx_msg void OnEditPaste();
@@ -344,7 +371,6 @@ protected:
 	afx_msg void OnUpdateEditCut(CCmdUI* pCmdUI);
 	afx_msg void OnCompile();
 	afx_msg void OnUpdateBrushSubtractfromworld(CCmdUI* pCmdUI);
-	afx_msg void OnUpdateThingAttributes(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateToolsBrushShowassociatedentity(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateEntitiesEditor(CCmdUI* pCmdUI);
 	afx_msg void OnNewLibObject();
@@ -366,10 +392,6 @@ protected:
 	afx_msg void OnBrushPrimitivesArch();
 	afx_msg void OnBrushPrimitivesCone();
 	afx_msg void OnFileImport();
-	afx_msg void OnToolsBrushAttributes();
-	afx_msg void OnUpdateToolsBrushAttributes(CCmdUI* pCmdUI);
-	afx_msg void OnToolsFaceAttributes();
-	afx_msg void OnUpdateToolsFaceAttributes(CCmdUI* pCmdUI);
 	afx_msg void OnEntityVisibility();
 	afx_msg void OnRebuildBsp();
 	afx_msg void OnUpdateRebuildBsp(CCmdUI* pCmdUI);
@@ -378,6 +400,37 @@ protected:
 	afx_msg void OnToolsToggleadjustmode();
 	afx_msg void OnUpdateToolsToggleadjustmode(CCmdUI* pCmdUI);
 	afx_msg void OnLeveloptions();
+	afx_msg void OnCameraForward();
+	afx_msg void OnCameraBack();
+	afx_msg void OnCameraLeft();
+	afx_msg void OnCameraRight();
+	afx_msg void OnCameraLookUp();
+	afx_msg void OnCameraLookDown();
+	afx_msg void OnCameraUp();
+	afx_msg void OnCameraDown();
+	afx_msg void OnFileExport();
+	afx_msg void OnUpdateFileExport(CCmdUI* pCmdUI);
+	afx_msg void OnViewTypeWireFrame();
+	afx_msg void OnViewTypeTexture();
+	afx_msg void OnUpdateViewTypeWireFrame(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewTypeTexture(CCmdUI* pCmdUI);
+	afx_msg void OnCameraCenteronselection();
+	afx_msg void OnUpdateCameraCenteronselection(CCmdUI* pCmdUI);
+	afx_msg void OnPlaceOmniLight();
+	afx_msg void OnPlaceSpotLight();
+	afx_msg void OnCameraGoto();
+	afx_msg void OnModifyMove();
+	afx_msg void OnUpdateModifyMove(CCmdUI* pCmdUI);
+	afx_msg void OnModifyScale();
+	afx_msg void OnUpdateModifyScale(CCmdUI* pCmdUI);
+	afx_msg void OnModifyMovetocenterofview();
+	afx_msg void OnUpdateModifyMovetocenterofview(CCmdUI* pCmdUI);
+	afx_msg void OnToolsBrushMakenewest();
+	afx_msg void OnUpdateToolsBrushMakenewest(CCmdUI* pCmdUI);
+	afx_msg void OnLinkviewports();
+	afx_msg void OnUpdateLinkviewports(CCmdUI* pCmdUI);
+	afx_msg void OnTemplateSunlight();
+	afx_msg void OnUpdateTemplateSunlight(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:
@@ -390,6 +443,8 @@ private:
 	char		LastPath[MAX_PATH];  //no cstrings for dialog action
 
 	geBoolean	bShowClipBrushes, bShowDetailBrushes, bShowHintBrushes;
+
+//	CEntity *pCameraEntity;
 
 	int DoCompileDialog (void);
 	geBoolean WriteLevelToMap (const char *Filename);
@@ -408,10 +463,8 @@ private:
 	int mCurrentBrushId;
 
 	void RotateSelectedBrushList (SelBrushList *pList, geVec3d const *v);
-	void MoveSelectedBrushList (SelBrushList *pList, geVec3d const *v);
 	void GetRotationPoint (geVec3d *pVec);
 	void AddCameraEntityToLevel (void);
-	CEntity *FindCameraEntity (void);
 
 	geBoolean FindClosestEntity (POINT const *ptFrom, ViewVars *v, CEntity **ppMinEntity, geFloat *pMinEntityDist);
 	geBoolean FindClosestBrush (POINT const *ptFrom, ViewVars *v, Brush **ppFoundBrush, geFloat *pMinEdgeDist);
@@ -420,8 +473,8 @@ private:
 	void SetupDefaultFilename (void);
 	const char *FindTextureLibrary (char const *WadName);
 	Face *FindSelectedFace (void);
-	void DeleteBrushAttributes (void);
-	void DeleteFaceAttributes (void);
+//	void DeleteBrushAttributes (void);
+//	void DeleteFaceAttributes (void);
 };
 
 

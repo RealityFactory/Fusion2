@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -118,7 +117,7 @@ struct TabItem
 
 static const TabItem Tabs[] = 
 {
-	{BRUSH_ENTITY_TAB,	"Template"},
+	{BRUSH_ENTITY_TAB,	"Templates"},
 	{TEXTURE_TAB,		"Textures"},
 	{GROUP_TAB,			"Groups"},
 	{CONSOLE_TAB,		"Console"},
@@ -301,7 +300,7 @@ void CFusionTabControls::DisableAllTabDialogs()
 	if(ConTab)
 		ConTab->ShowWindow(SW_HIDE);
 	if(GrpTab)
-		ConTab->ShowWindow(SW_HIDE);
+		GrpTab->ShowWindow(SW_HIDE);
 	if(ModelTab)
 		ModelTab->ShowWindow(SW_HIDE);
 	if( m_pTextureDialog )

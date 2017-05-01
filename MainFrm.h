@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -24,6 +23,11 @@
 #define MAINFRM_H
 
 #include "brush.h"
+
+#include "FaceAttributesDialog.h"
+#include "BrushAttributesDialog.h"
+
+#include "NameWindow.h"
 
 class CFusionTabControls;
 class CModelDialog;
@@ -46,14 +50,16 @@ class CMainFrame : public CMDIFrameWnd
 	char	szGridString[MAX_GRID_STRING] ;
 	char	szSnapString[MAX_SNAP_STRING] ;
 
+//	CNameWindow m_NameWindow;
+
 public:
 	BOOL	IsDestroyingApp;
 	int		IsStartingApp;
 	const char *GetCurrentTexture();
 
 	//	Clipboard registration format numbers...
-	UINT m_CB_FUSION_BRUSH_FORMAT;
-	UINT m_CB_FUSION_ENTITY_FORMAT;
+//	UINT m_CB_FUSION_BRUSH_FORMAT;
+//	UINT m_CB_FUSION_ENTITY_FORMAT;
 
 	CWnd				*GetTabControlWindow();
 	CFusionTabControls	*m_wndTabControls;
@@ -80,6 +86,9 @@ public:
 public:
 	CStatusBar  m_wndStatusBar;  // s/b protected, but I'm hacking
 
+	CBrushAttributesDialog *mpBrushAttributes;
+	CFaceAttributesDialog *mpFaceAttributes;
+
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CMainFrame)
@@ -89,6 +98,7 @@ public:
 
 // Implementation
 public:
+	void SetCursorInfo(CString &CursorInfo);
 	virtual ~CMainFrame();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -127,6 +137,10 @@ protected:
 	afx_msg void OnViewLeakFinder();
 	afx_msg void OnUpdateViewLeakFinder(CCmdUI* pCmdUI);
 	afx_msg void OnSelchangeGroupList ();
+	afx_msg void OnToolsFaceAttributes();
+	afx_msg void OnUpdateToolsFaceAttributes(CCmdUI* pCmdUI);
+	afx_msg void OnToolsBrushAttributes();
+	afx_msg void OnUpdateToolsBrushAttributes(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 	virtual BOOL OnNotify( WPARAM wParam, LPARAM lParam, LRESULT* pResult );

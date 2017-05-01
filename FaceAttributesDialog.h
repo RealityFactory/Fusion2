@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef FACEATTRIBUTESDIALOG_H
@@ -25,12 +24,15 @@
 #include "brush.h"
 #include "resource.h"
 
+class CMainFrame;
+
 class CFusionDoc;
 
 class CFaceAttributesDialog : public CDialog
 {
 public:
-	CFaceAttributesDialog(CFusionDoc* pFusionDoc, CWnd* pParent = NULL);
+//	CFaceAttributesDialog(CFusionDoc* pFusionDoc, CWnd* pParent = NULL);
+	CFaceAttributesDialog(CMainFrame* pMainFrame, CWnd* pParent = NULL);
 	void SetupDialog();
 	void UpdatePolygonFocus ();
 	void AssignCurrentToViews();
@@ -78,6 +80,7 @@ public:
 	float	m_Reflectivity;
 	float	m_Translucency;
 	BOOL	m_Transparent;
+	CString m_NumFaces;
 	//}}AFX_DATA
 
 
@@ -86,7 +89,7 @@ public:
 	//{{AFX_VIRTUAL(CFaceAttributesDialog)
 	public:
 	virtual	BOOL OnInitDialog();
-	virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
+//	virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual void PostNcDestroy();
@@ -98,8 +101,6 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(CFaceAttributesDialog)
 	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-	virtual void OnCancel();
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnChangeXOffset();
 	afx_msg void OnKillfocusXOffset();
 	afx_msg void OnChangeYOffset();
@@ -128,16 +129,19 @@ protected:
 	afx_msg void OnKillfocusReflectivity();
 	afx_msg void OnKillfocusFacetranslucency();
 	afx_msg void OnTransparent();
+	afx_msg void OnFacelight();
+	afx_msg void OnClose();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 	virtual void OnOK ();
 private:
-	CFusionDoc		*m_pDoc;
+//	CFusionDoc		*m_pDoc;
+	CMainFrame		*m_pMainFrame;
 
-	void	OnFacelight( void );
 	float	DoIncrement (float v, float incr, float vMin, float vMax, int nSBCode);
 	float	GetIncrement (CComboBox &combo);
 	void	SetShadingChecks ();
+	void	EnabledChange(BOOL Enabled);
 };
 
 #endif

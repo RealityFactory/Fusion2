@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -81,6 +80,8 @@ BEGIN_MESSAGE_MAP(CTextureDialog, CDialog)
 	ON_BN_CLICKED(IDC_APPLYTEXTURE, OnApply)
 	ON_CBN_SELCHANGE(IDC_TEXTURELIST, OnSelchangetexturelist)
 	ON_WM_PAINT()
+	ON_BN_CLICKED(IDC_ADDTEXTURE, OnAddtexture)
+	ON_BN_CLICKED(IDC_REMOVETEXTURE, OnRemovetexture)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -126,11 +127,12 @@ BOOL CTextureDialog::OnInitDialog()
 	rect.top = rect2.bottom + FTC_BORDER_SIZE_TOP;
 	rect.left = rect.left + FTC_BORDER_SIZE_LEFT;
 	rect.right = rect.right - FTC_BORDER_SIZE_RIGHT ;
-	rect.bottom = rect.bottom - FTC_BORDER_SIZE_BOTTOM ;
+	rect.bottom = rect.bottom - rect2.bottom - FTC_BORDER_SIZE_BOTTOM;
 
 	SetWindowPos( NULL, rect.left,
 			rect.top, rect.right, rect.bottom, SWP_NOZORDER );
 
+	/*
 	rect.left = LB_BORDER_SIZE_LEFT;
 	rect.top = LB_BORDER_SIZE_TOP;
 	rect.right = rect.left + LB_WIDTH;
@@ -143,10 +145,12 @@ BOOL CTextureDialog::OnInitDialog()
 			LB_WIDTH, LB_HEIGHT, // size
 			(SWP_NOACTIVATE | SWP_NOZORDER)
 		);
+	*/
 
 //	pWad = Level_GetWadFile (m_pDoc->pLevel);
 	FillTheListbox ();
 
+	/*
 	// move the button...
 	int left = rect.right + 10;
 	int top = rect.top;
@@ -172,28 +176,39 @@ BOOL CTextureDialog::OnInitDialog()
 			BM_HEIGHT, BM_WIDTH,
 			(SWP_NOACTIVATE | SWP_NOZORDER)
 		);
+	*/
 	
 	//	Set the current selection to the first...
 	int index=0;
 
 	CString FirstName;
 
-	m_TextureList.SetCurSel(0);
-	index = m_TextureList.GetCurSel ();
-	if (index == LB_ERR)
+	if (m_TextureList.GetCount() > 0)
 	{
-		m_CurrentTexture = "Invalid";
-		return TRUE;
+		SetCurSel(0);
+		index = m_TextureList.GetCurSel ();
+		if (index == LB_ERR)
+		{
+			m_CurrentTexture = "Invalid";
+		}
+		else
+		{
+			index = 0;
+			m_TextureList.GetText(0, FirstName);
+			while(!isalpha(FirstName[0]))
+				m_TextureList.GetText(++index, FirstName);
+
+			m_TextureList.GetText( m_TextureList.GetCurSel(), FirstName );
+			m_CurrentTexture = FirstName;
+		}
+
+		// Update bitmap image and size
 	}
-	index = 0;
-	m_TextureList.GetText(0, FirstName);
-	while(!isalpha(FirstName[0]))
-		m_TextureList.GetText(++index, FirstName);
+	else
+	{
+		m_CurrentTexture = "None";
+	}
 
-	m_TextureList.GetText( m_TextureList.GetCurSel(), FirstName );
-	m_CurrentTexture = FirstName;
-
-	// Update bitmap image and size
 	UpdateBitmap();
 	UpdateSize();
 
@@ -270,11 +285,16 @@ void CTextureDialog::OnApply()
 	int		i;
 	
 	SelectedItem	=m_TextureList.GetCurSel();
+	
+	SetCurSel( SelectedItem );
+	
 	SelId = m_TextureList.GetItemData (SelectedItem);
 
 	if(m_pDoc->mModeTool==ID_TOOLS_TEMPLATE)
 		return;
 	
+	m_pDoc->SetModifiedFlag();	
+
 	switch (m_pDoc->mAdjustMode)
 	{
 		case ADJUST_MODE_FACE :
@@ -355,7 +375,7 @@ void CTextureDialog::SelectTexture(int SelNum)
 		int SelId = m_TextureList.GetItemData (i);
 		if (SelNum == SelId)
 		{
-			m_TextureList.SetCurSel(i);
+			SetCurSel(i);
 			OnSelchangetexturelist();
 			return;
 		}
@@ -367,15 +387,18 @@ void CTextureDialog::UpdateBitmap()
 	//	Draw the texture image bitmap...
 	WadFileEntry* BitmapPtr = m_pDoc->GetDibBitmap( m_CurrentTexture );
 
-	if( BitmapPtr == NULL )
-		return;
-
 	if( m_TextureImage.GetSafeHwnd() == NULL )
 		return;
 
 	CDC* pDC = m_TextureImage.GetDC();
 
 	ClearTextureImage( pDC );	
+
+	if( BitmapPtr == NULL )
+	{
+		m_TextureImage.ReleaseDC( pDC );
+		return;
+	}
 
 	// Create a BITMAPINFOHEADER structure for blitting...
 	BITMAPINFOHEADER bmih;
@@ -449,7 +472,10 @@ void CTextureDialog::UpdateSize()
 	WadFileEntry* BitmapPtr = m_pDoc->GetDibBitmap( m_CurrentTexture );
 
 	if( BitmapPtr == NULL )
+	{
+		m_SizeText.SetWindowText("");
 		return;
+	}
 
 	width = BitmapPtr->Width;
 	height = BitmapPtr->Height;
@@ -502,6 +528,12 @@ BOOL CTextureDialog::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERI
 	case IDC_APPLYTEXTURE:
 		return CDialog::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
 
+	case IDC_ADDTEXTURE:
+		return CDialog::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
+
+	case IDC_REMOVETEXTURE:
+		return CDialog::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
+
 	default:
 		//	Let's update stuff first...
 		//UpdateBitmap();
@@ -548,18 +580,27 @@ void CTextureDialog::Update( CFusionDoc* pDoc )
 		}
 */
 		//	Set the current selection to whatever is pointed to in the document...
-		m_TextureList.SetCurSel( m_pDoc->mCurTextureSelection );
-		CurSel = m_TextureList.GetCurSel ();
-		if (CurSel != LB_ERR)
+		if (m_TextureList.GetCount() == 0)
 		{
-			m_TextureList.GetText( CurSel, FirstName );
-			m_CurrentTexture = FirstName;
-
-			//	update the bitmap image...
+			m_CurrentTexture = "None";
 			UpdateBitmap();
-
-			//	Finally, update the size...
 			UpdateSize();
+		}
+		else
+		{
+			SetCurSel( m_pDoc->mCurTextureSelection );
+			CurSel = m_TextureList.GetCurSel ();
+			if (CurSel != LB_ERR)
+			{
+				m_TextureList.GetText( CurSel, FirstName );
+				m_CurrentTexture = FirstName;
+
+				//	update the bitmap image...
+				UpdateBitmap();
+
+				//	Finally, update the size...
+				UpdateSize();
+			}
 		}
 	}
 	else
@@ -583,4 +624,135 @@ void CTextureDialog::OnPaint()
 const char *CTextureDialog::GetCurrentTexture()
 {
 	return	(LPCSTR)m_CurrentTexture;
+}
+
+
+void CTextureDialog::OnAddtexture()
+{
+	if (!m_pDoc)
+		return;
+
+	static char BASED_CODE szFilter[] = "Bitmaps (*.bmp)|*.bmp|All Files|*.*||";
+
+	CFileDialog dlg( TRUE, "*.bmp", NULL, 
+					OFN_HIDEREADONLY| OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT | OFN_EXPLORER
+					, szFilter, 
+					this );
+
+	CTexturePacker WadTextures;
+	const char *WadFilePath;
+	geBoolean Modified = FALSE;
+	CString Msg;
+
+	if (dlg.DoModal() == IDOK)
+	{
+		WadFilePath = Level_GetWadPath(m_pDoc->pLevel);
+		
+		if (!WadTextures.Load(WadFilePath))
+		{
+			AfxFormatString1 (Msg, IDS_CANTLOADTXL, WadFilePath);
+			AfxMessageBox (Msg, MB_OK | MB_ICONERROR);
+
+			return;
+		}
+
+		CString strFile;
+		POSITION pos = dlg.GetStartPosition();
+		while (pos)
+		{
+			strFile = dlg.GetNextPathName( pos );
+			Modified = Modified + (WadTextures.AddBitmap((char*)((LPCTSTR)strFile)));
+		}
+	}
+	else
+		return;
+
+	if (Modified)
+	{
+		if (WadTextures.Save(WadFilePath))
+		{
+			m_pDoc->UpdateAfterWadChange();
+		}
+		else
+		{
+			AfxFormatString1 (Msg, IDS_CANTSAVETXL, WadFilePath);
+			AfxMessageBox (Msg, MB_OK | MB_ICONERROR);
+		}
+	}
+}
+
+void CTextureDialog::OnRemovetexture() 
+{
+	int SelCount = m_TextureList.GetSelCount();
+	if (!SelCount)
+		return;
+
+	if (SelCount == 1)
+	{
+		if (AfxMessageBox (IDS_REMOVETEXTURE, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) != IDYES)
+			return;
+	}
+	else
+	{
+		if (AfxMessageBox (IDS_REMOVETEXTURES, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) != IDYES)
+			return;
+	}
+
+	CString Msg;
+
+	const char *WadFilePath;
+	WadFilePath = Level_GetWadPath(m_pDoc->pLevel);
+	
+	CTexturePacker WadTextures;
+	
+	if (!WadTextures.Load(WadFilePath))
+	{
+		AfxFormatString1 (Msg, IDS_CANTLOADTXL, WadFilePath);
+		AfxMessageBox (Msg, MB_OK | MB_ICONERROR);
+
+		return;
+	}
+
+	geBoolean Modified = GE_FALSE;
+	CString TextureToRemove;
+
+	int lc = m_TextureList.GetCount();
+	for (int i=0; i<lc; i++)
+	{
+		if (m_TextureList.GetSel(i))
+		{
+			m_TextureList.GetText(i, TextureToRemove);
+			if (WadTextures.RemoveTexture(TextureToRemove))
+			{
+				Modified = GE_TRUE;
+			}
+			else
+			{
+				AfxFormatString1 (Msg, IDS_CANTREMOVETEXTURE, TextureToRemove);
+				AfxMessageBox (Msg, MB_OK | MB_ICONERROR);
+			}
+
+		}
+	}
+
+	if (Modified)
+	{
+		if (WadTextures.Save(WadFilePath))
+		{
+			m_pDoc->UpdateAfterWadChange();
+		}
+		else
+		{
+			AfxFormatString1 (Msg, IDS_CANTSAVETXL, WadFilePath);
+			AfxMessageBox (Msg, MB_OK | MB_ICONERROR);
+		}
+	}
+}
+
+
+void CTextureDialog::SetCurSel(int SelectionIndex)
+{
+	int lc = m_TextureList.GetCount();
+	for (int i=0; i<lc; i++)
+		m_TextureList.SetSel(i, (i==SelectionIndex));
 }

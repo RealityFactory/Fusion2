@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef BRUSHATTRIBUTESDIALOG_H
@@ -25,31 +24,40 @@
 #include "brush.h"
 #include "resource.h"
 
+class CMainFrame;
+
 class CFusionDoc;
+
+enum BrushTypeOption
+{
+	IDRB_SOLID,
+	IDRB_EMPTY,
+	IDRB_CLIP,
+	IDRB_WINDOW,
+	IDRB_HINT,
+	IDRB_SUBTRACT
+};
 
 class CBrushAttributesDialog : public CDialog
 {
 public:
 	void UpdateBrushFocus ();
-	CBrushAttributesDialog(CFusionDoc *pDoc, CWnd* pParent = NULL);   // standard constructor
-
+//	CBrushAttributesDialog(CFusionDoc *pDoc, CWnd* pParent = NULL);   // standard constructor
+	CBrushAttributesDialog(CMainFrame* pMainFrame, CWnd* pParent = NULL);
 
 // Dialog Data
 	//{{AFX_DATA(CBrushAttributesDialog)
 	enum { IDD = IDD_BRUSHDIALOG };
 	CCheckListBox	m_ContentsList;
-	CEdit	m_EditHullsize;
-	CStatic	m_LblHullsize;
 	CString	m_Name;
-	float	m_HullSize;
 	BOOL	m_Wavy;
 	BOOL	m_Area;
-	BOOL	m_Translucent;
+//	BOOL	m_Translucent;
 	int		m_BrushType;
 	BOOL	m_Detail;
-	BOOL	m_Hollow;
 	BOOL	m_Flocking;
 	BOOL	m_Sheet;
+	CString m_NumBrushes;
 	//}}AFX_DATA
 
 
@@ -68,29 +76,32 @@ protected:
 
 	// Generated message map functions
 	//{{AFX_MSG(CBrushAttributesDialog)
-	afx_msg void OnApply();
-	virtual void OnCancel();
 	afx_msg void OnBrushsolid();
 	afx_msg void OnBrushclip();
 	afx_msg void OnBrushwindow();
 	afx_msg void OnBrushhint();
 	afx_msg void OnBrushsubtract();
-	afx_msg void OnBrushhollow();
 	afx_msg void OnBrushempty();
-	afx_msg void OnBrushtranslucent();
 	afx_msg void OnBrushflocking();
 	afx_msg void OnBrushsheet();
+	afx_msg void OnClose();
+	afx_msg void OnBrushdetail();
+	afx_msg void OnBrusharea();
+	afx_msg void OnBrushwavy();
+	afx_msg void OnKillfocusName();
+	afx_msg void OnSelchangeContentslist();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:
 	int BrushColor;
-	CFusionDoc	*m_pDoc;
+//	CFusionDoc	*m_pDoc;
+	CMainFrame *m_pMainFrame;
 
-	void OnRadioButton( void ) ;
-	void EnableTranslucency (void);
-	void EnableHullsize (void);
+	void OnRadioButton( BrushTypeOption NewValue ) ;
+//	void EnableTranslucency (void);
+//	void EnableHullsize (void);
 	void SetDialogFields (void);
-	int	 BrushFlagsToIndex( void ) ;
+	int	 BrushFlagsToIndex(  Brush *pBrush ) ;
 	void BrushOptionsFromType( void ) ;
 	void SetFlagsToBrushType( void ) ;
 	void AssignCurrentToValues();

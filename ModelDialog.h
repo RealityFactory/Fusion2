@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #if !defined(AFX_MODELDIALOG_H__37D3AF00_BD78_11D1_B69D_004005424FA9__INCLUDED_)
@@ -52,17 +51,9 @@ public:
 	CButton	m_SetModelOrigin;
 	CButton	m_CloneModel;
 	CButton	m_cbLockOrigin;
-	CButton	m_Stop;
-	CButton	m_rrStart;
-	CButton	m_rrFrame;
-	CButton	m_Play;
-	CButton	m_ffFrame;
-	CButton	m_ffEnd;
 	CButton	m_Select;
 	CButton	m_RemoveBrushes;
-	CButton	m_EditModel;
 	CButton	m_EditKey;
-	CButton	m_EditEvent;
 	CButton	m_Deselect;
 	CButton	m_DeleteModel;
 	CButton	m_DeleteKey;

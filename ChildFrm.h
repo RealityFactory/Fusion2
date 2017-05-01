@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef CHILDFRM_H
@@ -27,6 +26,32 @@
 // CFixedSplitterWnd fixes WM_MOUSEWHEEL crash in MFC 0x0421
 class CFixedSplitterWnd : public CSplitterWnd
 {
+// Construction
+public:
+	CFixedSplitterWnd();
+	void SetHighlight();
+// Attributes
+public:
+	HWND m_hwndAct;
+// Operations
+public:
+
+// Overrides
+	// ClassWizard generated virtual function overrides
+	//{{AFX_VIRTUAL(CFixedSplitterWnd)
+	protected:
+	virtual BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
+	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
+	//}}AFX_VIRTUAL
+
+// Implementation
+public:
+	virtual ~CFixedSplitterWnd();
+	void RefreshSplitBars();
+	virtual void OnDrawSplitter(CDC* pDC, ESplitType nType, const CRect& rectArg);
+	// Generated message map functions
+protected:
+
 	//{{AFX_MSG(CFixedSplitterWnd)
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	//}}AFX_MSG
@@ -54,14 +79,14 @@ public:
 	virtual ~CChildFrame();
 	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
 
-// Generated message map functions
+	CFixedSplitterWnd m_wndSplitter;
+
+	// Generated message map functions
 protected:
 	//{{AFX_MSG(CChildFrame)
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	//}}AFX_MSG
-
-	CFixedSplitterWnd m_wndSplitter;
 
 	afx_msg LRESULT OnSetText(WPARAM wParam, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()

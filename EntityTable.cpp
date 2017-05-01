@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -159,6 +158,17 @@ static const char FixedEntityDefinitions[] =
 		"#pragma GE_Origin(origin)\n"
 		"#pragma GE_DefaultValue(light, \"150\")\n"
 	"}	light;\n"
+	"// Sun\n"												// Sun entity
+	"#pragma GE_Type(\"BMP_SUN\")\n"
+	"typedef struct tag_sun\n"
+		"{\n"
+		"#pragma GE_Published\n"
+		"int		 light;\n"
+		"GE_RGBA color;\n"
+		"geVec3d origin;\n"
+		"#pragma GE_Origin(origin)\n"
+		"#pragma GE_DefaultValue(light, \"300\")\n"
+	"}	sun;\n"
 	"// SpotLight\n"									// SpotLight entity
 	"#pragma GE_Type(\"BMP_SPOTLIGHT\")\n"
 	"typedef struct	tag_spotlight\n"
@@ -207,7 +217,7 @@ static void EntityTable_ParseErrorFunction
 	  char const *Buff
 	)
 {
-	MessageBox (NULL, Buff, "Fusion", MB_OK);
+	MessageBox (NULL, Buff, "Genesis3D World Editor", MB_OK);
 }
 #pragma warning (default:4100)
 
@@ -931,6 +941,7 @@ static TypeBmpEntry *EntityTable_GetBitmap
 		{
 			if ((strcmp (EntityClassname, "light") == 0) ||
 				(strcmp (EntityClassname, "spotlight") == 0) ||
+				(strcmp (EntityClassname, "sun") == 0) ||
 				(strcmp (EntityClassname, "ModelOrigin") == 0) ||
 				(strcmp (EntityClassname, "Camera") == 0))
 			{

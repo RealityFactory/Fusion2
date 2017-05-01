@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -29,6 +28,15 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+CFixedSplitterWnd::CFixedSplitterWnd()
+{
+	m_hwndAct = NULL;
+}
+
+CFixedSplitterWnd::~CFixedSplitterWnd()
+{
+}
 
 // WM_MOUSEWHEEL isn't defined in earlier versions of MFC, which
 // causes us a problem when compiling with VC 4.  This should take
@@ -60,6 +68,58 @@ BOOL CFixedSplitterWnd::OnMouseWheel (UINT nFlags, short zDelta, CPoint pt)
 	return FALSE;
 }
 #pragma warning (default: 4100)
+
+void CFixedSplitterWnd::RefreshSplitBars()
+{
+	CRect rectInside;
+	GetInsideRect(rectInside);
+	DrawAllSplitBars(NULL, rectInside.right, rectInside.bottom);
+}
+
+void CFixedSplitterWnd::OnDrawSplitter(CDC* pDC, ESplitType nType, const CRect& rectArg)
+{
+	CSplitterWnd::OnDrawSplitter(pDC, nType, rectArg);
+	CWnd *pAct = GetActivePane();
+	if(pDC && pAct && !pAct->IsKindOf( RUNTIME_CLASS( CSplitterWnd)) && nType == splitBorder)
+	{	
+		CRect rect;
+		pAct->GetWindowRect(&rect);
+		pDC->GetWindow()->ScreenToClient(&rect);
+		if(rectArg.PtInRect(rect.CenterPoint()))
+		{
+			ASSERT_VALID(pDC);
+			rect = rectArg;
+			pDC->Draw3dRect(rect, GetSysColor( COLOR_ACTIVECAPTION),GetSysColor(COLOR_ACTIVECAPTION));
+			rect.InflateRect(-GetSystemMetrics(SM_CXBORDER), -GetSystemMetrics(SM_CYBORDER));
+			pDC->Draw3dRect(rect, GetSysColor( COLOR_ACTIVECAPTION),GetSysColor(COLOR_ACTIVECAPTION));
+		}
+		
+	}
+	
+}
+
+BOOL CFixedSplitterWnd::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult) 
+{
+	SetHighlight();
+	return CSplitterWnd::OnNotify(wParam, lParam, pResult);
+}
+
+void CFixedSplitterWnd::SetHighlight()
+{
+	CWnd *pAct = GetActivePane();
+	if(pAct && m_hwndAct != pAct->m_hWnd )
+	{
+		m_hwndAct = pAct->m_hWnd;
+		RedrawWindow();
+	}
+}
+
+BOOL CFixedSplitterWnd::OnCommand(WPARAM wParam, LPARAM lParam) 
+{
+	SetHighlight();
+	return CSplitterWnd::OnCommand(wParam, lParam);
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CChildFrame
@@ -97,6 +157,7 @@ BOOL CChildFrame::PreCreateWindow(CREATESTRUCT& cs)
 BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT, CCreateContext* pContext)
 {
 	int x, y;
+	int x2, y2;
 	RECT r;
 
 	if (!m_wndSplitter.CreateStatic(this, 2, 2))
@@ -105,25 +166,27 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT, CCreateContext* pContext)
 		return FALSE;
 	}
 	GetClientRect(&r);
-	x=r.right>>1;
-	y=r.bottom>>1;
+	x=(r.right>>2);
+	y=(r.bottom>>2);
+	x2=x*3;
+	y2=y*3;
 
 	if (!m_wndSplitter.CreateView(0, 0,
-		RUNTIME_CLASS(CFusionView), CSize(x, y), pContext))
+		RUNTIME_CLASS(CFusionView), CSize(x2, y2), pContext))
 	{
 		TRACE0("Failed to create first pane\n");
 		return FALSE;
 	}
 
 	if (!m_wndSplitter.CreateView(0, 1,
-		RUNTIME_CLASS(CFusionView), CSize(x, y), pContext))
+		RUNTIME_CLASS(CFusionView), CSize(x, y2), pContext))
 	{
 		TRACE0("Failed to create first pane\n");
 		return FALSE;
 	}
 
 	if (!m_wndSplitter.CreateView(1, 0,
-		RUNTIME_CLASS(CFusionView), CSize(x, y), pContext))
+		RUNTIME_CLASS(CFusionView), CSize(x2, y), pContext))
 	{
 		TRACE0("Failed to create first pane\n");
 		return FALSE;
@@ -137,13 +200,13 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT, CCreateContext* pContext)
 	}
 
 	//set the view types
-	((CFusionView *)m_wndSplitter.GetPane(0,0))->OnViewType(ID_VIEW_TEXTUREVIEW);
-	((CFusionView *)m_wndSplitter.GetPane(0,1))->OnViewType(ID_VIEW_TOPVIEW);
+	((CFusionView *)m_wndSplitter.GetPane(0,0))->OnViewType(ID_VIEW_TOPVIEW);
+	((CFusionView *)m_wndSplitter.GetPane(0,1))->OnViewType(ID_VIEW_SIDEVIEW);
 	((CFusionView *)m_wndSplitter.GetPane(1,0))->OnViewType(ID_VIEW_FRONTVIEW);
-	((CFusionView *)m_wndSplitter.GetPane(1,1))->OnViewType(ID_VIEW_SIDEVIEW);
+	((CFusionView *)m_wndSplitter.GetPane(1,1))->OnViewType(ID_VIEW_3DWIREFRAME); //ID_VIEW_TEXTUREVIEW);
 
 	// activate the top left view
-	SetActiveView((CView*)m_wndSplitter.GetPane(0,1));
+	SetActiveView((CView*)m_wndSplitter.GetPane(0,0));
 
 	InitDone=TRUE;
 
@@ -169,11 +232,12 @@ void CChildFrame::OnSize(UINT nType, int cx, int cy)
 	//center the panes on a size
 	if(InitDone &&(m_wndSplitter.GetRowCount()==2 && m_wndSplitter.GetColumnCount()==2))
 	{
-		m_wndSplitter.SetColumnInfo(0, cx>>1, 0);
-		m_wndSplitter.SetColumnInfo(1, cx>>1, 0);
-		m_wndSplitter.SetRowInfo(0, cy>>1, 0);
-		m_wndSplitter.SetRowInfo(1, cy>>1, 0);
+		m_wndSplitter.SetColumnInfo(0, (cx>>2)*3, 0);
+		m_wndSplitter.SetColumnInfo(1, cx>>2, 0);
+		m_wndSplitter.SetRowInfo(0, (cy>>2)*3, 0);
+		m_wndSplitter.SetRowInfo(1, cy>>2, 0);
 	}
+
 	CMDIChildWnd::OnSize(nType, cx, cy);
 }
 

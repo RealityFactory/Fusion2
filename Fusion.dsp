@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Application" 0x0101
 
-CFG=FUSION - Win32 Release
+CFG=FUSION - Win32 Remote Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,12 +13,13 @@ CFG=FUSION - Win32 Release
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "Fusion.mak" CFG="FUSION - Win32 Release"
+!MESSAGE NMAKE /f "Fusion.mak" CFG="FUSION - Win32 Remote Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
 !MESSAGE "FUSION - Win32 Release" (based on "Win32 (x86) Application")
 !MESSAGE "FUSION - Win32 Debug" (based on "Win32 (x86) Application")
+!MESSAGE "FUSION - Win32 Remote Debug" (based on "Win32 (x86) Application")
 !MESSAGE 
 
 # Begin Project
@@ -43,19 +44,20 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /MT /W4 /GX /Ot /Oa /X /I "." /I ".\GenesisSDK\include" /I ".\TypeParser" /I "..\..\msdev60\include" /I "..\..\msdev60\mfc\include" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /YX"stdafx.h" /FD /c
-# SUBTRACT CPP /Ox /Og /Fr
+# ADD CPP /nologo /G6 /MT /W4 /GX /O2 /Ob2 /I "." /I ".\GenesisSDK\include" /I ".\TypeParser" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /YX"stdafx.h" /FD /c
+# SUBTRACT CPP /X /Fr
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
-# ADD RSC /l 0x409 /x /i "..\..\msdev60\include" /i "..\..\msdev60\mfc\include" /d "NDEBUG"
+# ADD RSC /l 0x409 /d "NDEBUG"
+# SUBTRACT RSC /x
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 nafxcw.lib libcmt.lib .\GenesisSDK\lib\genesis.lib advapi32.lib ctl3d32.lib comctl32.lib comdlg32.lib gdi32.lib kernel32.lib oldnames.lib ole32.lib oleaut32.lib oledlg.lib shell32.lib urlmon.lib user32.lib uuid.lib winmm.lib winspool.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib /libpath:"..\..\msdev60\lib" /libpath:"..\..\msdev60\mfc\lib"
-# SUBTRACT LINK32 /incremental:yes /debug
+# ADD LINK32 nafxcw.lib libcmt.lib .\GenesisSDK\lib\genesis.lib advapi32.lib ctl3d32.lib comctl32.lib comdlg32.lib gdi32.lib kernel32.lib oldnames.lib ole32.lib oleaut32.lib oledlg.lib shell32.lib urlmon.lib user32.lib uuid.lib winmm.lib winspool.lib /nologo /subsystem:windows /machine:I386 /out:".\Release/WrldEdit.exe"
+# SUBTRACT LINK32 /incremental:yes /debug /nodefaultlib
 
 !ELSEIF  "$(CFG)" == "FUSION - Win32 Debug"
 
@@ -71,19 +73,52 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /MTd /W4 /Gm /Gi /GX /ZI /Od /X /I "." /I ".\GenesisSDK\include" /I ".\TypeParser" /I "..\..\msdev60\include" /I "..\..\msdev60\mfc\include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /YX"stdafx.h" /FD /c
-# SUBTRACT CPP /Fr
+# ADD CPP /nologo /MTd /W4 /Gm /Gi /GX /ZI /Od /I "." /I ".\TypeParser" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /Fr /YX"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
-# ADD RSC /l 0x409 /x /i "..\..\msdev60\include" /i "..\..\msdev60\mfc\include" /d "_DEBUG"
+# ADD RSC /l 0x409 /d "_DEBUG"
+# SUBTRACT RSC /x
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386
-# ADD LINK32 nafxcwd.lib libcmtd.lib .\GenesisSDK\lib\genesisd.lib advapi32.lib ctl3d32.lib comctl32.lib comdlg32.lib gdi32.lib kernel32.lib oldnames.lib ole32.lib oleaut32.lib oledlg.lib shell32.lib urlmon.lib user32.lib uuid.lib winmm.lib winspool.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcd.lib" /nodefaultlib /libpath:"..\..\msdev60\lib" /libpath:"..\..\msdev60\mfc\lib"
-# SUBTRACT LINK32 /incremental:no
+# ADD LINK32 nafxcwd.lib libcmtd.lib genesisd.lib advapi32.lib ctl3d32.lib comctl32.lib comdlg32.lib gdi32.lib kernel32.lib oldnames.lib ole32.lib oleaut32.lib oledlg.lib shell32.lib urlmon.lib user32.lib uuid.lib winmm.lib winspool.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcd.lib" /out:".\Debug/WrldEdit.exe"
+# SUBTRACT LINK32 /incremental:no /nodefaultlib
+
+!ELSEIF  "$(CFG)" == "FUSION - Win32 Remote Debug"
+
+# PROP BASE Use_MFC 5
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "FUSION___Win32_Remote_Debug"
+# PROP BASE Intermediate_Dir "FUSION___Win32_Remote_Debug"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 5
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir ".\Debug"
+# PROP Intermediate_Dir ".\Debug"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MTd /W4 /Gm /Gi /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /Fr /YX"stdafx.h" /FD /c
+# SUBTRACT BASE CPP /X
+# ADD CPP /nologo /MTd /W4 /Gm /Gi /GX /ZI /Od /I "." /I ".\GenesisSDK\include" /I ".\TypeParser" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /Fr /YX"stdafx.h" /FD /c
+# SUBTRACT CPP /X
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "_DEBUG"
+# SUBTRACT BASE RSC /x
+# ADD RSC /l 0x409 /d "_DEBUG"
+# SUBTRACT RSC /x
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 nafxcwd.lib libcmtd.lib .\GenesisSDK\lib\genesisd.lib advapi32.lib ctl3d32.lib comctl32.lib comdlg32.lib gdi32.lib kernel32.lib oldnames.lib ole32.lib oleaut32.lib oledlg.lib shell32.lib urlmon.lib user32.lib uuid.lib winmm.lib winspool.lib /nologo /subsystem:windows /debug /machine:I386 /out:".\Debug/WrldEdit.exe"
+# SUBTRACT BASE LINK32 /incremental:no /nodefaultlib
+# ADD LINK32 nafxcwd.lib libcmtd.lib .\GenesisSDK\lib\genesisd.lib advapi32.lib ctl3d32.lib comctl32.lib comdlg32.lib gdi32.lib kernel32.lib oldnames.lib ole32.lib oleaut32.lib oledlg.lib shell32.lib urlmon.lib user32.lib uuid.lib winmm.lib winspool.lib /nologo /subsystem:windows /debug /machine:I386 /out:"R:\Program Files\WrldEdit\WrldEdit.exe"
+# SUBTRACT LINK32 /incremental:no /nodefaultlib
 
 !ENDIF 
 
@@ -91,6 +126,7 @@ LINK32=link.exe
 
 # Name "FUSION - Win32 Release"
 # Name "FUSION - Win32 Debug"
+# Name "FUSION - Win32 Remote Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90"
@@ -100,15 +136,6 @@ LINK32=link.exe
 # Begin Source File
 
 SOURCE=.\TypeParser\cparser.c
-
-!IF  "$(CFG)" == "FUSION - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "FUSION - Win32 Debug"
-
-# ADD CPP /I "..\..\msdev60\include" /I "..\..\msdev60\mfc\include"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -198,6 +225,10 @@ SOURCE=.\BrushGroupDialog.cpp
 # Begin Source File
 
 SOURCE=.\BrushTemplate.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\CapView.cpp
 # End Source File
 # Begin Source File
 
@@ -341,6 +372,14 @@ SOURCE=.\ModelDialog.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\MoveDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\NameWindow.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\node.c
 # End Source File
 # Begin Source File
@@ -361,6 +400,14 @@ SOURCE=.\render.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\RotateDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScaleDialog.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SelBrushList.c
 # End Source File
 # Begin Source File
@@ -378,6 +425,10 @@ SOURCE=.\stack.c
 # Begin Source File
 
 SOURCE=.\TextureDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\TexturePacker.cpp
 # End Source File
 # Begin Source File
 
@@ -434,6 +485,10 @@ SOURCE=.\BrushGroupDialog.h
 # Begin Source File
 
 SOURCE=.\BrushTemplate.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CapView.h
 # End Source File
 # Begin Source File
 
@@ -577,7 +632,15 @@ SOURCE=.\ModelDialog.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\MoveDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Mydef.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\NameWindow.h
 # End Source File
 # Begin Source File
 
@@ -609,6 +672,14 @@ SOURCE=.\resource.hm
 # End Source File
 # Begin Source File
 
+SOURCE=.\RotateDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ScaleDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SelBrushList.h
 # End Source File
 # Begin Source File
@@ -630,6 +701,10 @@ SOURCE=.\StdAfx.h
 # Begin Source File
 
 SOURCE=.\TextureDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TexturePacker.h
 # End Source File
 # Begin Source File
 
@@ -669,6 +744,14 @@ SOURCE=.\res\arrow.cur
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\bitmap1.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\bmp_sun.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\camera.bmp
 # End Source File
 # Begin Source File
@@ -677,11 +760,27 @@ SOURCE=.\res\cone.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\createar.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\createco.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\createst.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\Cross_m.cur
 # End Source File
 # Begin Source File
 
 SOURCE=.\res\cube.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\cursor1.cur
 # End Source File
 # Begin Source File
 
@@ -709,6 +808,10 @@ SOURCE=.\res\ffframe.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\fog_ligh.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\FUSION.ico
 # End Source File
 # Begin Source File
@@ -721,6 +824,10 @@ SOURCE=.\res\FUSIONDoc.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\genesis3.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\groupbar.bmp
 # End Source File
 # Begin Source File
@@ -730,6 +837,10 @@ SOURCE=.\res\hollowbo.bmp
 # Begin Source File
 
 SOURCE=.\res\hollowsp.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\icon1.ico
 # End Source File
 # Begin Source File
 
@@ -750,6 +861,10 @@ SOURCE=.\res\light.ico
 # Begin Source File
 
 SOURCE=.\res\modelorg.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\omni_lig.ico
 # End Source File
 # Begin Source File
 
@@ -781,6 +896,10 @@ SOURCE=.\res\sphere.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\spot_lig.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\spotlight.bmp
 # End Source File
 # Begin Source File
@@ -790,6 +909,14 @@ SOURCE=.\res\stairs.ico
 # Begin Source File
 
 SOURCE=.\res\stop.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\sun.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\sun_ligh.ico
 # End Source File
 # Begin Source File
 

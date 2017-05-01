@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -86,7 +85,7 @@ BOOL CConsoleTab::OnInitDialog()
 	rect.top = rect2.bottom + FTC_BORDER_SIZE_TOP;
 	rect.left = rect.left + FTC_BORDER_SIZE_LEFT;
 	rect.right = rect.right - FTC_BORDER_SIZE_RIGHT ;
-	rect.bottom = rect.bottom - FTC_BORDER_SIZE_BOTTOM ;
+	rect.bottom = rect.bottom - rect2.bottom - FTC_BORDER_SIZE_BOTTOM;
 
 	SetWindowPos( NULL, rect.left,
 			rect.top, rect.right, rect.bottom, SWP_NOZORDER );
@@ -96,7 +95,7 @@ BOOL CConsoleTab::OnInitDialog()
 	(
 		NULL, 
 		FTC_BORDER_SIZE_LEFT,	FTC_BORDER_SIZE_TOP, 
-		rect.right-4,			rect.bottom-28, 
+		rect.right-8,			rect.bottom-8, 
 		SWP_NOZORDER 
 	);
 
@@ -104,8 +103,9 @@ BOOL CConsoleTab::OnInitDialog()
 #if 1
 	Font = ::CreateFont
 		(
-			11,						// logical height of font
-			0,						// logical average character width
+			8,						// logical height of font
+//			0,						// logical average character width
+			4,						// logical average character width
 			0,						// angle of escapement
 			0,						// base-line orientation angle
 			FW_NORMAL,				// font weight
@@ -117,7 +117,8 @@ BOOL CConsoleTab::OnInitDialog()
 			CLIP_DEFAULT_PRECIS,	// clipping precision
 			DRAFT_QUALITY,			// output quality
 			DEFAULT_PITCH,			// pitch and family
-			"MS Sans Serif"			// pointer to typeface name string
+//			"MS Sans Serif"			// pointer to typeface name string
+			"Arial"			// pointer to typeface name string
 		);
 #endif
 	if (Font == NULL)
@@ -200,6 +201,7 @@ extern "C" void ConPrintf(char *text, ...)
 
 	if(ConHwnd)
 	{
+		SendMessage(ConHwnd, EM_SETSEL, (WPARAM)INT_MAX, (LPARAM)INT_MAX);
 		SendMessage(ConHwnd, EM_REPLACESEL, 0, (LPARAM)out);
 	}
 }
@@ -218,6 +220,7 @@ extern "C" void ConError(char *text, ...)
 
 	if(ConHwnd)
 	{
+		SendMessage(ConHwnd, EM_SETSEL, (WPARAM)INT_MAX, (LPARAM)INT_MAX);
 		SendMessage(ConHwnd, EM_REPLACESEL, 0, (LPARAM)out);
 	}
 }

@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "facelist.h"
@@ -131,8 +130,18 @@ FaceList	*FaceList_Clone(const FaceList *pList)
 		for(i=0;i < pList->NumFaces;i++)
 		{
 			f	=FaceList_GetFace(pList, i);
+//MRB BEGIN
+			if (f)
+			{
+//MRB END
 			cpf	=Face_Clone(f);
+//MRB BEGIN
+			if (cpf)
+//MRB END
 			FaceList_AddFace(cpList, cpf);
+//MRB BEGIN
+			}
+//MRB END
 		}
 	}
 	return	cpList;
@@ -245,8 +254,12 @@ void	FaceList_Transform(FaceList *pList, const geXForm3d *pXfm)
 	pList->Dirty	=GE_TRUE;
 }
 
-void	FaceList_Scale(FaceList *pList, const geVec3d *ScaleVec)
+//MRB BEGIN
+//void	FaceList_Scale(FaceList *pList, const geVec3d *ScaleVec)
+geBoolean	FaceList_Scale(FaceList *pList, const geVec3d *ScaleVec)
 {
+	geBoolean Success = 1;
+//MRB END
 	int i;
 
 	assert(pList != NULL);
@@ -254,9 +267,15 @@ void	FaceList_Scale(FaceList *pList, const geVec3d *ScaleVec)
 
 	for(i=0;i < pList->NumFaces;i++)
 	{
+//MRB BEGIN
+		Success = Success &&
+//MRB END
 		Face_Scale(pList->Faces[i], ScaleVec);
 	}
 	pList->Dirty	=GE_TRUE;
+//MRB BEGIN
+	return Success;
+//MRB END
 }
 
 void	FaceList_Shear(FaceList *pList, const geVec3d *ShearVec, const geVec3d *ShearAxis)

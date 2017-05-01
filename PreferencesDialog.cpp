@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -38,6 +37,11 @@ CPreferencesDialog::CPreferencesDialog(CWnd* pParent /*=NULL*/)
 	: CDialog(CPreferencesDialog::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CPreferencesDialog)
+	m_HeadersList = _T("");
+	m_ObjectsDir = _T("");
+	m_PreviewPath = _T("");
+	m_TxlName = _T("");
+	m_TxlSearchPath = _T("");
 	//}}AFX_DATA_INIT
 }
 
@@ -49,6 +53,11 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PREFSSNAPGRID, m_SnapGrid);
 	DDX_Control(pDX, IDC_PREFSGRID, m_Grid);
 	DDX_Control(pDX, IDC_PREFSGRIDBG, m_GridBackground);
+	DDX_Text(pDX, IDC_EDITHEADERS, m_HeadersList);
+	DDX_Text(pDX, IDC_EDITOBJECTSDIR, m_ObjectsDir);
+	DDX_Text(pDX, IDC_EDITPREVIEW, m_PreviewPath);
+	DDX_Text(pDX, IDC_EDITTXLIB, m_TxlName);
+	DDX_Text(pDX, IDC_EDITTXLSEARCH, m_TxlSearchPath);
 	//}}AFX_DATA_MAP
 }
 

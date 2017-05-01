@@ -15,12 +15,13 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef FUSIONVIEW_H
 #define FUSIONVIEW_H
+
+#include "capview.h"
 
 #include "brush.h"
 #include "render.h"
@@ -37,7 +38,15 @@
 
 typedef struct tag_EntityViewList EntityViewList;
 
-class CFusionView : public CView
+enum dragtime
+{
+	DRAG_BEGIN,
+	DRAG_CONTINUE,
+	DRAG_END
+};
+
+
+class CFusionView : public CCaptionView
 {
 protected: // create from serialization only
 	DECLARE_DYNCREATE(CFusionView)
@@ -68,6 +77,7 @@ public:
 	virtual void OnDraw(CDC* pDC);  // overridden to draw this view
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	virtual void OnInitialUpdate();
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	protected:
 	virtual void OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView);
 	//}}AFX_VIRTUAL
@@ -122,8 +132,9 @@ protected:
 	afx_msg void OnUpdateDeselectall(CCmdUI* pCmdUI);
 	afx_msg void OnSelectall();
 	afx_msg void OnUpdateSelectall(CCmdUI* pCmdUI);
+	afx_msg void OnSelectAllBrushes();
+	afx_msg void OnUpdateSelectAllBrushes(CCmdUI* pCmdUI);
 	afx_msg void OnToolsScaleworld();
-	afx_msg void OnToolsBrushMakenewest();
 	afx_msg void OnToolsSettexturescale();
 	afx_msg void OnToolsNextbrush();
 	afx_msg void OnToolsPrevbrush();
@@ -135,24 +146,35 @@ protected:
 	afx_msg void OnUpdateViewZoomout(CCmdUI* pCmdUI);
 	afx_msg void OnCenterthing();
 	afx_msg void OnUpdateCenterthing(CCmdUI* pCmdUI);
+	afx_msg void OnEditSelectFacesNext();
+	afx_msg void OnEditSelectFacesPrevious();
+	afx_msg void OnEditSelectFacesAllinselectedbrushes();
+	afx_msg void OnEditSelectEntitiesAll();
+	afx_msg void OnEditSelectEntitiesNext();
+	afx_msg void OnEditSelectEntitiesPrevious();
+	afx_msg void OnEditDeselectBrushes();
+	afx_msg void OnEditDeselectEntities();
+	afx_msg void OnEditDeselectFaces();
+	afx_msg void OnUpdateEditDeselectBrushes(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateEditDeselectEntities(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateEditDeselectFaces(CCmdUI* pCmdUI);
+	afx_msg void OnKillFocus(CWnd* pNewWnd);
+	afx_msg void OnSetFocus(CWnd* pOldWnd);
+	afx_msg void OnViewportCenteroncamera();
+	afx_msg void OnUpdateViewportCenteroncamera(CCmdUI* pCmdUI);
+	afx_msg void OnViewportCenteronselection();
+	afx_msg void OnUpdateViewportCenteronselection(CCmdUI* pCmdUI);
+	afx_msg void OnCameraCenteronview();
+	afx_msg void OnUpdateCameraCenteronview(CCmdUI* pCmdUI);
+	afx_msg void OnViewportGoto();
+	afx_msg void OnUpdateViewportGoto(CCmdUI* pCmdUI);
+	afx_msg void OnModifyRotate();
+	afx_msg void OnUpdateModifyRotate(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 public:
 	afx_msg void OnViewType(UINT nID);
 	BOOL IsPanning;
 	void DoZoom (float ZoomInc);
-protected:
-	afx_msg void OnViewTypeCmdUi(CCmdUI* pCmdUI);
-	DECLARE_MESSAGE_MAP()
-private:
-	geBoolean	mViewIs3d ;
-	BOOL		IsCopying;
-	BOOL		IsDragging ;
-	double		mZoomFactor;
-	int			mShowBrush;
-	int			mQuadrant;	// Current Quadrant of brush that mouse is in...
-	CPoint		mStartPoint;
-	CPoint		mDragStartPoint ;
-	CPoint		mDragCurrentPoint ;
 
 	// These flags are updated by the OnLButtonDown, OnLButtonUp,
 	// OnRButtonDown, and OnRButtonUp messages handlers, and are
@@ -163,6 +185,26 @@ private:
 	// they do not reflect the current state of the mouse buttons.
 	geBoolean LMouseButtonDown;
 	geBoolean RMouseButtonDown;
+
+	geBoolean CFusionView::IsKeyDown (int Key);
+
+protected:
+	afx_msg void OnViewTypeCmdUi(CCmdUI* pCmdUI);
+	DECLARE_MESSAGE_MAP()
+private:
+	CRect LastDragRect;
+	void Drag(dragtime Now);
+	geBoolean	mViewIs3d ;
+	BOOL		IsCopying;
+	BOOL		IsDragging ;
+	double		mZoomFactor;
+	int			mShowBrush;
+	int			mQuadrant;	// Current Quadrant of brush that mouse is in...
+	CPoint		mStartPoint;
+	CPoint		mDragStartPoint ;
+	CPoint		mDragCurrentPoint ;
+
+	CString		m_strObjectUnderPoint;
 
 	int mTextureViewIndex;
 	int m3DWireframeViewIndex;
@@ -187,6 +229,9 @@ private:
 	void ShowTheCursor (void);
 	void DoneMovingBrushes ();
 	EntityViewList *pEntityView;
+
+	void CFusionView::OnMouseHover(POINT pt);
+	geBoolean BeganWithPan;
 };
 
 /////////////////////////////////////////////////////////////////////////////

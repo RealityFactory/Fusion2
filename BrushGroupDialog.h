@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef BRUSHGROUPDIALOG_H_
@@ -35,9 +34,10 @@ class CBrushGroupDialog : public CDialog
 {
 // Construction
 public:
+	void UpdateAfterAddBrush();
 	CBrushGroupDialog(CFusionTabControls *pParent, CFusionDoc *apDoc);   // standard constructor
-	void CBrushGroupDialog::UpdateTabDisplay(CFusionDoc* NewDoc);
-	void CBrushGroupDialog::LoadComboBox(void);
+	void UpdateTabDisplay(CFusionDoc* NewDoc);
+	void LoadComboBox(void);
 	void UpdateGroupSelection( void ) ;
 
 // Dialog Data

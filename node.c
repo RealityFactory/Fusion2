@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "node.h"
@@ -272,6 +271,10 @@ Node	*Node_AddBrushToTree(Node *tree, Brush *b)
 	{
 		n	=Node_Create(Brush_GetFace(b, i));
 
+//MRB BEGIN
+		if (n)
+		{
+//MRB END
 		if(tree)
 		{
 			Node_AddToTree(tree, n);
@@ -282,6 +285,9 @@ Node	*Node_AddBrushToTree(Node *tree, Brush *b)
 		}
 
 		Node_Destroy(&n);
+//MRB BEGIN
+		}
+//MRB END
 	}
 	return	tree;
 }

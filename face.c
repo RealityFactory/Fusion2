@@ -39,7 +39,7 @@ const geVec3d	VecOrigin	={ 0.0f, 0.0f, 0.0f };
 //use caution in recursive code that uses these...
 static	geVec3d		spf[256], spb[256];
 
-#define	VCOMPARE_EPSILON			(0.001f)
+#define	VCOMPARE_EPSILON			(0.00001f)
 #define MAX_POINTS					64
 #define	ON_EPSILON					(0.1f)
 #define	VectorToSUB(a, b)			(*((((geFloat *)(&a))) + (b)))
@@ -249,7 +249,7 @@ static geBoolean	Face_SetPlaneFromFace(Face *f)
 	}
 	if(i >= f->NumPoints)
 	{
-		ConPrintf("Face with no normal!\n");
+//		ConPrintf("Face with no normal!\n");
 		return	GE_FALSE;
 	}
 	geVec3d_Normalize(&f->Face_Plane.Normal);
@@ -1083,8 +1083,12 @@ static void Face_UpdateFaceAngle (Face *f, const geVec3d *OldNormal)
 	Face_XfmTexture (f, &Xfm);
 }
 
-void	Face_Scale(Face *f, const geVec3d *ScaleVec)
+//MRB BEGIN
+//void	Face_Scale(Face *f, const geVec3d *ScaleVec)
+geBoolean	Face_Scale(Face *f, const geVec3d *ScaleVec)
 {
+	geBoolean Success;
+//MRB END
 	int i;
 
 	assert(f);
@@ -1099,11 +1103,17 @@ void	Face_Scale(Face *f, const geVec3d *ScaleVec)
 	}
 	{
 		geVec3d OldNormal = f->Tex.VecNormal;
+//MRB BEGIN
+		Success = 
+//MRB END
 		Face_SetPlaneFromFace(f);
 
 		Face_UpdateFaceAngle (f, &OldNormal);
 	}
 	f->Tex.DirtyFlag = GE_TRUE;
+//MRB BEGIN
+	return Success;
+//MRB END
 }
 
 void	Face_Shear(Face *f, const geVec3d *ShearVec, const geVec3d *ShearAxis)
@@ -1166,12 +1176,14 @@ void	Face_WriteToMap(const Face *f, FILE *wf)
 
 		OutputFlags = 0;
 		if (f->Flags & FACE_MIRROR)		OutputFlags	|= ffMirror;
+		if (f->Flags & FACE_MIRROR)		OutputFlags	|= ffMirror;
 		if (f->Flags & FACE_FULLBRIGHT) OutputFlags	|= ffFullBright;
 		if (f->Flags & FACE_SKY)		OutputFlags	|= ffSky;
 		if (f->Flags & FACE_LIGHT)		OutputFlags	|= ffLight;
 		if (f->Flags & FACE_GOURAUD)	OutputFlags	|= ffGouraud;
 		if (f->Flags & FACE_FLAT)		OutputFlags	|= ffFlat;
-		if (f->Flags & FACE_TRANSPARENT) OutputFlags |= ffTranslucent;
+//		if (f->Flags & FACE_TRANSPARENT) OutputFlags |= ffTranslucent;
+		if ((f->Flags & FACE_TRANSPARENT) || (f->Flags & FACE_MIRROR)) OutputFlags |= ffTranslucent;
 		TypeIO_WriteInt(wf, OutputFlags);
 	}
 

@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef _FACE_H_
@@ -121,7 +120,10 @@ void	Face_CopyFaceInfo(const Face *src, Face *dst);
 void	Face_Rotate(Face *f, const geXForm3d *pXfmRotate, const geVec3d *pCenter);
 void	Face_Move(Face *f, const geVec3d *trans);
 void	Face_Transform(Face *f, const geXForm3d *pXfm);
-void	Face_Scale(Face *f, const geVec3d *ScaleVec);
+//MRB BEGIN
+//void	Face_Scale(Face *f, const geVec3d *ScaleVec);
+geBoolean	Face_Scale(Face *f, const geVec3d *ScaleVec);
+//MRB END
 void	Face_Shear(Face *f, const geVec3d *ShearVec, const geVec3d *ShearAxis);
 void	Face_GetBounds(const Face *f, Box3d *b);
 void	Face_GetCenter(const Face *f, geVec3d *pCenter);

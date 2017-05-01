@@ -15,8 +15,7 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
 #include "prefs.h"
@@ -33,10 +32,13 @@ static const char BACKGROUND_KEY[]		= "Background";
 static const char GRID_COLOR_KEY[]		= "Color";
 static const char SNAPGRID_COLOR_KEY[]	= "SnapColor";
 
-static const int DEFAULT_BACKGROUND_COLOR	= 0x00808080;
-static const int DEFAULT_GRID_COLOR			= 0x00646464;
-static const int DEFAULT_SNAPGRID_COLOR		= 0x00464646;
+static const char VIEWPORT_SECTION_NAME[] = "Viewports";
+static const char LINK_VIEWPORTS_KEY[]	= "LinkedViewports";
 
+static const int DEFAULT_BACKGROUND_COLOR	= 0x00404040;
+static const int DEFAULT_GRID_COLOR			= 0x00606060;
+static const int DEFAULT_SNAPGRID_COLOR		= 0x00000000;
+static const int DEFAULT_LINK_VIEWPORTS = -1;
 
 static const char PATHS_SECTION_NAME[]	= "Paths";
 static const char TXLNAME_KEY[]			= "TxlName";
@@ -46,7 +48,7 @@ static const char HEADERS_KEY[]			= "Headers";
 static const char OBJECTSDIR_KEY[]		= "ObjectsDir";
 static const char PROJECTDIR_KEY[]		= "ProjectDir";
 
-static const char DEFAULT_TXLNAME[]		= "gedit.txl";
+static const char DEFAULT_TXLNAME[]		= "wrldedit.txl";
 static const char DEFAULT_TXLSEARCH[]	= ".\\";
 static const char DEFAULT_PREVIEW[]		= "gpreview.exe";
 static const char DEFAULT_HEADERS[]		= ".\\Headers";
@@ -84,6 +86,7 @@ struct tag_Prefs
 	int BackgroundColor;
 	int GridColor;
 	int SnapGridColor;
+	int LinkViewports;
 	PathPrefs Paths;
 };
 
@@ -117,6 +120,7 @@ Prefs *Prefs_Create (void)
 		pPrefs->BackgroundColor = DEFAULT_BACKGROUND_COLOR;
 		pPrefs->GridColor = DEFAULT_GRID_COLOR;
 		pPrefs->SnapGridColor = DEFAULT_SNAPGRID_COLOR;
+		pPrefs->LinkViewports = DEFAULT_LINK_VIEWPORTS;
 		pPrefs->Paths.TxlName = Util_Strdup (DEFAULT_TXLNAME);
 		pPrefs->Paths.TxlSearchPath = Util_Strdup (DEFAULT_TXLSEARCH);
 		pPrefs->Paths.PreviewPath = Util_Strdup (DEFAULT_PREVIEW);
@@ -160,6 +164,8 @@ Prefs *Prefs_Read (const char *IniFilename)
 		pPrefs->GridColor = GetPrivateProfileInt (GRID_SECTION_NAME, GRID_COLOR_KEY, DEFAULT_GRID_COLOR, IniFilename);
 		pPrefs->SnapGridColor = GetPrivateProfileInt (GRID_SECTION_NAME, SNAPGRID_COLOR_KEY, DEFAULT_SNAPGRID_COLOR, IniFilename);
 
+		pPrefs->LinkViewports = GetPrivateProfileInt (VIEWPORT_SECTION_NAME, LINK_VIEWPORTS_KEY, DEFAULT_LINK_VIEWPORTS, IniFilename);
+
 		pPrefs->Paths.TxlName = Prefs_GetString (PATHS_SECTION_NAME, TXLNAME_KEY, DEFAULT_TXLNAME, IniFilename);
 		pPrefs->Paths.TxlSearchPath = Prefs_GetString (PATHS_SECTION_NAME, TXLSEARCH_KEY, DEFAULT_TXLSEARCH, IniFilename);
 		pPrefs->Paths.PreviewPath = Prefs_GetString (PATHS_SECTION_NAME, PREVIEW_KEY, DEFAULT_PREVIEW, IniFilename);
@@ -189,6 +195,8 @@ geBoolean Prefs_Save (const Prefs *pPrefs, const char *IniFilename)
 	WritePrivateProfileInt (GRID_SECTION_NAME, BACKGROUND_KEY, pPrefs->BackgroundColor, IniFilename);
 	WritePrivateProfileInt (GRID_SECTION_NAME, GRID_COLOR_KEY, pPrefs->GridColor, IniFilename);
 	WritePrivateProfileInt (GRID_SECTION_NAME, SNAPGRID_COLOR_KEY, pPrefs->SnapGridColor, IniFilename);
+
+	WritePrivateProfileInt (VIEWPORT_SECTION_NAME, LINK_VIEWPORTS_KEY, pPrefs->LinkViewports, IniFilename);
 
 	WritePrivateProfileString (PATHS_SECTION_NAME, TXLNAME_KEY, pPrefs->Paths.TxlName, IniFilename);
 	WritePrivateProfileString (PATHS_SECTION_NAME, TXLSEARCH_KEY, pPrefs->Paths.TxlSearchPath, IniFilename);
@@ -232,6 +240,17 @@ int Prefs_GetSnapGridColor (const Prefs *pPrefs)
 geBoolean Prefs_SetSnapGridColor (Prefs *pPrefs, int Color)
 {
 	pPrefs->SnapGridColor = Color;
+	return GE_TRUE;
+}
+
+int Prefs_GetLinkViewports (const Prefs *pPrefs)
+{
+	return pPrefs->LinkViewports;
+}
+
+geBoolean Prefs_SetLinkViewports (Prefs *pPrefs, int Link)
+{
+	pPrefs->LinkViewports = Link;
 	return GE_TRUE;
 }
 
