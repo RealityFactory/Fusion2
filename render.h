@@ -18,12 +18,13 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef _RENDER_H_
 #define _RENDER_H_
 
 #include "brush.h"
-#include "bitmap.h"
+#include "include/bitmap.h"
 #pragma warning(disable : 4201 4214 4115 4514)
 #include <windows.h>
 #pragma warning(default : 4201 4214 4115)

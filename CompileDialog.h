@@ -18,6 +18,7 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +27,7 @@
 #ifndef _COMPILEDIALOG_H
 #define _COMPILEDIALOG_H
 
-#include "resource.h"
+
 #include "compiler.h"
 
 class CCompileDialog : public CDialog
@@ -59,6 +60,8 @@ public:
 	BOOL	m_VisVerbose;
 	BOOL	m_GbspVerbose;
 	BOOL	m_EntityVerbose;
+	CString	m_currentSavePath;
+	CString	m_currentBSPfileName;
 	//}}AFX_DATA
 
 

@@ -21,10 +21,10 @@
 /****************************************************************************************/
 #include "scanner.h"
 #include <assert.h>
-#include "ram.h"
+#include "../include/ram.h"
 #include <memory.h>
 #include <stdio.h>
-#include "util.h"
+#include "../util.h"
 
 #if _MSC_VER
 	// disable "unknown pragma" warning for VC

@@ -18,6 +18,7 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 // stdafx.h : include file for standard system include files,
 //  or project specific include files that are used frequently, but
@@ -37,13 +38,46 @@
 */
 #pragma warning(disable : 4201 4214 4115 4514)
 
+// Modify the following defines if you have to target a platform prior to the ones specified below.
+// Refer to MSDN for the latest info on corresponding values for different platforms.
+#ifndef WINVER				// Allow use of features specific to Windows 95 and Windows NT 4 or later.
+#define WINVER 0x0400		// Change this to the appropriate value to target Windows 98 and Windows 2000 or later.
+#endif
+
+#ifndef _WIN32_WINNT		// Allow use of features specific to Windows NT 4 or later.
+#define _WIN32_WINNT 0x0400		// Change this to the appropriate value to target Windows 98 and Windows 2000 or later.
+#endif						
+
+#if _MFC_VER>0x0600 // only MFC70
+#ifndef _WIN32_WINDOWS		// Allow use of features specific to Windows 98 or later.
+#define _WIN32_WINDOWS 0x0410 // Change this to the appropriate value to target Windows Me or later.
+#endif
+#endif
+
+#ifndef _WIN32_IE			// Allow use of features specific to IE 4.0 or later.
+#define _WIN32_IE 0x0400	// Change this to the appropriate value to target IE 5.0 or later.
+#endif
+
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 #include <afxtempl.h>		// Support for templates.
+#include <afxdtctl.h>		// MFC support for Internet Explorer 4 Common Controls
+#include <afxole.h>         // MFC OLE classes
+
 
 #ifndef _AFX_NO_AFXCMN_SUPPORT
 #include <afxcmn.h>			// MFC support for Windows 95 Common Controls
 #endif // _AFX_NO_AFXCMN_SUPPORT
+#include <MMSystem.h>
+#include <objbase.h>
+#include <strmif.h>
+#include <control.h>
+#include <evcode.h>
+#include <uuids.h>
+#if _MFC_VER>0x0600 // only MFC70
+#include <afxdhtml.h>
+#endif
+#include <afx.h>
 
 // re-enable warnings except 4514
 #pragma warning(default : 4201 4214 4115)

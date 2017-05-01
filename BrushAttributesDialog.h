@@ -18,25 +18,29 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef BRUSHATTRIBUTESDIALOG_H
 #define BRUSHATTRIBUTESDIALOG_H
 
-#include "brush.h"
-#include "resource.h"
 
-class CFusionDoc;
+#include "brush.h"
+
 
 class CBrushAttributesDialog : public CDialog
 {
 public:
 	void UpdateBrushFocus ();
-	CBrushAttributesDialog(CFusionDoc *pDoc, CWnd* pParent = NULL);   // standard constructor
+	CBrushAttributesDialog(CWnd* pParent = NULL);   // standard constructor
+	CGEditProDoc	*m_pDoc;
+	void	ShowDialog();
 
+	bool UpdateBrushAttributes(CGEditProDoc *pDoc);
 
 // Dialog Data
 	//{{AFX_DATA(CBrushAttributesDialog)
 	enum { IDD = IDD_BRUSHDIALOG };
+	CButton	m_btnMakeAllSame;
 	CCheckListBox	m_ContentsList;
 	CEdit	m_EditHullsize;
 	CStatic	m_LblHullsize;
@@ -60,6 +64,7 @@ public:
 	virtual	BOOL OnInitDialog();
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual void PostNcDestroy();
+	virtual void OnCancel();
 	//}}AFX_VIRTUAL
 
 // Implementation
@@ -69,7 +74,6 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(CBrushAttributesDialog)
 	afx_msg void OnApply();
-	virtual void OnCancel();
 	afx_msg void OnBrushsolid();
 	afx_msg void OnBrushclip();
 	afx_msg void OnBrushwindow();
@@ -80,12 +84,17 @@ protected:
 	afx_msg void OnBrushtranslucent();
 	afx_msg void OnBrushflocking();
 	afx_msg void OnBrushsheet();
+	afx_msg void OnKillfocusHullsize();
+	afx_msg void OnKillfocusName();
+	afx_msg void OnBrushAllSame();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:
 	int BrushColor;
-	CFusionDoc	*m_pDoc;
 
+	bool ThisDocIsValid(CGEditProDoc *pDoc);
+
+	void PrepAllTheSame();
 	void OnRadioButton( void ) ;
 	void EnableTranslucency (void);
 	void EnableHullsize (void);

@@ -18,11 +18,12 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"  // for CString.  This is really ugly!
 #include "EntView.h"
 #include <assert.h>
-#include "ram.h"
+#include "include/ram.h"
 #include "util.h"
 
 EntityViewList *EntityViewList_Create

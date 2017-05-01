@@ -18,9 +18,12 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef SELBRUSHLIST_H
 #define SELBRUSHLIST_H
+
+#pragma once
 
 #include "brush.h"
 
@@ -33,7 +36,7 @@ typedef geBoolean (*SelBrushList_Callback)(Brush *pBrush, void *lParam);
 
 SelBrushList *SelBrushList_Create (void);
 void SelBrushList_Destroy (SelBrushList **ppList);
-
+SelBrushList	*SelBrushList_Clone(SelBrushList *inList);
 geBoolean SelBrushList_Add (SelBrushList *pList, Brush *pBrush);
 geBoolean SelBrushList_Find (SelBrushList *pList, const Brush *pBrush);
 geBoolean SelBrushList_Remove (SelBrushList *pList, Brush *pBrush);

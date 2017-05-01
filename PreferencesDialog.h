@@ -18,6 +18,7 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #if !defined(AFX_PREFERENCESDIALOG_H__14A85704_E5AB_11D1_A2EA_0000E823F3AA__INCLUDED_)
 #define AFX_PREFERENCESDIALOG_H__14A85704_E5AB_11D1_A2EA_0000E823F3AA__INCLUDED_
@@ -26,8 +27,10 @@
 #pragma once
 #endif // _MSC_VER >= 1000
 // PreferencesDialog.h : header file
-//
-#include "colorbtn.h"
+
+#include "GroupsDlg.h"	//	in order to spec the colorbtn... very strange
+#include "ColorSelector\ColorButton.h"
+#include "afxcmn.h"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -38,16 +41,20 @@ class CPreferencesDialog : public CDialog
 // Construction
 public:
 	CPreferencesDialog(CWnd* pParent = NULL);   // standard constructor
-	COLORREF	coBackground ;
-	COLORREF	coGrid ;
-	COLORREF	coSnapGrid ;
+	COLORREF	m_oldBackground, m_tempBackground, coBackground ;
+	COLORREF	m_oldGrid, m_tempGrid, coGrid ;
+	COLORREF	m_oldSnapGrid, m_tempSnapGrid, coSnapGrid ;
 
 // Dialog Data
 	//{{AFX_DATA(CPreferencesDialog)
 	enum { IDD = IDD_PREFERENCES };
+	CSpinButtonCtrl	m_spinEntityVisibility;
 	CColorButton	m_SnapGrid;
 	CColorButton	m_Grid;
 	CColorButton	m_GridBackground;
+	float		m_fEntityDrawScale;	//	post 0.57
+	int			m_iEditEntityDrawScale;	//	post 0.57
+	int			m_iOldEntityDrawScale;	//	post 0.57
 	//}}AFX_DATA
 
 
@@ -66,8 +73,15 @@ protected:
 	virtual BOOL OnInitDialog();
 	virtual void OnOK();
 	afx_msg void OnPathprefs();
+	afx_msg LONG OnChangeColor(UINT lParam, LONG wParam);
+	virtual void OnCancel();
+	afx_msg void OnKillfocusEntityDrawScale();	//	post 0.57
+	afx_msg void OnDeltaposSpinEntityVisibility(NMHDR* pNMHDR, LRESULT* pResult);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+public:
+	int m_iEditUndoMAX;
+	CSpinButtonCtrl m_spinUndos;
 };
 
 //{{AFX_INSERT_LOCATION}}

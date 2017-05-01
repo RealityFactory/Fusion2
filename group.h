@@ -18,12 +18,13 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef GROUP_H
 #define GROUP_H
 
-#include <BaseType.h>
-#include <GeTypes.h>
+#include "include/basetype.h"
+#include "include/GeTypes.h"
 #include "brush.h"
 #include "entity.h"
 #include "Parse3dt.h"
@@ -32,6 +33,8 @@ typedef struct tag_GroupListType GroupListType;
 typedef struct tag_Group Group;
 
 #define NO_MORE_GROUPS	(-1)
+
+GroupListType *Group_CloneList(GroupListType *pGroupList);
 
 Group *Group_Create
 	(
@@ -218,6 +221,7 @@ void GroupList_FillCombobox
 	);
 	
 Group *GroupList_GetFromId (GroupListType *pList, int GroupId);
+
 Group *Group_Clone (const Group *OldGroup);
 
 void GroupList_Add (GroupListType *Groups, Group *pGroup);

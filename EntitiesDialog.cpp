@@ -18,14 +18,15 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
+#include "Globals.h"
 #include "EntitiesDialog.h"
 #include "KeyEditDlg.h"
 #include "EntityTable.h"
-#include "FusionDoc.h"  // icko!
 #include <assert.h>
-#include "ram.h"
+#include "include/ram.h"
 #include "util.h"
 
 #ifdef _DEBUG
@@ -44,6 +45,11 @@ CEntitiesDialog::CEntitiesDialog(CWnd* pParent /*=NULL*/)
 	//}}AFX_DATA_INIT
 	mCurrentEntity = 0;
 	mCurrentKey = LB_ERR;
+	m_pEntityArray = NULL;
+
+	CDialog::Create(IDD,pParent);
+
+	pDoc = CGlobals::GetActiveDocument();
 }
 
 
@@ -51,6 +57,7 @@ void CEntitiesDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CEntitiesDialog)
+	DDX_Control(pDX, IDC_ENTITIES_STATIC, m_entitiesStaticString);
 	DDX_Control(pDX, IDC_PROPERTIESLIST, m_PropertiesList);
 	DDX_Control(pDX, IDC_ENTITYCOMBO, m_EntityCombo);
 	//}}AFX_DATA_MAP
@@ -71,47 +78,141 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CEntitiesDialog message handlers
 
-int CEntitiesDialog::EditEntity( CEntityArray& Entities, int CurrentEntity, CFusionDoc* Doc)
+
+
+BOOL CEntitiesDialog::OnInitDialog() 
+{
+	pDoc = CGlobals::GetActiveDocument();
+
+
+	CDialog::OnInitDialog();
+
+	pDoc->m_pMainFrame->HideAllPropDialogsBut(this);
+
+
+//	CEntityArray *Entities = Level_GetEntities (pDoc->GetLevel()); //	moved to UpdateEntities
+//	EditEntity(*Entities, pDoc->m_iCurrentEntity, pDoc);	//	moved to UpdateEntities
+
+
+	return true;
+
+}
+
+
+/*
+UpdateMainControls --->(conditional)EditEntity ---> ShowDialog() ---> FillInDialog --->Reset combo box
+
+UpdateMainControls ---> UpdateEntities ---> EditEntity--->ShowDialog ---> FillInDialog--->reset combo box
+*/
+
+
+
+bool CEntitiesDialog::UpdateEntities(CGEditProDoc *pDoc)
+{
+	if (pDoc != NULL)
+	{
+		CEntityArray *pTempEntities = NULL;
+		CtLevel	*pTempLevel = NULL;
+		CtLevelMgr *pTempLevelMgr = NULL;
+		pTempLevel = pDoc->GetLevel();
+
+		if (pTempLevel)
+		{
+			if (pDoc->m_pLevelMgr)
+			{
+				pTempEntities = pDoc->m_pLevelMgr->GetEntities(pTempLevel);	
+				if (pTempEntities)
+				{
+					EditEntity(*pTempEntities, pDoc->m_iCurrentEntity, pDoc);
+				}
+			}
+		}
+		
+		pDoc->UpdateEntityOrigins();
+	
+		if (((CDialogBar*)this->GetParent())->IsWindowVisible())	//	post 0.57
+		{
+
+				FillInDialog();
+				//	Be very careful when speccing flags for UpdateAllViews()
+				//	The wrong flags at the wrong time will totally screw things up
+				pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);
+				//	pDoc->SetModifiedFlag();
+
+			if (!((CDialogBar*)this->GetParent())->IsFloating())	//	post 0.57
+			{
+			//	Restore focus to active view ONLY when the Prop Panel is Docked
+				CMDIChildWnd *pMDIChild	=(CMDIChildWnd *)pDoc->m_pMainFrame->MDIGetActive();
+				if(pMDIChild)
+				{
+					CView	*cv	=(CView *)pMDIChild->GetActiveView();
+					if( cv)
+						cv->SetFocus() ;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
+int CEntitiesDialog::EditEntity( CEntityArray& Entities, int CurrentEntity, CGEditProDoc* Doc)
 {
 	// If more than one entity selected, make sure they're all the same type.
 	int nSel = 0;
-	CString EntityClassname;
+	CString strEntityClassname;
 	int i;
 
 	pDoc = Doc;
-	mEntityArray = &Entities;
+	m_pEntityArray = &Entities;
 
-	for (i = 0; i < mEntityArray->GetSize(); ++i)
+	for (i = 0; i < m_pEntityArray->GetSize(); ++i)
 	{
-		CEntity *pEnt;
+		CEntity *pEnt= NULL;
 
 		pEnt = &Entities[i];
-		if (pEnt->IsSelected ())
+		if (pEnt)
 		{
-			if (nSel == 0)
+			if (pEnt->IsSelected ())
 			{
-				EntityClassname = pEnt->GetClassname ();
-				mCurrentEntity = i;
-			}
-			else
-			{
-				if (pEnt->GetClassname () != EntityClassname)
+				if (nSel == 0)	// if it's the first one selected
 				{
-					AfxMessageBox ("To edit multiple entities, they must all be of the same type.");
-					return CurrentEntity;
+					strEntityClassname = pEnt->GetClassname ();
+					mCurrentEntity = i;
 				}
+				else	//	otherwise it's not the first selected entity
+				{		//	compare this one with the first selected entity
+						//	if selected entities are of different types
+						//	TEST TO SEE IF SELECTED ENTITIES ARE OF DIFFERENT TYPES
+					if (pEnt->GetClassname () != strEntityClassname)
+					{						
+									//	new g3dc
+									//	show the dialog box, keeping in mind that
+							ShowDialog(false);	//	multiple types of entities are selected	
+	//						AfxMessageBox ("To edit multiple entities, they must all be of the same type.");
+							
+							return CurrentEntity; // we're outta here
+					}
+				}
+				++nSel;
 			}
-			++nSel;
 		}
 	}
 
-	MultiEntityFlag = (nSel > 1);
-	if (MultiEntityFlag)
-	{
+	//	Now, we may have only one entity selected, OR we may have multiple
+	//	entities selected. But since we already tested (above) to see if multiple
+	//	entities are of different types, we are confident that multiple selected
+	//	entities are of the same type.
+
+									//	MultiEntityFlag gets set to TRUE if more than
+									//	one entity OF THE SAME TYPE is selected.
+	MultiEntityFlag = (nSel > 1);	// 
+	if (MultiEntityFlag)	// if more than one entity is selected
+	{						//	don't do nuthin'
 	}
-	else
+	else					//	only a single entity be selected
 	{
-		if (CurrentEntity != -1)
+		if (CurrentEntity != -1)	//	if it's not the NULL spot on the list
 		{
 			mCurrentEntity = CurrentEntity;
 		}
@@ -119,49 +220,86 @@ int CEntitiesDialog::EditEntity( CEntityArray& Entities, int CurrentEntity, CFus
 		{
 			//	Let's set entity 0 as selected if it exists...
 			mCurrentEntity = 0;
-			if (mEntityArray->GetSize()  > 0)
+			if (m_pEntityArray->GetSize()  > 0)
 			{
 				pDoc->ResetAllSelectedEntities();
-				pDoc->SelectEntity (&(*mEntityArray)[mCurrentEntity]);
-				pDoc->mCurrentEntity = mCurrentEntity;
+				pDoc->SelectEntity (&(*m_pEntityArray)[mCurrentEntity]);
+				pDoc->m_iCurrentEntity = mCurrentEntity;
 			}
 		}
 	}
 
-	DoModal();
+	ShowDialog(true);
+
+	m_iCurrentEntity = mCurrentEntity;
 	return mCurrentEntity;
 }
 
 
-int CEntitiesDialog::DoDialog( CEntityArray& Entities, CFusionDoc* Doc)
+
+
+
+bool CEntitiesDialog::ShowDialog(bool bShow)
+{
+	if (this->GetParent()->IsWindowVisible()) // post 0.57 if Properties Panel Visible
+	{
+		SetWindowPos(NULL,5,10,0,0,SWP_NOZORDER|SWP_NOSIZE);
+		this->ShowWindow(SW_SHOW);		
+		
+		if (bShow)	//	single entity or multiple entities of the same type are selected
+		{
+			//		if (pDoc->GetSelState() & ONEENTITY)	//	NEW G3DC
+			//			MultiEntityFlag = 0;
+			
+			m_entitiesStaticString.SetWindowText("Ready...");
+			
+			// we have to go through and setup all of our stuff
+			FillInDialog();
+			
+			m_PropertiesList.EnableWindow(TRUE);
+
+			if (!((CDialogBar*)this->GetParent())->IsFloating()) //	post 0.57
+			{
+				m_PropertiesList.SetFocus(); // set focus ONLY when panel is NOT floating.
+				//	While undocked, this will send a SetFocus message to the MainFrame
+				//	which calls UpdateMainControls, which ultimately calls this function
+				//	again, resulting in an endless loop.
+			}
+			
+			if (MultiEntityFlag)
+				m_EntityCombo.EnableWindow (FALSE);
+			else
+				m_EntityCombo.EnableWindow(TRUE);
+			
+			if (!EnableToolTips (TRUE))
+			{
+				return FALSE;
+			}
+			
+		}
+		
+		else if (!bShow)	//	different entity types are selected
+		{
+			m_EntityCombo.EnableWindow (FALSE);
+			//		MessageBeep(MB_ICONEXCLAMATION);
+			m_entitiesStaticString.SetWindowText("Not Same Type...");
+			m_PropertiesList.EnableWindow(FALSE);
+		}
+		return true;
+	}
+	return true;
+}
+
+int CEntitiesDialog::DoDialog( CEntityArray& Entities, CGEditProDoc* Doc)
 {
 	// the list of entities
-	mEntityArray = &Entities;
+	m_pEntityArray = &Entities;
 	pDoc = Doc;
-	DoModal();
+//	DoModal();
+
 	return mCurrentEntity;
 }
 
-BOOL CEntitiesDialog::OnInitDialog() 
-{
-	// do the standard initialization
-	CDialog::OnInitDialog();
-	
-	// we have to go through and setup all of our stuff
-	FillInDialog();
-
-	m_PropertiesList.SetFocus ();
-	if (MultiEntityFlag)
-	{
-		m_EntityCombo.EnableWindow (FALSE);
-	}
-	if (!EnableToolTips (TRUE))
-	{
-		return FALSE;
-	}
-
-	return FALSE;
-}
 
 int CEntitiesDialog::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const
 {
@@ -221,12 +359,12 @@ BOOL CEntitiesDialog::NeedTextNotify( UINT id, NMHDR * pNMHDR, LRESULT * pResult
 		return FALSE;
 	}
 	Index = m_EntityCombo.GetItemData (Index);
-	pEnt = &((*mEntityArray)[Index]);
+	pEnt = &((*m_pEntityArray)[Index]);
 	EntityClassname = pEnt->GetClassname ();
 
 	m_PropertiesList.GetText (UglyGlobalItemId, FieldName);
 
-	pDocField = EntityTable_GetEntityFieldDoc (Level_GetEntityDefs (pDoc->pLevel), EntityClassname, FieldName);
+	pDocField = EntityTable_GetEntityFieldDoc (pDoc->m_pLevelMgr->GetEntityDefs (pDoc->GetLevel()), EntityClassname, FieldName);
 	if (pDocField != NULL)
 	{
 		strncpy (pTTT->szText, pDocField, sizeof (pTTT->szText));
@@ -314,7 +452,7 @@ static int compare( const void * arg1, const void * arg2 )
 void CEntitiesDialog::FillInDialog()
 {
 	int			CurrentEnt;
-	int			NumberOfEnts = (*mEntityArray).GetSize();
+	int			NumberOfEnts = (*m_pEntityArray).GetSize();
 //	int			RealIndex = 0;
 	int			ArrayIndex = 0 ;
 	geBoolean	bValidSelection = FALSE ;
@@ -329,10 +467,10 @@ void CEntitiesDialog::FillInDialog()
 	// Get a qualified list count
 	for( CurrentEnt = 0; CurrentEnt < NumberOfEnts; CurrentEnt++ ) 
 	{
-		CEntity *pEnt;
+		CEntity *pEnt = NULL;
 
 		// get the name
-		pEnt = &((*mEntityArray)[CurrentEnt]);
+		pEnt = &((*m_pEntityArray)[CurrentEnt]);
 
 		if( pEnt->IsVisible() )
 		{
@@ -350,7 +488,7 @@ void CEntitiesDialog::FillInDialog()
 		CEntity *pEnt;
 
 		// get the name
-		pEnt = &((*mEntityArray)[CurrentEnt]);
+		pEnt = &((*m_pEntityArray)[CurrentEnt]);
 
 		if( pEnt->IsVisible() )
 		{
@@ -407,8 +545,8 @@ void CEntitiesDialog::FillInKeyValuePairs(int Selection)
 	int Entity ;
 
 //ASSERT( m_EntityCombo.GetItemData( m_EntityCombo.GetCurSel( ) ) == (DWORD)Entity ) ;
-	Entity = m_EntityCombo.GetItemData( m_EntityCombo.GetCurSel( ) ) ;
-
+	Entity = m_EntityCombo.GetItemData( m_EntityCombo.GetCurSel( ) ) ;	//	old gedit
+//	Entity = pDoc->m_iCurrentEntity;	//	g3dc experiment
 	// now go through that entity and add key/value pairs
 	// to the dialog
 	m_PropertiesList.ResetContent();
@@ -420,12 +558,12 @@ void CEntitiesDialog::FillInKeyValuePairs(int Selection)
 		return;
 	}
 
-	CEntity *Ent = &((*mEntityArray)[Entity]);
+	CEntity *Ent = &((*m_pEntityArray)[Entity]);
 	EntityPropertiesList const *pProps;
 
 	// Get sorted list of published key/value pairs
 	CString EntityClassname = Ent->GetClassname ();
-	pProps = EntityTable_GetEntityPropertiesFromName (Level_GetEntityDefs (pDoc->pLevel), EntityClassname, ET_PUBLISHED);
+	pProps = EntityTable_GetEntityPropertiesFromName (pDoc->m_pLevelMgr->GetEntityDefs (pDoc->GetLevel()), EntityClassname, ET_PUBLISHED);
 	if (pProps != NULL)
 	{
 		// Add key/value pairs to the listbox
@@ -488,20 +626,26 @@ void CEntitiesDialog::OnSelchangeEntitylist()
 		mCurrentEntity = m_EntityCombo.GetItemData( CurrentSelection );
 		//	Set this as the current entity...
 		pDoc->SetSelectedEntity( mCurrentEntity ) ;
+		//	Be very careful when speccing flags for UpdateAllViews()
+		//	The wrong flags at the wrong time will totally screw things up
 		pDoc->UpdateAllViews( UAV_ALL3DVIEWS, NULL );
 	}
 
-	FillInKeyValuePairs (0);
+//	FillInKeyValuePairs (0);
+
 }
 
 void CEntitiesDialog::OnDblclkPropertieslist() 
 {
+	CGEditProDoc *pDoc = NULL;
+	pDoc = CGlobals::GetActiveDocument();
+
 	// Double-click on the item...Edit it.
 	mCurrentKey = m_PropertiesList.GetCurSel ();
 
 	if (mCurrentKey != LB_ERR)
 	{
-		CEntity *Ent = &((*mEntityArray)[mCurrentEntity]);
+		CEntity *Ent = &((*m_pEntityArray)[mCurrentEntity]);
 		CString EntityTypeName = Ent->GetClassname ();
 		CString KeyName;
 		CString TheValue;
@@ -512,7 +656,7 @@ void CEntitiesDialog::OnDblclkPropertieslist()
 		
 		TopType eType;
 		
-		if (EntityTable_GetEntityPropertyType (Level_GetEntityDefs (pDoc->pLevel), EntityTypeName, KeyName, &eType))
+		if (EntityTable_GetEntityPropertyType (pDoc->m_pLevelMgr->GetEntityDefs (pDoc->GetLevel()), EntityTypeName, KeyName, &eType))
 		{
 			CDialog *pEditDialog = NULL;
 
@@ -535,10 +679,10 @@ void CEntitiesDialog::OnDblclkPropertieslist()
 					pEditDialog = new CKeyEditDlg (this, KeyName, &TheValue);
 					break;
 				case T_MODEL :
-					pEditDialog = new CModelKeyEditDlg (this, Level_GetModelInfo (pDoc->pLevel)->Models, KeyName, &TheValue);
+					pEditDialog = new CModelKeyEditDlg (this, pDoc->m_pLevelMgr->GetModelInfo (pDoc->GetLevel())->Models, KeyName, &TheValue);
 					break;
 				case T_STRUCT :
-					pEditDialog = new CStructKeyEditDlg (this, *Ent, KeyName, mEntityArray, &TheValue, Level_GetEntityDefs (pDoc->pLevel));
+					pEditDialog = new CStructKeyEditDlg (this, *Ent, KeyName, m_pEntityArray, &TheValue, pDoc->m_pLevelMgr->GetEntityDefs (pDoc->GetLevel()));
 					break;
 				case T_BOOLEAN :
 					pEditDialog = new CBoolKeyEditDlg (this, KeyName, &TheValue);
@@ -563,11 +707,11 @@ void CEntitiesDialog::OnDblclkPropertieslist()
 						// multiple entities--change this property on all of them
 						int i;
 
-						for (i = 0; i < mEntityArray->GetSize (); ++i)
+						for (i = 0; i < m_pEntityArray->GetSize (); ++i)
 						{
 							CEntity *pEnt;
 
-							pEnt = &(*mEntityArray)[i];
+							pEnt = &(*m_pEntityArray)[i];
 							if (pEnt->IsSelected ())
 							{
 								pEnt->SetKeyValue (KeyName, TheValue);
@@ -603,6 +747,13 @@ void CEntitiesDialog::OnOK (void)
 {
 	this->OnDblclkPropertieslist ();
 }
+
+
+void CEntitiesDialog::OnCancel()
+{
+	return;
+}
+
 
 static void FillTextBuffer
 	(
@@ -676,7 +827,7 @@ void CEntitiesDialog::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpdis)
 	--(rectValue.bottom);
 
 
-	CEntity *pEnt = &((*mEntityArray)[mCurrentEntity]);
+	CEntity *pEnt = &((*m_pEntityArray)[mCurrentEntity]);
 	CString KeyName, Value;
 
 	m_PropertiesList.GetText (lpdis->itemID, KeyName);

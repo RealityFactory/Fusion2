@@ -18,6 +18,7 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #if !defined(AFX_SKYDIALOG_H__EDBC3365_E973_11D1_B69D_004005424FA9__INCLUDED_)
 #define AFX_SKYDIALOG_H__EDBC3365_E973_11D1_B69D_004005424FA9__INCLUDED_
@@ -28,9 +29,10 @@
 // SkyDialog.h : header file
 //
 
-#include "resource.h"
-class CFusionDoc;
-class CFusionTabControls;
+#include "flat_combo/XTFlatComboBox.h"
+
+class CGEditProDoc;
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CSkyDialog dialog
@@ -39,26 +41,30 @@ class CSkyDialog : public CDialog
 {
 // Construction
 public:
-	CSkyDialog(CFusionTabControls *pParent, CFusionDoc *pDoc);
+	CSkyDialog(CWnd *pParent =NULL);
 	~CSkyDialog (void);
-	void Update (CFusionDoc *pDoc);
+	void Update (CGEditProDoc *pDoc);
 
 // Dialog Data
 	//{{AFX_DATA(CSkyDialog)
 	enum { IDD = IDD_SKYDIALOG };
-	CEdit	m_EditSpeed;
-	CButton	m_SkyTop;
-	CButton	m_SkyRight;
-	CButton	m_SkyLeft;
-	CButton	m_SkyFront;
-	CButton	m_SkyBottom;
-	CButton	m_SkyBack;
-	CComboBox	m_SkyTopCombo;
-	CComboBox	m_SkyRightCombo;
-	CComboBox	m_SkyLeftCombo;
-	CComboBox	m_SkyFrontCombo;
-	CComboBox	m_SkyBottomCombo;
-	CComboBox	m_SkyBackCombo;
+	CXTFlatComboBox	m_NullCombo;
+	CButton	m_clearAllBtn;
+	CButton	m_allsameBtn;
+	CXTFlatComboBox	m_SkyAlltheSameCombo;
+	CEdit		m_EditSpeed;
+	CButton		m_SkyTop;
+	CButton		m_SkyRight;
+	CButton		m_SkyLeft;
+	CButton		m_SkyFront;
+	CButton		m_SkyBottom;
+	CButton		m_SkyBack;
+	CXTFlatComboBox	m_SkyTopCombo;
+	CXTFlatComboBox	m_SkyRightCombo;
+	CXTFlatComboBox	m_SkyLeftCombo;
+	CXTFlatComboBox	m_SkyFrontCombo;
+	CXTFlatComboBox	m_SkyBottomCombo;
+	CXTFlatComboBox	m_SkyBackCombo;
 	int		m_RotationAxis;
 	float	m_RotationSpeed;
 	float	m_TextureScale;
@@ -93,16 +99,21 @@ protected:
 	afx_msg void OnKillfocusEditspeed();
 	afx_msg void OnAxisButton();
 	afx_msg void OnKillfocusEditscale();
+	virtual void OnOK();
+	afx_msg void OnSelchangeCBallsame();
+	afx_msg void OnClearAllBtn();
+	afx_msg void OnClose();
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:
-	CFusionTabControls	*m_pParentCtrl;
-	CFusionDoc			*m_pFusionDoc;
+	CGEditProDoc			*m_ptEditDoc;
 	void UpdateSkyFaceUI (CButton &FaceButton, CComboBox &FaceCombo, int FaceIndex);
 	void UpdateSkyFaceInfo (CButton &FaceButton, CComboBox &FaceCombo, int FaceIndex);
 	void SetSkyFaceUI (CButton &FaceButton, CComboBox &FaceCombo, int FaceIndex);
 	int FaceNameInCombo (char const *TextureName, CComboBox &FaceCombo);
-	void UpdateFaceTextureName (CComboBox &FaceCombo, int FaceIndex);
+	void UpdateFaceTextureName (CComboBox &FaceCombo, int FaceIndex, bool bGotOne);
+	void	ResetSkySurface(CComboBox &FaceCombo, int FaceIndex);
 };
 
 //{{AFX_INSERT_LOCATION}}

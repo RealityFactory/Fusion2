@@ -18,21 +18,30 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef FACEATTRIBUTESDIALOG_H
 #define FACEATTRIBUTESDIALOG_H
 
 #include "brush.h"
-#include "resource.h"
+//#include "resource.h"
+#include "flat_combo/XTFlatComboBox.h"
 
-class CFusionDoc;
+
+class CGEditProDoc;
 
 class CFaceAttributesDialog : public CDialog
 {
 public:
-	CFaceAttributesDialog(CFusionDoc* pFusionDoc, CWnd* pParent = NULL);
+//	CFaceAttributesDialog(CGEditProDoc* ptEditDoc, CWnd* pParent = NULL); // old gedit
+	CFaceAttributesDialog(CWnd* pParent = NULL);	//	new g3dc
+
+	
+	void ShowDialog();
+	bool UpdateFaceAttributes(CGEditProDoc *pDoc, Face *pFace);
 	void SetupDialog();
-	void UpdatePolygonFocus ();
+//	void UpdatePolygonFocus (CGEditProDoc *pDoc);
+	void UpdatePolygonFocus (Face *pFace);
 	void AssignCurrentToViews();
 	void OnResetAll();
 	void AssignFaceValues (Face *pFace);
@@ -44,8 +53,8 @@ public:
 	CEdit	m_EditReflectivity;
 	CEdit	m_EditMipMapBias;
 	CEdit	m_EditLightIntensity;
-	CComboBox	m_ComboYLightScale;
-	CComboBox	m_ComboXLightScale;
+	CXTFlatComboBox	m_ComboYLightScale;
+	CXTFlatComboBox	m_ComboXLightScale;
 	CEdit	m_EditLightYScale;
 	CEdit	m_EditLightXScale;
 	CEdit	m_EditAngle;
@@ -53,11 +62,11 @@ public:
 	CEdit	m_EditXScale;
 	CEdit	m_EditYOffset;
 	CEdit	m_EditXOffset;
-	CComboBox	m_ComboXOffset;
-	CComboBox	m_ComboYOffset;
-	CComboBox	m_ComboXScale;
-	CComboBox	m_ComboYScale;
-	CComboBox	m_ComboAngle;
+	CXTFlatComboBox	m_ComboXOffset;
+	CXTFlatComboBox	m_ComboYOffset;
+	CXTFlatComboBox	m_ComboXScale;
+	CXTFlatComboBox	m_ComboYScale;
+	CXTFlatComboBox	m_ComboAngle;
 	float m_TextureYScale;
 	float m_TextureXScale;
 	int m_TextureYOffset;
@@ -90,6 +99,7 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual void PostNcDestroy();
+	virtual void OnCancel();
 	//}}AFX_VIRTUAL
 
 // Implementation
@@ -98,8 +108,6 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(CFaceAttributesDialog)
 	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-	virtual void OnCancel();
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnChangeXOffset();
 	afx_msg void OnKillfocusXOffset();
 	afx_msg void OnChangeYOffset();
@@ -128,12 +136,14 @@ protected:
 	afx_msg void OnKillfocusReflectivity();
 	afx_msg void OnKillfocusFacetranslucency();
 	afx_msg void OnTransparent();
+	afx_msg void OnFaceApplybtn();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 	virtual void OnOK ();
 private:
-	CFusionDoc		*m_pDoc;
+	CGEditProDoc		*m_pDoc;
 
+	Face	*pFace;
 	void	OnFacelight( void );
 	float	DoIncrement (float v, float incr, float vMin, float vMax, int nSBCode);
 	float	GetIncrement (CComboBox &combo);

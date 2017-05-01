@@ -18,6 +18,7 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #if !defined(AFX_LEVELOPTIONS_H__BD140A61_2534_11D2_B69D_004005424FA9__INCLUDED_)
 #define AFX_LEVELOPTIONS_H__BD140A61_2534_11D2_B69D_004005424FA9__INCLUDED_
@@ -30,6 +31,30 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // CLevelOptions dialog
+#include "GEditProDoc.h"
+
+#include "PathSelector\ListBoxEx.h"
+#include "PathSelector\SHBrowseDlg.h"
+
+class CPathListBoxEx: public CListBoxEx
+{
+public:
+
+   CPathListBoxEx()
+   {
+      SetEditStyle( LBEX_EDITBUTTON );
+   };
+
+   virtual void OnBrowseButton( int iItem )
+   {
+      iItem;
+      CSHBrowseDlg dlgBrowse;
+      if ( dlgBrowse.DoModal() ) SetEditText( dlgBrowse.GetFullPath() );
+   };
+};
+
+
+
 
 class CLevelOptions : public CDialog
 {
@@ -46,8 +71,20 @@ public:
 	bool	m_TxlChanged;
 	CString	m_HeadersDir;
 	bool	m_HeadersChanged;
+	CPathListBoxEx	m_ListBoxEx;
+	float	m_ScaleWorld;	//	post 0.57
+	float	m_CurrentScale;	//	post 0.57
+	double	m_SnapDegrees;
+	BOOL	m_UseSnap;
+	int		MetricOrTexelSnap;
+	int		MetricOrTexelGrid;
+	int		TexelGridUnits;
+	int		m_GridUnits;
 	//}}AFX_DATA
+      CListBoxExBuddy m_ListBoxExBuddy;
+	  CString m_tempHeadersDir;
 
+private:
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -59,11 +96,30 @@ public:
 // Implementation
 protected:
 
+	CGEditProDoc	*m_pDoc;
+
 	// Generated message map functions
 	//{{AFX_MSG(CLevelOptions)
 	afx_msg void OnBrowsetxl();
 	afx_msg void OnChangeEdittxl();
 	afx_msg void OnChangeEditheadersdir();
+	virtual BOOL OnInitDialog();
+	virtual void OnOK();
+	afx_msg void OnKillfocusDrawscale();
+	afx_msg void OnKillfocusLightmapscale();
+	afx_msg void OnKillfocusScaleWorld();
+			afx_msg void OnSnap15();
+	afx_msg void OnSnap30();
+	afx_msg void OnSnap45();
+	afx_msg void OnSnap60();
+	afx_msg void OnUsertosnap();
+	afx_msg void OnSnap90();
+	afx_msg void OnTexel1Radio();
+	afx_msg void OnTexel2Radio();
+	afx_msg void OnTexel4Radio();
+	afx_msg void OnTexel8Radio();
+	afx_msg void OnTexel16Radio();
+	afx_msg void OnTexel32Radio();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

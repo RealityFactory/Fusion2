@@ -18,13 +18,14 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef GBSPLIB_H
 #define GBSPLIB_H
 
 #include <Windows.h>
-#include "vec3d.h"
-#include "basetype.h"
+#include "include/vec3d.h"
+#include "include/basetype.h"
 
 //#include "MyDef.h"
 //#include "MathLib.h"

@@ -15,12 +15,13 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*	Genesis3D Version 1.1 released November 15, 1999						            */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved							*/
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
-#include "fusion.h"
+#include "GEditPro.h"
 #include "ActivationWatch.h"
 
 #ifdef _DEBUG
@@ -44,7 +45,7 @@ CActivationWatch::~CActivationWatch()
 
 BOOL CActivationWatch::InitInstance()
 {
-	CFusionApp* pApp = ( CFusionApp* ) AfxGetApp();
+	CGEditProApp* pApp = ( CGEditProApp* ) AfxGetApp();
 	CSyncObject* pEvents[ 2 ];
 	pEvents[ 1 ] = pApp->pNewInstanceEvent;
 	pEvents[ 0 ] = pApp->pShutdownEvent;

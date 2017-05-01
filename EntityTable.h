@@ -18,14 +18,15 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef ENTITYTABLE_H
 #define ENTITYTABLE_H
 
-#include "basetype.h"
+#include "include/basetype.h"
 #include "iden.h"
 #include "type.h"
-#include "bitmap.h"
+#include "include/bitmap.h"
 
 extern const char EntityNameKey[];
 
@@ -57,6 +58,8 @@ struct EntityTypeList
 	int nTypes;
 	char *TypeNames[1];
 };
+
+EntityTable *EntityTable_Clone (EntityTable *pInputTable);
 
 EntityTable *EntityTable_Create (char const *DirName);
 void EntityTable_Destroy (EntityTable **ppTable);

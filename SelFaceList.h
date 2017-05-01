@@ -18,6 +18,7 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef SELFACELIST_H
 #define SELFACELIST_H
@@ -34,6 +35,7 @@ typedef geBoolean (*SelFaceList_Callback)(Face *pFace, void *lParam);
 
 SelFaceList *SelFaceList_Create (void);
 void SelFaceList_Destroy (SelFaceList **ppList);
+SelFaceList	*SelFaceList_Clone(SelFaceList *inList);
 
 geBoolean SelFaceList_Add (SelFaceList *pList, Face *pFace);
 geBoolean SelFaceList_Remove (SelFaceList *pList, Face *pFace);

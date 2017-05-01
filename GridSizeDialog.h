@@ -22,7 +22,7 @@
 #ifndef GRIDSIZEDIALOG_H
 #define GRIDSIZEDIALOG_H
 
-#include "resource.h"
+//#include "resource.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CGridSizeDialog dialog

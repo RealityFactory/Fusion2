@@ -18,11 +18,12 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
 #include "WadFile.h"
-#include "ram.h"
-#include "vfile.h"
+#include "include/ram.h"
+#include "include/vfile.h"
 #include "util.h"
 #include <assert.h>
 
@@ -56,7 +57,7 @@ CWadFile::CWadFile()
 }
 
 
-CWadFile::DestroyBitmapArray ()
+void CWadFile::DestroyBitmapArray ()
 {
 	if( mBitmaps != NULL )
 	{
@@ -76,7 +77,7 @@ CWadFile::~CWadFile()
 static int wadCountFiles (geVFile *vfs, const char *fspec)
 {
 	int nFiles = 0;
-	geVFile_Finder *Finder;
+	geVFile_Finder *Finder = NULL;
 
 	// count the number of files
 	Finder = geVFile_CreateFinder (vfs, fspec);
@@ -91,10 +92,22 @@ static int wadCountFiles (geVFile *vfs, const char *fspec)
 	return nFiles;
 }
 
+
+//	post 0.5 release //	comparison function for sorting mBitmaps alphabetically
+int CompareNames(const void *pArg1, const void *pArg2)
+{
+	WadFileEntry *pEntry1 =  (WadFileEntry *)pArg1;	//	cast pArg1 as a WadFileEntry type
+	WadFileEntry *pEntry2 =  (WadFileEntry *)pArg2;
+
+	return stricmp(pEntry1->Name, pEntry2->Name);	//	do case-insensitive compare
+}
+
+
+
 geBoolean CWadFile::Setup(const char *Filename)
 {
 	geVFile *			Library;
-
+	int nFiles;
 	geBoolean			NoErrors = GE_FALSE;
 
 	Library = geVFile_OpenNewSystem (NULL, GE_VFILE_TYPE_VIRTUAL, Filename, NULL, GE_VFILE_OPEN_READONLY | GE_VFILE_OPEN_DIRECTORY);
@@ -104,12 +117,14 @@ geBoolean CWadFile::Setup(const char *Filename)
 
 		DestroyBitmapArray ();
 
-		int nFiles = wadCountFiles (Library, "*.*");
+		nFiles = wadCountFiles (Library, "*.*");
 
 		if (nFiles > 0)
 		{
 			// make new array and fill it with loaded bitmaps
 			mBitmaps = (WadFileEntry *)geRam_Allocate (nFiles * sizeof (WadFileEntry));
+			
+			mBitmaps[10].Name;
 
 			// and fill array with filenames
 			NoErrors = GE_FALSE;
@@ -118,13 +133,14 @@ geBoolean CWadFile::Setup(const char *Filename)
 			{
 				NoErrors = GE_TRUE;
 				geVFile_Properties Props;
-
+			
 				while (geVFile_FinderGetNextFile (Finder) != GE_FALSE)
 				{
 					geVFile_FinderGetProperties (Finder, &Props);
 
-					// load the file and create a DibBitmap from it
+							// load the file and create a DibBitmap from it
 					geVFile *BmpFile = geVFile_Open (Library, Props.Name, GE_VFILE_OPEN_READONLY);
+					
 					geBitmap *TheBitmap;
 
 					if (BmpFile == NULL)
@@ -171,6 +187,9 @@ geBoolean CWadFile::Setup(const char *Filename)
 		}
 		geVFile_Close (Library);
 	}
+		//	post 0.5 release	//	sort the final mBitmaps so the texture browser
+								//	will display textures alphabetically
+	qsort(mBitmaps, nFiles, sizeof(WadFileEntry), CompareNames);
 
 	return GE_TRUE;
 }

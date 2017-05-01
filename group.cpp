@@ -18,12 +18,13 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
 #include "group.h"
 #include "resource.h"
 #include <assert.h>
-#include "ram.h"
+#include "include/ram.h"
 #include "util.h"
 
 struct tag_Group
@@ -61,13 +62,9 @@ static int compare( const void * arg1, const void * arg2 )
 }/* ::compare */
 
 
-Group *Group_Create
-	(
-	  int id,
-	  char const *pName
-	)
+Group *Group_Create(int id, char const *pName )
 {
-	Group *pGroup;
+	Group *pGroup = NULL;
 	
 	assert (pName != NULL);
 
@@ -87,14 +84,11 @@ Group *Group_Create
 	return pGroup;
 }
 
-void Group_Destroy
-	(
-	  Group **ppGroup
-	)
+void Group_Destroy(Group **ppGroup)
 // Sets all brushes and entities GroupId fields to 0,
 // and deallocates the list structure
 {
-	Group *pGroup;
+	Group *pGroup = NULL;
 
 	assert (ppGroup != NULL);
 	assert (*ppGroup != NULL);
@@ -116,12 +110,33 @@ struct tag_GroupListType
 	Group *First;
 };
 
-GroupListType *Group_CreateList
-	(
-	  void
-	)
+
+GroupListType *Group_CloneList(GroupListType *pGroupList)
 {
-	GroupListType *pList;
+	if (pGroupList)
+	{
+		Group *pTempGroupIn = NULL, *pTempGroupOut = NULL;
+		GroupListType *pNewGroupList = NULL;
+		pNewGroupList = Group_CreateList();
+		if (pNewGroupList)
+		{
+			for(pTempGroupIn = pGroupList->First; pTempGroupIn ;pTempGroupIn = pTempGroupIn->Next)
+			{
+				pTempGroupOut	= Group_Clone(pTempGroupIn);
+				GroupList_Add(pNewGroupList, pTempGroupOut);
+			}
+		}	
+		return pNewGroupList;
+	}
+	return NULL;
+
+}
+
+
+
+GroupListType *Group_CreateList(void)
+{
+	GroupListType *pList = NULL;
 
 	pList = (GroupListType *)geRam_Allocate (sizeof (GroupListType));
 	if (pList != NULL)
@@ -131,13 +146,10 @@ GroupListType *Group_CreateList
 	return pList;
 }
 
-void Group_DestroyList
-	(
-	  GroupListType **ppList
-	)
+void Group_DestroyList(GroupListType **ppList)
 {
-	GroupListType *pList;
-	Group *p, *q;
+	GroupListType *pList = NULL;
+	Group *p = NULL, *q = NULL;
 
 	assert (ppList != NULL);
 	assert (*ppList != NULL);
@@ -155,13 +167,10 @@ void Group_DestroyList
 	*ppList = NULL;
 }
 
-int Group_AddToList
-	(
-	  GroupListType *pList
-	)
+int Group_AddToList(GroupListType *pList)
 {
-	Group *pGroup;
-	Group *p, *g;
+	Group *pGroup = NULL;
+	Group *p = NULL, *g = NULL;
 	int GroupId;
 	char GroupName[100];
 
@@ -201,15 +210,10 @@ int Group_AddToList
 }
 
 
-void Group_RemoveFromList
-	(
-	  GroupListType *pList,
-	  int GroupId,
-	  BrushList *BrushList,
-	  CEntityArray *Entities
-	)
+void Group_RemoveFromList(GroupListType *pList, int GroupId, BrushList *BrushList,
+                          CEntityArray *Entities)
 {
-	Group *g, *p;
+	Group *g = NULL, *p = NULL;
 
 	assert (pList != NULL);
 	g = pList->First;
@@ -264,13 +268,9 @@ void Group_RemoveFromList
 	}
 }
 
-geBoolean GroupList_IsValidId
-	(
-	  const GroupListType *pList,
-	  int GroupId
-	)
+geBoolean GroupList_IsValidId(const GroupListType *pList, int GroupId)
 {
-	Group *g;
+	Group *g = NULL;
 
 	assert (pList != NULL);
 
@@ -292,7 +292,7 @@ static Group *Group_FindById
 	  int GroupId
 	)
 {
-	Group *g;
+	Group *g = NULL;
 
 	assert (pList != NULL);
 
@@ -892,7 +892,7 @@ Group *GroupList_GetFromId (GroupListType *pList, int GroupId)
 
 Group *Group_Clone (const Group *OldGroup)
 {
-	Group *pGroup;
+	Group *pGroup = NULL;
 
 	assert (OldGroup != NULL);
 

@@ -18,10 +18,11 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "SelFaceList.h"
 #include "array.h"
-#include "ram.h"
+#include "include/ram.h"
 #include <assert.h>
 
 
@@ -66,6 +67,46 @@ void SelFaceList_Destroy (SelFaceList **ppList)
 	}
 	geRam_Free (*ppList);
 }
+
+
+
+
+SelFaceList	*SelFaceList_Clone(SelFaceList *inList)
+{
+	SelFaceList	*pOutList = NULL;
+	Face		*b = NULL, *b2 = NULL;
+
+	//assert(inList != NULL);
+	if (inList)
+	{
+		pOutList = SelFaceList_Create();
+
+		if (pOutList)
+		{
+			int i;
+			int iInListSize = SelFaceList_GetSize(inList);
+			for (i = 0; i < iInListSize; i++ )
+			{
+				Face* pTempInFace = NULL;
+				pTempInFace = SelFaceList_GetFace(inList, i);
+				if (pTempInFace)
+				{
+					b2	= Face_Clone(pTempInFace);
+					if (b2)
+						SelFaceList_Add(pOutList, b2);
+				}
+			}
+		}
+	}
+
+	return	pOutList;
+}
+
+
+
+
+
+
 
 
 geBoolean SelFaceList_Add (SelFaceList *pList, Face *pFace)
@@ -138,10 +179,12 @@ int SelFaceList_GetSize (SelFaceList *pList)
 
 Face *SelFaceList_GetFace (SelFaceList *pList, int FaceIndex)
 {
-	Face **ppFace;
 
+	Face **ppFace = NULL;
+	if (pList)
+	{
 	ppFace = (Face **)Array_ItemPtr (pList->pItems, FaceIndex);
-
+	}
 	return *ppFace;
 }
 

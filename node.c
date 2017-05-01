@@ -18,15 +18,16 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "node.h"
-#include "basetype.h"
-#include "Vec3d.h"
+#include "include/basetype.h"
+#include "include/Vec3d.h"
 #include <assert.h>
 #include "brush.h"
 #include "facelist.h"
 #include "face.h"
-#include "ram.h"
+#include "include/ram.h"
 
 
 //TODO:  uncut feature for case

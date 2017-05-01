@@ -18,9 +18,10 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stack.h"
-#include "ram.h"
+#include "include/ram.h"
 #include <assert.h>
 
 struct tag_Stack
@@ -33,7 +34,7 @@ struct tag_Stack
 // Returns NULL on error.
 Stack *Stack_Create (void)
 {
-	Stack *pStack;
+	Stack *pStack = NULL;
 
 	pStack = geRam_Allocate (sizeof (Stack));
 	if (pStack != NULL)

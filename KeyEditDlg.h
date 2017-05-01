@@ -18,6 +18,7 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #if !defined(AFX_KEYEDITDLG_H__E9ABF084_A391_11D1_AC11_0060088D6C58__INCLUDED_)
 #define AFX_KEYEDITDLG_H__E9ABF084_A391_11D1_AC11_0060088D6C58__INCLUDED_
@@ -31,7 +32,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // CKeyEditDlg dialog
 #include "model.h"
-#include "resource.h"
+//#include "resource.h"
 #include "entity.h"
 #include "EntityTable.h"
 

@@ -18,6 +18,7 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
 #include "compiler.h"
@@ -31,7 +32,12 @@
 
 #include <io.h>
 #include "filepath.h"
-#include "consoletab.h"	// for ConPrintf (yes, it's ugly)
+//#include "consoletab.h"	// for ConPrintf (yes, it's ugly)  old gedit
+
+//#include "ConsoleDlg.h"	//	for ConPrintf new tedit
+#include "Globals.h"
+//#include "Utilities.h"
+#include "MainFrm.h"
 #include "util.h"
 
 static CWinThread *CompilerThread = NULL;
@@ -61,12 +67,12 @@ CompilerErrorEnum Compiler_RunPreview
 	}
 
 
-	// we're going to copy the preview file to the "levels" subdirectory
+	// we're going to copy the preview file to the "worlds" subdirectory
 	// of the GPreviewPath directory...
 	//
 	// So, if the PreviewFilename is "C:\MyStuff\MyLevel.bsp",
 	// and GPreviewPath is "C:\Editor\GPreview.exe", then the resulting
-	// file name is "C:\Editor\levels\MyLevel.bsp"
+	// file name is "C:\Editor\worlds\MyLevel.bsp"
 	//
 	{
 		char PreviewDrive[_MAX_PATH];
@@ -77,7 +83,7 @@ CompilerErrorEnum Compiler_RunPreview
 		_splitpath (PreviewFilename, NULL, NULL, Name, Ext);
 		_splitpath (GPreviewPath, PreviewDrive, PreviewDir, NULL, NULL);
 
-		strcat (PreviewDir, "levels\\");
+		strcat (PreviewDir, "media\\levels\\");
 		_makepath (DestBspName, PreviewDrive, PreviewDir, Name, Ext);
 	}
 
@@ -92,38 +98,18 @@ CompilerErrorEnum Compiler_RunPreview
 			LastError = GetLastError();
 			if (LastError != ERROR_FILE_EXISTS)
 			{
-				ConPrintf("GPreviewPath: %s \n", GPreviewPath);
-				ConPrintf("CopyFile (%s, %s)\nGetLastError()==%d\n", PreviewFilename, DestBspName, LastError);
+				CMainFrame *pMainFrame = CGlobals::GetActiveDocument()->m_pMainFrame;  // G3dc
+				//pMainFrame->AssertValid();
+
+				pMainFrame->ShowConsoleBar();
+				pMainFrame->ConPrintf("GPreviewPath: %s \n", GPreviewPath);
+				pMainFrame->ConPrintf("CopyFile (%s, %s)\nGetLastError()==%d\n", PreviewFilename, DestBspName, LastError);
 				return COMPILER_ERROR_BSPCOPY;
 			}
 		}
 	}
 
-	{
-		// copy the motion file if it exists
-		char DestName[_MAX_PATH];
 
-		// check to see if the file exists
-		FilePath_SetExt (DestBspName, ".mot", DestName);
-		if (_access (MotionFilename, 0) == 0)  // _access returns 0 on success...of course!
-		{
-			if (stricmp (MotionFilename, DestName) != 0)
-			{
-				if (!CopyFile (MotionFilename, DestName, FALSE))
-				{
-					if(GetLastError() != ERROR_FILE_EXISTS)
-					{
-						ConPrintf ("%s", "Unable to copy the motion file.\n");
-						ConPrintf ("%s", "Continuing with preview.\n");
-					}
-				}
-			}
-		}
-		else
-		{
-			_unlink (DestName);
-		}
-	}
 
 	{
 		SHELLEXECUTEINFO	shx;
@@ -377,30 +363,27 @@ CompilerErrorEnum Compiler_Compile
 	return CompileRslt;
 }
 
-static void Compiler_NotifyApp
-	(
-	  char const *buf,
-	  int MsgId
-	)
+static void Compiler_NotifyApp(char const *buf, int MsgId)
 {
 #if 1
 	char *errmsg;
-
+	
 	errmsg = Util_Strdup (buf);
 	if (errmsg != NULL)
 	{
 		::PostMessage (hwndThreadParent, MsgId, COMPILER_PROCESSID, (LPARAM)errmsg);
 	}
 #else
-	ConPrintf ("%s", buf);
+//ConPrintf ("%s", buf);		 old Gedit
+
+	CMainFrame *pMainFrame = CGlobals::GetActiveDocument()->m_pMainFrame;  // G3dc
+	pMainFrame->AssertValid();
+	pMainFrame->ShowConsoleBar();
+	pMainFrame->ConPrintf("%s", buf);
 #endif
 }
 
-static void Compiler_PrintfCallback
-	(
-	  char *format,
-	  ...
-	)
+static void Compiler_PrintfCallback(char *format, ...)
 {
 	va_list argptr;
 	char	buf[32768];		//this is ... cautious
@@ -412,11 +395,7 @@ static void Compiler_PrintfCallback
 	Compiler_NotifyApp (buf, WM_USER_COMPILE_MSG);
 }
 
-static void Compiler_ErrorCallback
-	(
-	  char *format,
-	  ...
-	)
+static void Compiler_ErrorCallback(char *format, ...)
 {
 	va_list argptr;
 	char	buf[32768];		//this is ... cautious
@@ -429,10 +408,7 @@ static void Compiler_ErrorCallback
 }
 
 
-static UINT Compiler_ThreadProc 
-	(
-	  void *pParam
-	)
+static UINT Compiler_ThreadProc ( void *pParam)
 {
 	CompileParamsType CompileParams;
 	CompilerErrorEnum CompileRslt;
@@ -459,11 +435,8 @@ static UINT Compiler_ThreadProc
 }
 
 
-CompilerErrorEnum Compiler_StartThreadedCompile
-	(
-	  CompileParamsType const *pParams,
-	  HWND hwndNotify
-	)
+CompilerErrorEnum Compiler_StartThreadedCompile(CompileParamsType const *pParams, 
+												HWND hwndNotify)
 {
 	CWinThread *Thread;
 

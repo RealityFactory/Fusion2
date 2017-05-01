@@ -18,8 +18,10 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
+#include "Globals.h"
 #include "CreateArchDialog.h"
 #include "units.h"
 
@@ -36,16 +38,28 @@ CCreateArchDialog::CCreateArchDialog(CWnd* pParent /*=NULL*/)
 	: CDialog(CCreateArchDialog::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CCreateArchDialog)
-	m_NumSlits	=3;
+	m_NumSlits	=3;				// must agree with defaults in BrushTemplate.c
 	m_Thickness	=150;
 	m_Width		=100;
 	m_Radius	=200;
 	m_WallSize	=16;
-	m_Style		=0;
+	m_Style		=1;
 	m_EndAngle	=180.0f;
 	m_StartAngle=0.0f;
 	m_TCut = FALSE;
 	//}}AFX_DATA_INIT
+
+	m_minMaxErrorString.Format("Value must be between %d and %d",
+		BRUSH_MIN, BRUSH_MAX);
+	m_angleErrorString.Format("Value must be between %d and %d", 
+		ARCH_ANGLE_MIN, ARCH_ANGLE_MAX);
+	m_archThicknessErrorString.Format("Value must be between %d and %d", 
+		ARCH_THICK_MIN, ARCH_THICK_MAX);
+	m_wallThicknessErrorString.Format("Value must be between %d and %d", 
+		WALL_THICK_MIN, WALL_THICK_MAX);
+
+	pArch = NULL;
+//	m_recentArch = NULL;
 }
 
 
@@ -53,21 +67,16 @@ void CCreateArchDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CCreateArchDialog)
+	DDX_Control(pDX, IDC_ADD_ARCH_BTN, m_addArchBTN);
+	DDX_Control(pDX, IDC_CUSTOM_ARCH_BTN, m_customizeArchBTN);
 	DDX_Text(pDX, IDC_NUMSLITS, m_NumSlits);
-	DDV_MinMaxInt(pDX, m_NumSlits, 3, 64);
 	DDX_Text(pDX, IDC_THICKNESS, m_Thickness);
-	DDV_MinMaxFloat(pDX, m_Thickness, 1.f, 4000.f);
 	DDX_Text(pDX, IDC_WIDTH, m_Width);
-	DDV_MinMaxFloat(pDX, m_Width, 1.f, 4000.f);
 	DDX_Text(pDX, IDC_RADIUS, m_Radius);
-	DDV_MinMaxFloat(pDX, m_Radius, 1.f, 10000.f);
 	DDX_Text(pDX, IDC_WALLSIZE, m_WallSize);
-	DDV_MinMaxFloat(pDX, m_WallSize, 1.f, 4000.f);
 	DDX_Radio(pDX, IDC_SOLID, m_Style);
 	DDX_Text(pDX, IDC_ENDANGLE, m_EndAngle);
-	DDV_MinMaxDouble(pDX, m_EndAngle, -360., 360.);
 	DDX_Text(pDX, IDC_STARTANGLE, m_StartAngle);
-	DDV_MinMaxDouble(pDX, m_StartAngle, -360., 360.);
 	DDX_Check(pDX, IDC_TCUT, m_TCut);
 	//}}AFX_DATA_MAP
 }
@@ -79,15 +88,164 @@ BEGIN_MESSAGE_MAP(CCreateArchDialog, CDialog)
 	ON_BN_CLICKED(IDC_SOLID, OnSolid)
 	ON_BN_CLICKED(IDC_HOLLOW, OnHollow)
 	ON_BN_CLICKED(IDC_RING, OnRing)
+	ON_BN_CLICKED(IDC_ADD_ARCH_BTN, OnAddArchBtn)
+	ON_EN_KILLFOCUS(IDC_STARTANGLE, OnKillfocusStartangle)
+	ON_EN_KILLFOCUS(IDC_ENDANGLE, OnKillfocusEndangle)
+	ON_EN_KILLFOCUS(IDC_THICKNESS, OnKillfocusThickness)
+	ON_EN_KILLFOCUS(IDC_WIDTH, OnKillfocusWidth)
+	ON_EN_KILLFOCUS(IDC_RADIUS, OnKillfocusRadius)
+	ON_EN_KILLFOCUS(IDC_WALLSIZE, OnKillfocusWallsize)
+	ON_EN_KILLFOCUS(IDC_NUMSLITS, OnKillfocusNumslits)
+	ON_BN_CLICKED(IDC_CUSTOM_ARCH_BTN, OnCustomArchBtn)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CCreateArchDialog message handlers
-int	CCreateArchDialog::DoModal(geBoolean ConvertToMetric, BrushTemplate_Arch *pArchTemplate)
+
+
+void	CCreateArchDialog::ShowDialog(geBoolean ConvertToMetric, BrushTemplate_Arch *pArchTemplate, CGEditProDoc *pDoc)
 {
 	m_ConvertToMetric	=ConvertToMetric;
 	m_pArchTemplate = pArchTemplate;
+	m_pDoc = pDoc;
+
+	m_customTemplate = false;
+
+			//	toggle switch so we render our brush and NOT the Entitiy template box	
+	pDoc->m_bTempEnt = FALSE; 
+
+	pDoc->m_pMainFrame->HideAllPropDialogsBut(this);
+
+	this->GetDlgItem(IDC_STARTANGLE)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_ENDANGLE)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_THICKNESS)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_WIDTH)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_RADIUS)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_WALLSIZE)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_NUMSLITS)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_SOLID)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_HOLLOW)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_RING)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_TCUT)->EnableWindow(FALSE);
+	this->GetDlgItem(ID_DEFAULTS)->EnableWindow(FALSE);
+
+	if(m_ConvertToMetric)
+	{
+		dlgFieldsToCentimeters();
+	}
+
+	if (!strcmp(pDoc->m_pCurBrush->Name,"Arch"))
+	{
+
+		if (pDoc->m_pCurBrush)
+		{
+			pArch = m_pDoc->m_pCurBrush;	
+		}
+	}
+
+		//	if the current template name is NOT Arch, we probly have
+		//	come here from another template type.
+	else
+		if (strcmp(pDoc->m_currentTemplateName, "Arch"))
+	{
+
+		//	check to see if there is a previous cube brush from the last visit
+		if (pDoc->m_pRecentArch != NULL)	//	post 0.55
+		{			//	reset name 'cause sometimes it gets changed
+			Brush_SetName((Brush*)pDoc->m_pRecentArch, "Arch");	
+			pDoc->m_pCurBrush = (Brush*)pDoc->m_pRecentArch;
+//			pDoc->m_pBTemplate = pDoc->m_pCurBrush;
+			pDoc->m_pBTemplate = Brush_Clone(pDoc->m_pCurBrush);
+			Brush_SetName(pDoc->m_pBTemplate, "Arch");	// post 0.58
+			//	Be very careful when speccing flags for UpdateAllViews()
+			//	The wrong flags at the wrong time will totally screw things up
+			pDoc->UpdateAllViews (UAV_ALL3DVIEWS, NULL);
+		}
+			//	if no modified Arch brush from the previous visit
+		if (!pDoc->m_pRecentArch)
+		{
+			pArch = BrushTemplate_CreateArch(m_pArchTemplate);
+			
+			if (pArch != NULL)
+			{
+				pDoc->CreateNewTemplateBrush ((Brush*)pArch);
+				pDoc->m_pRecentArch = Brush_Clone(pArch);
+				Brush_SetName(pDoc->m_pCurBrush, "Arch");	
+				pDoc->m_pBTemplate = Brush_Clone(pDoc->m_pCurBrush);
+				Brush_SetName(pDoc->m_pBTemplate, "Arch");	
+			}	
+		}	//post 0.55
+	}		
+
+	//	set this now so we can come back later
+	pDoc->m_currentTemplateName = "Arch";
+
+	SetWindowPos(NULL,5,10,0,0,SWP_NOZORDER|SWP_NOSIZE);
+	this->ShowWindow(SW_SHOW);
+
+	UpdateData(TRUE);
+}
+
+
+bool CCreateArchDialog::UpdateCreateArchDlg(CGEditProDoc *pDoc)
+{
+	m_pDoc = pDoc;
+	//	post 0.55
+		//	if the current template name IS Arch...
+	if (!strcmp(pDoc->m_currentTemplateName, "Arch"))
+	{
+		if ((pDoc->m_pCurBrush != NULL) && !strcmp(Brush_GetName(pDoc->m_pCurBrush), "Arch")
+										&& pDoc->m_pCurBrush != pDoc->m_pRecentArch)
+		{
+				// update the template brush as a clone of pDoc->m_pCurBrush
+			pDoc->m_pRecentArch = Brush_Clone(pDoc->m_pCurBrush);
+			pDoc->m_pBTemplate = Brush_Clone(pDoc->m_pCurBrush);
+			Brush_SetName(pDoc->m_pBTemplate, "Arch");	
+		}
+	}
+	//	post 0.55	
+	
+	
+	BrushTemplate_Arch *pArchTemplate = pDoc->m_pLevelMgr->GetArchTemplate (pDoc->GetLevel());
+	m_pArchTemplate = pArchTemplate;
+
+	if (!m_customTemplate)
+	{
+		this->GetDlgItem(IDC_STARTANGLE)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_ENDANGLE)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_THICKNESS)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_WIDTH)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_RADIUS)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_WALLSIZE)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_NUMSLITS)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_SOLID)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_HOLLOW)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_RING)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_TCUT)->EnableWindow(FALSE);
+		this->GetDlgItem(ID_DEFAULTS)->EnableWindow(FALSE);
+
+		m_addArchBTN.EnableWindow(TRUE);
+		m_customizeArchBTN.SetCheck(0);
+	}
+	else if (m_customTemplate)
+	{
+		this->GetDlgItem(IDC_STARTANGLE)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_ENDANGLE)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_THICKNESS)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_WIDTH)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_RADIUS)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_WALLSIZE)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_NUMSLITS)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_SOLID)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_HOLLOW)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_RING)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_TCUT)->EnableWindow(TRUE);
+		this->GetDlgItem(ID_DEFAULTS)->EnableWindow(TRUE);
+
+		m_addArchBTN.EnableWindow(FALSE);
+		m_customizeArchBTN.SetCheck(1);
+	}
 
 
 	m_NumSlits	= pArchTemplate->NumSlits;
@@ -100,14 +258,21 @@ int	CCreateArchDialog::DoModal(geBoolean ConvertToMetric, BrushTemplate_Arch *pA
 	m_StartAngle = pArchTemplate->StartAngle;
 	m_TCut		= pArchTemplate->TCut;
 
+	UpdateData(TRUE);
 
-	if(m_ConvertToMetric)
+					//	Restore focus to active view
+	CMDIChildWnd *pMDIChild	=(CMDIChildWnd *)pDoc->m_pMainFrame->MDIGetActive();
+	if(pMDIChild)
 	{
-		dlgFieldsToCentimeters();
+		CView	*cv	=(CView *)pMDIChild->GetActiveView();
+		if( cv)
+			cv->SetFocus() ;
 	}
 
-	return CDialog::DoModal();
+	return true;
 }
+
+
 
 void	CCreateArchDialog::dlgFieldsToTexels(void)
 {
@@ -135,20 +300,24 @@ void CCreateArchDialog::OnDefaults()
 	m_Width = 100;
 	m_Radius = 200;
 	m_WallSize = 16;
-	m_Style = 0;
+	m_Style = 1;
 	UpdateData( FALSE );
+	OnOK();
 }
 
 void CCreateArchDialog::OnSolid() 
 {
+	OnOK();
 }
 
 void CCreateArchDialog::OnHollow() 
 {
+	OnOK();
 }
 
 void CCreateArchDialog::OnRing() 
 {
+	OnOK();
 }
 /* EOF: CreateArchDialog */
 
@@ -160,6 +329,17 @@ void CCreateArchDialog::OnOK()
 		dlgFieldsToTexels();
 	}
 
+	if (!m_customTemplate)	//	if the Custom Template button is NOT pushed
+	{
+		if (m_pDoc->m_pCurBrush)
+		{
+			pArch = m_pDoc->m_pCurBrush;
+		}
+	}	
+
+	else if (m_customTemplate)	//	if the Custom Template button is pushed
+	{
+
 	m_pArchTemplate->NumSlits	= m_NumSlits;
 	m_pArchTemplate->Thickness	= m_Thickness;
 	m_pArchTemplate->Width		= m_Width;
@@ -169,6 +349,208 @@ void CCreateArchDialog::OnOK()
 	m_pArchTemplate->EndAngle	= m_EndAngle;
 	m_pArchTemplate->StartAngle	= m_StartAngle;
 	m_pArchTemplate->TCut		= m_TCut;
+
+	pArch = BrushTemplate_CreateArch (m_pArchTemplate);
+
+	if (pArch != NULL)
+		{
+			m_pDoc->CreateNewTemplateBrush ((Brush*)pArch);
+			m_pDoc->m_pRecentArch = Brush_Clone(pArch); // post 0.55
+			Brush_SetName(m_pDoc->m_pCurBrush, "Arch");	// post 0.55
+			m_pDoc->m_pBTemplate = Brush_Clone(pArch);
+			Brush_SetName(m_pDoc->m_pBTemplate, "Arch");	
+		}	
+	}
+}
+
+
+void CCreateArchDialog::OnAddArchBtn() 
+{
+	OnOK();	
+	m_pDoc->AddBrushToWorld();	
+	m_pDoc->m_pMainFrame->UpdateMainControls();		
+}
+
+void CCreateArchDialog::OnKillfocusStartangle() 
+{
+	float	lastValue = m_StartAngle;
+
+		if (GetDlgItemInt(IDC_STARTANGLE) == NULL)
+	{
+		this->SetDlgItemInt(IDC_STARTANGLE, lastValue);
+		return;
+	}
+
+	UpdateData(TRUE);
 	
-	CDialog::OnOK();
+	if ((m_StartAngle >= ARCH_ANGLE_MIN) && (m_StartAngle <= ARCH_ANGLE_MAX)) 
+		OnOK();
+	else
+	{
+		m_StartAngle = lastValue;
+		UpdateData(FALSE);
+		AfxMessageBox(m_angleErrorString);
+	}
+}
+
+void CCreateArchDialog::OnKillfocusEndangle() 
+{
+	float	lastValue = m_EndAngle;
+
+		if (GetDlgItemInt(IDC_ENDANGLE) == NULL)
+	{
+		this->SetDlgItemInt(IDC_ENDANGLE, lastValue);
+		return;
+	}
+
+	UpdateData(TRUE);
+
+	if ((m_EndAngle >= ARCH_ANGLE_MIN) && (m_EndAngle <= ARCH_ANGLE_MAX)) 
+		OnOK();
+	else
+	{
+		m_EndAngle = lastValue;
+		UpdateData(FALSE);
+		AfxMessageBox(m_angleErrorString);
+	}
+}
+
+void CCreateArchDialog::OnKillfocusThickness() 
+{
+	float	lastValue = m_Thickness;
+
+		if (GetDlgItemInt(IDC_THICKNESS) == NULL)
+	{
+		this->SetDlgItemInt(IDC_THICKNESS, lastValue);
+		return;
+	}
+
+	UpdateData(TRUE);
+
+	if ((m_Thickness >= ARCH_THICK_MIN) && (m_Thickness <= ARCH_THICK_MAX)) 
+		OnOK();
+	else
+	{	
+		m_Thickness = lastValue;
+		UpdateData(FALSE);
+		AfxMessageBox(m_archThicknessErrorString);
+	}
+}
+
+void CCreateArchDialog::OnKillfocusWidth() 
+{
+	float	lastValue = m_Width;
+
+		if (GetDlgItemInt(IDC_WIDTH) == NULL)
+	{
+		this->SetDlgItemInt(IDC_WIDTH, lastValue);
+		return;
+	}
+
+	UpdateData(TRUE);
+
+	if ((m_Width >= BRUSH_MIN) && (m_Width <= BRUSH_MAX)) 
+		OnOK();
+	else
+	{
+		m_Width = lastValue;
+		UpdateData(FALSE);
+		AfxMessageBox(m_minMaxErrorString);
+	}
+
+}
+
+void CCreateArchDialog::OnKillfocusRadius() 
+{
+	float	lastValue = m_Radius;
+
+		if (GetDlgItemInt(IDC_RADIUS) == NULL)
+	{
+		this->SetDlgItemInt(IDC_RADIUS, lastValue);
+		return;
+	}
+
+	UpdateData(TRUE);
+
+	if ((m_Radius >= BRUSH_MIN) && (m_Radius <= BRUSH_MAX)) 
+		OnOK();
+	else
+	{
+		m_Radius = lastValue;
+		UpdateData(FALSE);
+		AfxMessageBox(m_minMaxErrorString);
+	}
+
+}
+
+void CCreateArchDialog::OnKillfocusWallsize() 
+{
+	float	lastValue = m_WallSize;
+
+		if (GetDlgItemInt(IDC_WALLSIZE) == NULL)
+	{
+		this->SetDlgItemInt(IDC_WALLSIZE, lastValue);
+		return;
+	}
+
+	UpdateData(TRUE);
+
+	//	need to figure out the min/max dimensions possible for hollow wall size
+
+	if ((m_WallSize >= WALL_THICK_MIN) && (m_WallSize <= WALL_THICK_MAX)) 
+		OnOK();
+	else
+	{
+		m_WallSize = lastValue;
+		UpdateData(FALSE);
+		AfxMessageBox(m_wallThicknessErrorString);
+	}	
+}
+
+void CCreateArchDialog::OnKillfocusNumslits() 
+{
+	int	lastValue = m_NumSlits;
+
+		if (GetDlgItemInt(IDC_NUMSLITS) == NULL)
+	{
+		this->SetDlgItemInt(IDC_NUMSLITS, lastValue);
+		return;
+	}
+
+	UpdateData(TRUE);
+
+	if ((m_NumSlits >= 3) && (m_NumSlits <= 64)) 
+		OnOK();
+	else
+	{
+		m_NumSlits = lastValue;
+		UpdateData(FALSE);
+		AfxMessageBox("Value must be >= 3 and <= 64");
+	}
+}
+
+void CCreateArchDialog::OnCustomArchBtn() 
+{
+	static bool toggle;
+	toggle = !m_customTemplate;
+	m_customTemplate = toggle;
+
+	m_pDoc->m_pMainFrame->UpdateMainControls();
+
+}
+
+
+void CCreateArchDialog::OnCancel()
+{
+	return;
+}
+
+BOOL CCreateArchDialog::OnInitDialog() 
+{
+	CDialog::OnInitDialog();
+	
+	this->GetDlgItem(IDC_CUSTOM_ARCH_BTN)->SetFocus();
+	
+	return FALSE;  // return TRUE unless you set the focus to a control
+	              // EXCEPTION: OCX Property Pages should return FALSE
 }

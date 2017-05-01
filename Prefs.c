@@ -18,9 +18,10 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "prefs.h"
-#include "ram.h"
+#include "include/ram.h"
 #include "util.h"
 #include <assert.h>
 #pragma warning(disable : 4201 4214 4115 4514)
@@ -42,32 +43,19 @@ static const char PATHS_SECTION_NAME[]	= "Paths";
 static const char TXLNAME_KEY[]			= "TxlName";
 static const char TXLSEARCH_KEY[]		= "TxlSearchPath";
 static const char PREVIEW_KEY[]			= "PreviewPath";
-static const char HEADERS_KEY[]			= "Headers";
+static const char HEADERS_KEY[]			= "Include";	//	post 0.57
 static const char OBJECTSDIR_KEY[]		= "ObjectsDir";
 static const char PROJECTDIR_KEY[]		= "ProjectDir";
 
 static const char DEFAULT_TXLNAME[]		= "gedit.txl";
 static const char DEFAULT_TXLSEARCH[]	= ".\\";
 static const char DEFAULT_PREVIEW[]		= "gpreview.exe";
-static const char DEFAULT_HEADERS[]		= ".\\Headers";
+static const char DEFAULT_HEADERS[]		= ".\\Include";	//	post 0.57
 static const char DEFAULT_OBJECTSDIR[]	= ".\\Objects";
-static const char DEFAULT_PROJECTDIR[]	= ".\\Levels";
+static const char DEFAULT_PROJECTDIR[]	= ".\\worlds";
 
 
-/*
-#define FUSION_SECTION_NAME "GEdit"
 
-#define FUSION_TXLPATH_ENTRY "DefaultTxLib"
-#define FUSION_DEFAULT_TXL "GEdit.Txl"
-
-#define FUSION_PREVIEWPATH_ENTRY "GPreviewPath"
-#define FUSION_DEFAULT_PREVIEW "GPreview.exe"
-
-#define FUSION_PROJECTDIR_ENTRY "ProjectDir"
-#define FUSION_DEFAULT_PROJECTDIR ""
-
-#define FUSION_EXTPATH_ENTRY "ExtensionsPath"
-*/
 
 struct tag_PathPrefs
 {
@@ -109,7 +97,7 @@ static char *Prefs_GetString
 
 Prefs *Prefs_Create (void)
 {
-	Prefs *pPrefs;
+	Prefs *pPrefs = NULL;
 
 	pPrefs = GE_RAM_ALLOCATE_STRUCT (Prefs);
 	if (pPrefs != NULL)

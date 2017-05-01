@@ -18,6 +18,7 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef LEVEL_H
 #define LEVEL_H
@@ -31,6 +32,20 @@
 #include "EntView.h"
 #include "BrushTemplate.h"
 #include "EntityTable.h"
+
+// moved here from level.cpp for g3dc
+#include "Parse3dt.h"
+#include "EntTypeName.h"
+#include <assert.h>
+#include "include/ram.h"
+#include "units.h"
+#include "util.h"
+#include "FilePath.h"
+#define NUM_VIEWS (4)
+
+
+
+
 
 #define LEVEL_VERSION_MAJOR	1
 //#define LEVEL_VERSION_MINOR 16		// version 1.16 06/01/98 - eli - Removed palette dependencies (no more PalPath)
@@ -51,6 +66,10 @@
 //#define LEVEL_VERSION_MINOR 31			// Version 1.31 01/05/99 - jim - Added headers directory
 #define LEVEL_VERSION_MINOR 32			// Version 1.32 11/04/99 - Brian - Face Info save out Base Vec for Tex Lock
 
+
+
+
+
 struct SkyFaceTexture
 {
 	char *TextureName;
@@ -64,7 +83,8 @@ enum
 	SkyFace_Top		= 2,
 	SkyFace_Bottom	= 3,
 	SkyFace_Front	= 4,
-	SkyFace_Back	= 5
+	SkyFace_Back	= 5,
+	SkyFace_Null	= -1		//	added for g3dc
 };
 
 enum
@@ -188,5 +208,61 @@ void Level_SetLightmapScale (Level *pLevel, float Scale);
 geBoolean Level_LoadEntityDefs (Level *pLevel, const char *HeadersDir);
 const char *Level_GetHeadersDirectory (const Level *pLevel);
 const EntityTable *Level_GetEntityDefs (const Level *pLevel);
+
+
+
+
+
+// exposed here for g3dc
+struct tag_Level
+{
+    BrushList *Brushes;
+	CEntityArray *Entities;
+    char *WadPath;
+	char *HeadersDir;
+	EntTypeNameList	*EntTypeNames;
+	GroupListType *Groups;
+	SizeInfo	*WadSizeInfos;
+	CWadFile	*WadFile;
+	EntityTable	*pEntityDefs;
+
+	ModelInfo_Type	ModelInfo;
+
+	SkyFaceTexture SkyFaces[6];
+	geVec3d SkyRotationAxis;
+	geFloat SkyRotationSpeed;
+	geFloat	SkyTextureScale;
+	
+	// level edit settings
+	CompileParamsType CompileParams;
+	int GroupVisSetting;
+	EntityViewList *pEntityView;
+
+	GridInfo GridSettings;
+	geBoolean BspRebuildFlag;
+	ViewStateInfo ViewInfo[NUM_VIEWS];
+
+	BrushTemplate_Arch ArchTemplate;
+	BrushTemplate_Box	BoxTemplate;
+	BrushTemplate_Cone	ConeTemplate;
+	BrushTemplate_Cylinder CylinderTemplate;
+	BrushTemplate_Spheroid	SpheroidTemplate;
+	BrushTemplate_Staircase StaircaseTemplate;
+
+	geVec3d TemplatePos;
+
+	float DrawScale;		// default draw scale
+	float LightmapScale;	// default lightmap scale
+};
+
+
+
+
+
+
+
+
+
+
 
 #endif

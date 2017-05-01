@@ -26,11 +26,11 @@
 #include	"iden.h"
 #include	"type.h"
 #include	"symtab.h"
-#include	"ram.h"
+#include	"../include/ram.h"
 
 SymTab *	SymTab_Create(void)
 {
-	SymTab *	st;
+	SymTab *	st = NULL;
 
 	st = geRam_Allocate(sizeof(*st));
 	memset(st, 0, sizeof(*st));

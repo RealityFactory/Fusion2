@@ -18,13 +18,14 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef MODEL_H
 #define MODEL_H
 
 #include <stdio.h>
 #include "brush.h"
-#include "motion.h"
+#include "include/motion.h"
 #include "parse3dt.h"
 #include "list.h"
 #include "selbrushlist.h"
@@ -128,6 +129,8 @@ int Model_GetId
 	(
 	  Model const *pModel
 	);
+
+int Model_SetId(Model *pModel, int iNewID);
 
 const char *Model_GetName
 	(
@@ -249,6 +252,9 @@ ModelList *ModelList_Create
 	  void
 	);
 
+//	added by tom
+ModelList	*ModelList_Clone(ModelList *pInputList);
+
 void ModelList_Destroy
 	(
 	  ModelList **ppModel
@@ -262,6 +268,10 @@ geBoolean ModelList_Add
 	  SelBrushList *pSelList
 	);
 
+
+///*static*/ void ModelList_Insert(ModelList *pList, Model *pModel);
+ListIterator*  ModelList_Insert(ModelList *pList, Model *pModel);
+
 Model *ModelList_AddFromBrushList
 	(
 	  ModelList *pList,
@@ -269,11 +279,8 @@ Model *ModelList_AddFromBrushList
 	  BrushList *pBrushList
 	);
 
-void ModelList_AddModel
-	(
-	  ModelList *pList,
-	  Model *pModel
-	);
+//void ModelList_AddModel(ModelList *pList, Model *pModel);
+ListIterator*  ModelList_AddModel(ModelList *pList, Model *pModel);
 
 void ModelList_Remove
 	(

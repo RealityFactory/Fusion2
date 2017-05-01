@@ -18,24 +18,36 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef CREATEBOXDIALOG_H
 #define CREATEBOXDIALOG_H
+#include "GEditProDoc.h"
 
-#include "resource.h"
+//#include "resource.h"
 #include "BrushTemplate.h"
 
 class CCreateBoxDialog : public CDialog
 {
 // Construction
 public:
-	virtual int DoModal(geBoolean ConvertToMetric, BrushTemplate_Box *pBoxTemplate);
-	CCreateBoxDialog(CWnd* pParent = NULL);   // standard constructor
+////	virtual int DoModal(geBoolean ConvertToMetric, BrushTemplate_Box *pBoxTemplate); // old gedit
+	void ShowDialog(geBoolean ConvertToMetric, 	BrushTemplate_Box *pBoxTemplate, CGEditProDoc *pDoc);
+	CCreateBoxDialog(CWnd* pParent = NULL);   // standard constructor old gedit
+
 	~CCreateBoxDialog();
 
+	bool UpdateCreateBoxDlg(CGEditProDoc *pDoc);
+
+	bool m_customTemplate;
+
+	const	Brush	*pCube;
+	Brush	*m_recentCube;
 // Dialog Data
 	//{{AFX_DATA(CCreateBoxDialog)
 	enum { IDD = IDD_CREATEBOX };
+	CButton	m_applyBoxBTN;
+	CButton	m_customTemplateBTN;
 	CButton	m_CutBtn;
 	CButton	m_SheetBtn;
 	CStatic	m_Picture;
@@ -48,6 +60,9 @@ public:
 	BOOL	m_TCut;
 	float	m_Thickness;
 	BOOL	m_TSheet;
+	CString	m_minMaxErrorString;
+	CString m_wallThicknessErrorString;
+
 	//}}AFX_DATA
 
 
@@ -58,6 +73,7 @@ public:
 	virtual void Serialize(CArchive& ar);
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual void OnCancel();
 	//}}AFX_VIRTUAL
 
 // Implementation
@@ -66,6 +82,8 @@ private:
 	void		dlgFieldsToTexels(void);
 	geBoolean	m_ConvertToMetric;
 	BrushTemplate_Box *m_pBoxTemplate;
+
+	CGEditProDoc *m_pDoc;
 
 protected:
 
@@ -78,6 +96,14 @@ protected:
 	afx_msg void OnTcut();
 	virtual void OnOK();
 	afx_msg void OnTsheet();
+	afx_msg void OnKillfocusXsizetop();
+	afx_msg void OnKillfocusZsizebot();
+	afx_msg void OnKillfocusYsize();
+	afx_msg void OnKillfocusThickness();
+	afx_msg void OnApplyBoxBtn();
+	afx_msg void OnKillfocusXsizebot();
+	afx_msg void OnKillfocusZsizetop();
+	afx_msg void OnCustomTemplateBtn();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

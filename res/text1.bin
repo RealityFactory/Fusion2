@@ -1,0 +1,19 @@
+(11-08-02)
+GEditPro is an advanced level editor for the Genesis3D engine. It is intended to replace GEdit, the old workhorse editor that was released with the original Genesis3D SDK in 1999.
+
+GEditPro is a modification of GEdit and other previous editors developed by trilobiteWorks. And it is incomplete…
+
+Basic tasks that still need to be performed include the following:
+1. Help documentation.
+2. Tutorials showing how to use the features included in this editor.
+
+A few technical tasks that are still undone include:
+1. More reliable texture locking for complex shapes.
+2. Implementation of Multiple brush shear.
+
+GEditPro was developed using Microsoft Visual Studio NET, specifically MS Visual C++ NET, and tested primarily in Windows XP Pro. It also has been tested and found to work in Windows 98 and Windows ME.
+
+It is up to ambitious new programmers to find ways to make GEditPro better and more powerful. Use the provided source code, resources and MSVS NET Solution.
+
+For more information about Genesis3D, go to www.Genesis3d.com.
+

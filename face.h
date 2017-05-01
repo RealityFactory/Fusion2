@@ -18,12 +18,14 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef _FACE_H_
 #define _FACE_H_
 
-#include "Vec3d.h"
-#include "xform3d.h"
+
+#include "include/Vec3d.h"
+#include "include/xform3d.h"
 #include "box3d.h"
 #include <stdio.h>
 #include "Parse3dt.h"

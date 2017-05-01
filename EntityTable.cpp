@@ -18,6 +18,7 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
 
@@ -26,12 +27,12 @@
 
 #include <stdio.h>
 #include "cparser.h"
-#include "ram.h"
+#include "include/ram.h"
 #include "util.h"
 #include "FilePath.h"
-#include "bitmap.h"
+#include "include/bitmap.h"
 #include "array.h"
-#include "vfile.h"
+#include "include/vfile.h"
 
 typedef struct
 {
@@ -159,6 +160,7 @@ static const char FixedEntityDefinitions[] =
 		"#pragma GE_Origin(origin)\n"
 		"#pragma GE_DefaultValue(light, \"150\")\n"
 	"}	light;\n"
+
 	"// SpotLight\n"									// SpotLight entity
 	"#pragma GE_Type(\"BMP_SPOTLIGHT\")\n"
 	"typedef struct	tag_spotlight\n"
@@ -180,6 +182,32 @@ static const char FixedEntityDefinitions[] =
 		"#pragma GE_Arc(arc)\n"
 		"#pragma GE_DefaultValue(arc, \"45\")\n"
 	"}	spotlight;\n"
+
+//	*********************************************************
+//	 sun entity by wismerhill http://www.xingstudios.com/
+//	*********************************************************
+	"//	Sunlight\n"	
+	"#pragma GE_Type(\"BMP_SUNENTITY\")\n"
+	"typedef struct tag_Sunlight\n"
+		"{\n"
+		"#pragma GE_Published\n"
+		"geVec3d	origin;\n"
+		"GE_RGBA	color;\n"
+		"int		light;\n"
+		"geVec3d	angles;\n"
+		"int		style;\n"
+		"#pragma GE_Origin(origin)\n"
+		"#pragma GE_Angles(angles)\n"
+		"#pragma GE_DefaultValue(light, \"150\")\n"
+		"#pragma GE_DefaultValue(angles, \"0 0 0\")\n"
+		"#pragma GE_Documentation(color, \"Color of the primary star or moon\")\n"
+		"#pragma GE_Documentation(light, \"Intensity - Only shines through SKY faces\")\n"
+		"#pragma GE_Documentation(angles, \"Direction of  sunlight flow\")\n"
+		"#pragma GE_Documentation(style, \"Use 0 for now. No other styles available.\")\n" 
+	"} Sunlight;\n"
+
+
+
 	"// Model origin\n"								// model origin entity
 	"#pragma GE_Type(\"BMP_MODELORG\")\n"
 	"typedef struct tag_ModelOrigin\n"
@@ -187,6 +215,7 @@ static const char FixedEntityDefinitions[] =
 		"geVec3d origin;\n"
 	"#pragma GE_Origin(origin)\n"
 	"} ModelOrigin;\n"
+
 	"// Camera\n"									// Camera entity
 	"#pragma GE_Type(\"BMP_CAMERA\")\n"
 	"typedef struct tag_Camera\n"
@@ -207,9 +236,42 @@ static void EntityTable_ParseErrorFunction
 	  char const *Buff
 	)
 {
-	MessageBox (NULL, Buff, "Fusion", MB_OK);
+	MessageBox (NULL, Buff, "GEditPro", MB_OK);
 }
 #pragma warning (default:4100)
+
+
+
+EntityTable *EntityTable_Clone (EntityTable *pInputTable)
+{
+	EntityTable *pNewTable = NULL;
+	BOOL NoErrors = GE_FALSE;
+
+	// Create the structure
+	pNewTable = GE_RAM_ALLOCATE_STRUCT (EntityTable);
+	if (pNewTable)
+	{
+		pNewTable->EntityInfo = NULL;
+		pNewTable->BitmapCache = TypeBmpArray_Create ();
+		if (pNewTable->BitmapCache != NULL)
+		{
+			pNewTable->EntityInfo = pInputTable->EntityInfo;
+		}
+	}
+
+
+	return pNewTable;
+}
+
+
+
+
+
+
+
+
+
+
 
 EntityTable *EntityTable_Create (char const *DirName)
 {
@@ -703,42 +765,42 @@ void EntityTable_ReleaseEntityProperties
     geRam_Free (pProps);
 }
 
-EntityTypeList *EntityTable_GetAvailableEntityTypes
-	(
-	  const EntityTable *pTable
-	)
+EntityTypeList *EntityTable_GetAvailableEntityTypes(const EntityTable *pTable)
 {
     StructIter si;
-    Type *tp;
+    Type *tp = NULL;
 	int TypeCount;
-	EntityTypeList *pList;
+	EntityTypeList *pList = NULL;
 
-
-	TypeCount = EntityTable_GetTypeCount (pTable);
-
-
-	// allocate memory for the structure
-	pList = (EntityTypeList *)geRam_Allocate (sizeof (EntityTypeList) + (TypeCount*sizeof (char *)));
-	if (pList == NULL)
+	if (pTable)
 	{
-	    return NULL;
+		TypeCount = EntityTable_GetTypeCount (pTable);
+
+
+		// allocate memory for the structure
+		pList = (EntityTypeList *)geRam_Allocate (sizeof (EntityTypeList) + (TypeCount*sizeof (char *)));
+		if (pList == NULL)
+		{
+			return NULL;
+		}
+		pList->nTypes = 0;
+
+		// now get the type names and put them in the list
+		tp = CParser_GetFirstStruct (&si, pTable->EntityInfo);
+		while (tp != NULL)
+		{	
+			const char *typeName;
+
+			typeName = CParser_GetTypeName (tp);
+			pList->TypeNames[pList->nTypes] = Util_Strdup (typeName);
+			++(pList->nTypes);
+			tp = CParser_GetNextStruct (&si);
+		}
+
+
+		return pList;
 	}
-	pList->nTypes = 0;
-
-	// now get the type names and put them in the list
-	tp = CParser_GetFirstStruct (&si, pTable->EntityInfo);
-	while (tp != NULL)
-	{	
-        const char *typeName;
-
-        typeName = CParser_GetTypeName (tp);
-		pList->TypeNames[pList->nTypes] = Util_Strdup (typeName);
-		++(pList->nTypes);
-        tp = CParser_GetNextStruct (&si);
-	}
-
-
-    return pList;
+	return NULL;
 
 }
 
@@ -779,30 +841,32 @@ int EntityTable_WriteTypesToMap
 }
 
 // GetTypeCount added 02/20/98 by Jim
-int EntityTable_GetTypeCount
-	(
-	  const EntityTable *pTable
-	)
+int EntityTable_GetTypeCount(const EntityTable *pTable)
 {
     StructIter si;
-    Type *tp;
+    Type *tp = NULL;
 	int TypeCount;
 
 	TypeCount = 0;
-    tp = CParser_GetFirstStruct (&si, pTable->EntityInfo);
-    while (tp != NULL)
-    {
-		++TypeCount;
-        tp = CParser_GetNextStruct (&si);
-    }
-
+	if (pTable)
+	{
+		tp = CParser_GetFirstStruct (&si, pTable->EntityInfo);
+		while (tp != NULL)
+		{
+			++TypeCount;
+			tp = CParser_GetNextStruct (&si);
+		}
+	}
 	return TypeCount;
 }
 
 // This function assumes that the passed bitmap is a Windows 16-bit 555.
 static TypeBmpEntry *CreateEntryFromLoadedBitmap (TypeBmpArray *pBitmapCache, Type *pType, HBITMAP bmpHandle)
 {
-	BITMAPINFO *bmi;
+
+//	COMMENTED OUT POST 0.6 AND REPLACED WITH NEW
+//	BITMAP LOADING CODE (BELOW)
+/*	BITMAPINFO *bmi;
 	BITMAPINFOHEADER *bmih;
 	void *bits;
 	geBitmap *pBitmap;
@@ -827,7 +891,10 @@ static TypeBmpEntry *CreateEntryFromLoadedBitmap (TypeBmpArray *pBitmapCache, Ty
 	retval = ::GetDIBits (dcMem, bmpHandle, 0, bmih->biHeight, bits, bmi, DIB_RGB_COLORS);
 
 	// now create our internal-format bitmap
-	pBitmap = geBitmap_Create (bmih->biWidth, bmih->biHeight, 1, GE_PIXELFORMAT_32BIT_XRGB);
+//	pBitmap = geBitmap_Create (bmih->biWidth, bmih->biHeight, 1, GE_PIXELFORMAT_32BIT_XRGB);
+
+	//	Get rid of the gray box on top of entity bitmaps -- post 0.58
+	pBitmap = geBitmap_Create (bmih->biWidth, bmih->biHeight/2, 1, GE_PIXELFORMAT_32BIT_XRGB);
 
 	// copy the bits into it
 	geBitmap *OutputBitmap;
@@ -849,13 +916,87 @@ static TypeBmpEntry *CreateEntryFromLoadedBitmap (TypeBmpArray *pBitmapCache, Ty
 
 	//convert to 555
 	geBitmap_SetFormatMin(pBitmap, GE_PIXELFORMAT_16BIT_555_RGB);
+*/
 
-	TypeBmpEntry *pEntry;
+	geBitmap			*pBitmap = NULL;	
+	
+	if (bmpHandle)
+	{
+		BITMAPINFO			*bmi = NULL;
+		BITMAPINFOHEADER	*bmih = NULL;
+		void				*bits = NULL;
+		HDC					dcMem = NULL;
+		int					retval;
 
+			// Get logical coordinates
+		dcMem = CreateCompatibleDC (NULL);
+		
+		if (dcMem)
+		{
+			bmi = (BITMAPINFO *)malloc(sizeof (BITMAPINFO) + (256 * sizeof (RGBQUAD)));
+			bmih = &bmi->bmiHeader;
+
+			bmih->biSize = sizeof (BITMAPINFOHEADER);
+			bmih->biBitCount = 0;
+			
+			// get bitmap information
+			retval = ::GetDIBits (dcMem, bmpHandle, 0, 0, NULL, bmi, DIB_RGB_COLORS);
+
+			bmih->biBitCount = 32;
+			bmih->biCompression = BI_BITFIELDS;
+
+			if (bmih->biBitCount == 16 )
+				bmih->biSizeImage = (bmih->biWidth * bmih->biHeight) * 2;
+			else if (bmih->biBitCount == 32 )
+				bmih->biSizeImage = (bmih->biWidth * bmih->biHeight) * 4;
+			else
+				bmih->biSizeImage = 0;      
+
+			// and then get the bits...
+			bits = malloc(bmih->biSizeImage);
+
+			retval = ::GetDIBits (dcMem, bmpHandle, 0, bmih->biHeight, bits, bmi, DIB_RGB_COLORS);
+
+			// now create our internal-format bitmap
+			pBitmap = geBitmap_Create(bmih->biWidth, bmih->biHeight, 1, GE_PIXELFORMAT_32BIT_XRGB);
+
+			if (pBitmap)
+			{
+				// copy the bits into it
+				geBitmap	*OutputBitmap = NULL;
+				geBitmap_LockForWrite(pBitmap, &OutputBitmap, 0, 0);
+
+				if (OutputBitmap)
+				{
+					void	*NewBits = NULL;
+					NewBits = geBitmap_GetBits(OutputBitmap);
+
+					if (NewBits)
+					{
+						const	int CopySize = bmih->biSizeImage;	
+
+						memmove(NewBits, bits, CopySize);
+
+						geBitmap_UnLock (OutputBitmap);
+						//convert to 555
+						geBitmap_SetFormatMin(pBitmap, GE_PIXELFORMAT_16BIT_555_RGB);
+					}	//	if (NewBits)...
+				}	//	if (OutputBitmap)...
+			}	//	if (pBitmap)...
+			// get rid of old bits pointer and bitmap header and Windows bitmap
+			free(bits);
+			free(bmi);
+			DeleteDC (dcMem);
+		}	//	if (dcMem)...
+		DeleteObject (bmpHandle);
+	}	//	if (hLogoBMP)...
+
+	TypeBmpEntry *pEntry = NULL;
 	pEntry = TypeBmpArray_Add (pBitmapCache, pType, pBitmap);
 
 	return pEntry;
 }
+
 
 static TypeBmpEntry *LoadResourceBitmap (TypeBmpArray *pBitmapCache, Type *pType, const char *BmpResourceName)
 {
@@ -932,7 +1073,8 @@ static TypeBmpEntry *EntityTable_GetBitmap
 			if ((strcmp (EntityClassname, "light") == 0) ||
 				(strcmp (EntityClassname, "spotlight") == 0) ||
 				(strcmp (EntityClassname, "ModelOrigin") == 0) ||
-				(strcmp (EntityClassname, "Camera") == 0))
+				(strcmp (EntityClassname, "Camera") == 0) ||
+				(strcmp (EntityClassname, "Sunlight") == 0))
 			{
 				pEntry = LoadResourceBitmap (pTable->BitmapCache, pType, BmpFilename);
 			}

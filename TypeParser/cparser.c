@@ -36,9 +36,9 @@
 #include	"cparser.h"
 #include	"type.h"
 #include	"symtab.h"
-#include	"ram.h"
-#include	"util.h"
-#include	"filepath.h"
+#include	"../include/ram.h"
+#include	"../util.h"
+#include	"../filepath.h"
 
 #define	CONTENTS_USER_MASK	(0xFFFF0000)
 
@@ -56,7 +56,7 @@ static	char *	KeywordNames[] =
 	"pragma",
 	"void",
 	"enum",
-	"geBoolean"
+	"geBoolean",
 };
 
 static	jmp_buf	parserError;
@@ -145,10 +145,10 @@ static	const char *	LoadErrorString(int errCode)
 
 CParser *	CParser_Init(CParser_ErrFunc errFunc)
 {
-	CParser *	p;
+	CParser *	p = NULL;
 	int			i;
 
-	p = geRam_Allocate(sizeof(*p));
+	p = (CParser*)geRam_Allocate(sizeof(*p));
 	if	(!p)
 		return p;
 
@@ -765,7 +765,7 @@ static	void	CParser_ParseContentsEnum(CParser *p)
 				CParser_Error(p, ERR_VALUEUSEDTWICE);
 		}
 
-		NewValues = geRam_Realloc(p->cpBrushContents,
+		NewValues = (CParser_BrushEnumValue*)geRam_Realloc(p->cpBrushContents,
 								  sizeof(*p->cpBrushContents) * (p->cpBrushContentsCount + 1));
 		if	(!NewValues)
 			CParser_Error(p, ERR_OUTOFMEMORY);

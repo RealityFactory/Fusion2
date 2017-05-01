@@ -18,11 +18,12 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "facelist.h"
 #include <assert.h>
 #include "typeio.h"
-#include "ram.h"
+#include "include/ram.h"
 #include <memory.h>
 
 struct tag_FaceList
@@ -36,7 +37,7 @@ struct tag_FaceList
 
 FaceList	*FaceList_Create(int NumFaces)
 {
-	FaceList *pList;
+	FaceList *pList = NULL;
 
 	assert (NumFaces > 0);
 

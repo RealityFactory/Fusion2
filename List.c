@@ -19,6 +19,7 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "list.h"
 #include <malloc.h>
@@ -42,15 +43,13 @@ struct tag_List
 };
 
 
-List *List_Create
-	(
-	  void
-	)
+List *List_Create(void)
 {
-	List *pList;
+	List *pList = NULL;
 
 	pList = (List *)malloc (sizeof (List));
-	if (pList != NULL)
+
+	if (pList)
 	{
 		pList->nItems = 0;
 		pList->Head = NULL;
@@ -63,35 +62,44 @@ List *List_Create
 // Destroy a list object.
 // Deallocates all memory allocated to the list, and sets *ppList to NULL.
 // If DestroyFcn is not NULL, the function is called for each item in the list.
-void List_Destroy
-	(
-	  List **ppList,
-	  List_DestroyCallback DestroyFcn
-	)
+void List_Destroy(List **ppList, List_DestroyCallback DestroyFcn)
 {
-	List *pList;
-	ListNode *p;
-
+	List *pList = NULL;
+	ListNode *p = NULL;
+	
 	assert (ppList != NULL);
 	assert (*ppList != NULL);
-
 	pList = *ppList;
+
+	if (pList->nItems > 0)
+	{
+
 	p = pList->Head;
 	while (p != NULL)
 	{
-		ListNode *pNext;
+		ListNode *pNext = NULL;
 
 		pNext = p->Next;
-		if (DestroyFcn != NULL)
+		if (pNext)
 		{
-			DestroyFcn (p->Data);
+			if (DestroyFcn != NULL)
+			{
+				DestroyFcn (p->Data);
+			}
+			free (p);
+			--(pList->nItems);
+			p = pNext;
 		}
-		free (p);
-		--(pList->nItems);
-		p = pNext;
+		else if (p)
+		{
+			free (p);
+			p = NULL;
+			--(pList->nItems);
+		}
+
 	}
 	assert (pList->nItems == 0);
-
+	}
 	free (*ppList);
 	*ppList = NULL;
 }

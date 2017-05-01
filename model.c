@@ -2,7 +2,7 @@
 /*  Model.c                                                                             */
 /*                                                                                      */
 /*  Author:       Jim Mischel                                                           */
-/*  Description:  Fusion editor model management module                                 */
+/*  Description:  GEditPro editor model management module                                 */
 /*                                                                                      */
 /*  The contents of this file are subject to the Genesis3D Public License               */
 /*  Version 1.01 (the "License"); you may not use this file except in                   */
@@ -18,6 +18,7 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "model.h"
 #include <assert.h>
@@ -26,11 +27,11 @@
 #include "TypeIO.h"
 #include <float.h>
 #include "units.h"
-#include "ram.h"
+#include "include/ram.h"
 #include "util.h"
 #include "node.h"
 #include "brush.h"
-#include <vfile.h>
+#include "include/vfile.h"
 
 // Major/minor versions at which motions were introduced
 #define MODEL_MOTION_VERSION_MAJOR 1
@@ -62,7 +63,7 @@ static Model *Model_Create
 	  char const *Name
 	)
 {
-	Model *pModel;
+	Model *pModel = NULL;
 
 	pModel = (Model *)geRam_Allocate (sizeof (Model));
 	if (pModel != NULL)
@@ -311,6 +312,17 @@ void Model_DeleteEvent
 
 	geMotion_DeleteEvent (pMotion, Time);
 }
+
+int Model_SetId(Model *pModel, int iNewID)
+{
+	if (pModel)
+	{
+		pModel->Id = iNewID;
+	}
+	return pModel->Id;
+}
+
+
 
 int Model_GetId
 	(
@@ -1397,6 +1409,34 @@ ModelList *ModelList_Create
 	return List_Create ();
 }
 
+//	added by tom
+ModelList	*ModelList_Clone(ModelList *pInputList)
+{
+	if (pInputList)
+	{
+		List *pNewList = NULL;
+		pNewList = ModelList_Create();
+		if (pNewList)
+		{
+			ModelIterator MI;
+			
+			Model	*pTempModel = NULL;
+			pTempModel = ModelList_GetFirst(pInputList, &MI);
+			while (pTempModel)
+			{
+				ModelList_AddModel(pNewList, Model_Clone(pTempModel));
+				pTempModel = NULL;
+				pTempModel = ModelList_GetNext(pInputList, &MI);
+			}
+
+
+		}
+		return pNewList;
+	}
+	return NULL;
+}
+
+
 #ifndef NDEBUG
 	static geBoolean ModelList_IsInOrder
 		(
@@ -1527,6 +1567,8 @@ static geBoolean ClearBrushModelId (Brush *pBrush, void *lParam)
 	return GE_TRUE;
 }
 
+
+
 void ModelList_Remove
 	(
 	  ModelList *pList,
@@ -1541,7 +1583,10 @@ void ModelList_Remove
 
 	if (List_Search (pList, FindById_Callback, &ModelId, (void **)&m, &li))
 	{
-		BrushList_Enum (ppBList, &ModelId, ClearBrushModelId);
+		if (ppBList)
+		{
+			BrushList_Enum (ppBList, &ModelId, ClearBrushModelId);
+		}
 		List_Remove (pList, li, NULL);
 		Model_Destroy (&m);
 		assert (ModelList_IsInOrder (pList));
@@ -1738,7 +1783,8 @@ static geBoolean FindInsertionSpot_Callback (void *pData, void *lParam)
 }
 
 // Insert a model into the list in ascending order.
-static void ModelList_Insert
+///*static*/ void ModelList_Insert
+ListIterator* ModelList_Insert
 	(
 	  ModelList *pList,
 	  Model *pModel
@@ -1755,9 +1801,11 @@ static void ModelList_Insert
 	{
 		List_Append (pList, pModel);
 	}
+	return &li;
 }
 
-void ModelList_AddModel
+//void ModelList_AddModel
+ListIterator*  ModelList_AddModel
 	(
 	  ModelList *pList,
 	  Model *pModel
@@ -1766,7 +1814,8 @@ void ModelList_AddModel
 	assert (pList != NULL);
 	assert (pModel != NULL);
 
-	ModelList_Insert (pList, pModel);
+
+	return ModelList_Insert (pList, pModel);
 }
 
 // Must ensure that models are inserted into the list in ascending order!
@@ -1850,10 +1899,13 @@ Model *ModelList_GetFirst
 	  ModelIterator *mi
 	)
 {
-	assert (pList != NULL);
-	assert (mi != NULL);
-
-	return (Model *)List_GetFirst ((List *)pList, mi);
+	if (pList)
+	{
+		assert (pList != NULL);
+		assert (mi != NULL);
+		return (Model *)List_GetFirst ((List *)pList, mi);
+	}
+	return NULL;
 }
 
 Model *ModelList_GetNext

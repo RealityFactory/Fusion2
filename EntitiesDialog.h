@@ -18,6 +18,7 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 
 /////////////////////////////////////////////////////////////////////////////
@@ -26,27 +27,35 @@
 #define ENTITIES_DIALOG_H
 
 #include "Entity.h"
-#include "resource.h"
+#include "flat_combo/XTFlatComboBox.h"
 
-class CFusionDoc;
+//#include "resource.h"
+
+//class CGEditProDoc;
 
 class CEntitiesDialog : public CDialog
 {
 // Construction
 public:
-	CFusionDoc *pDoc;
+	CGEditProDoc *pDoc;
 //	void CreateNewEntity(char** ClassnameList);
 	void FillInKeyValuePairs(int Selection);
 	void FillInDialog();
-	int DoDialog( CEntityArray& Entities, CFusionDoc* Doc);
-	int EditEntity( CEntityArray& Entities, int CurrentEntity, CFusionDoc* Doc);
+	int DoDialog( CEntityArray& Entities, CGEditProDoc* Doc);
+	int EditEntity( CEntityArray& Entities, int CurrentEntity, CGEditProDoc* Doc);
 	CEntitiesDialog(CWnd* pParent = NULL);   // standard constructor
+
+	bool ShowDialog(bool bShow);
+	bool UpdateEntities(CGEditProDoc *pDoc);
+
+	int	m_iCurrentEntity;
 
 // Dialog Data
 	//{{AFX_DATA(CEntitiesDialog)
 	enum { IDD = IDD_ENTITIES };
+	CStatic	m_entitiesStaticString;
 	CListBox	m_PropertiesList;
-	CComboBox	m_EntityCombo;
+	CXTFlatComboBox	m_EntityCombo;
 	//}}AFX_DATA
 
 
@@ -55,6 +64,7 @@ public:
 	//{{AFX_VIRTUAL(CEntitiesDialog)
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual void OnCancel();
 	//}}AFX_VIRTUAL
 
 	BOOL NeedTextNotify( UINT id, NMHDR * pTTTStruct, LRESULT * pResult );
@@ -71,12 +81,13 @@ protected:
 	afx_msg void OnDblclkPropertieslist();
 	afx_msg int OnVKeyToItem(UINT nKey, CListBox* pListBox, UINT nIndex);
 	afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
+
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
 	// our entity array
-	CEntityArray* mEntityArray;
-	int mCurrentEntity;
+	CEntityArray* m_pEntityArray;
+	int mCurrentEntity;	
 	int mCurrentKey;
 	mutable UINT UglyGlobalItemId;
 	BOOL MultiEntityFlag;

@@ -18,27 +18,32 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GenEdit-Classic ver. 0.57, Feb. 3, 2001					*/
 /****************************************************************************************/
 #include "box3d.h"
+#include <windows.h>	//	post 0.55
+#include <Winuser.h>	//	post 0.55
 #include <assert.h>
 #include <float.h>
 #include <stdlib.h>
 
-void Box3d_Clear
-	(
-	  Box3d *b
-	)
+
+void Box3d_Clear( Box3d *b)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_Clear", MB_OK);	//	post 0.55
+
 	assert (b != NULL);
 
 	Box3d_Set (b, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-void Box3d_SetBogusBounds
-	(
-	  Box3d *b
-	)
+void Box3d_SetBogusBounds(Box3d *b)
 {
+
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_SetBogusBounds", MB_OK);	//	post 0.55
+
 	assert (b != NULL);
 
 	geVec3d_Set (&b->Min, FLT_MAX, FLT_MAX, FLT_MAX);
@@ -46,9 +51,7 @@ void Box3d_SetBogusBounds
 }
 
 
-void Box3d_Set
-	(
-	  Box3d *b,
+void Box3d_Set(Box3d *b,
 	  geFloat x1,
 	  geFloat y1,
 	  geFloat z1,
@@ -57,6 +60,9 @@ void Box3d_Set
 	  geFloat z2
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_Set", MB_OK);	//	post 0.55
+
 	assert (b != NULL);
 
 	geVec3d_Set 
@@ -99,6 +105,9 @@ void Box3d_AddPoint
 	  geFloat pz
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_AddPoint", MB_OK);	//	post 0.55
+
 	if (px < b->Min.X) b->Min.X = px;
 	if (px > b->Max.X) b->Max.X = px;
 	if (py < b->Min.Y) b->Min.Y = py;
@@ -107,19 +116,25 @@ void Box3d_AddPoint
 	if (pz > b->Max.Z) b->Max.Z = pz;
 }
 
-#ifndef NDEBUG
+//#ifndef NDEBUG	//	post 0.55 //	commented out
 static geBoolean Box3d_IsValid
 	(
 	  const Box3d *b
 	)
 {
+	if (b == NULL)
+	{
+		MessageBox(NULL, "Box == NULL", "Box3d_IsValid", MB_OK);	//	post 0.55
+		return GE_FALSE;
+	}
+
 	assert (b != NULL);
 
 	return ((b->Min.X <= b->Max.X) &&
 			(b->Min.Y <= b->Max.Y) &&
 			(b->Min.Z <= b->Max.Z));
 }
-#endif
+//#endif
 
 static geBoolean Box3d_Intersects
 	(
@@ -127,6 +142,30 @@ static geBoolean Box3d_Intersects
 	  const Box3d *b2
 	)
 {
+	if (b1 == NULL)
+	{
+		MessageBox(NULL, "Box1 == NULL", "Box3d_Intersects", MB_OK);	//	post 0.55
+		return GE_FALSE;
+	}
+	
+	if (b2 == NULL)
+	{
+		MessageBox(NULL, "Box2 == NULL", "Box3d_Intersects", MB_OK);	//	post 0.55
+		return GE_FALSE;
+	}
+		
+	if (!Box3d_IsValid(b1))
+	{
+		MessageBox(NULL, "Box1 is not Valid", "Box3d_Intersects", MB_OK);	//	post 0.55
+		return GE_FALSE;
+	}
+
+	if (!Box3d_IsValid (b2))
+	{
+		MessageBox(NULL, "Box2 is not Valid", "Box3d_Intersects", MB_OK);	//	post 0.55
+		return GE_FALSE;
+	}
+	
 	assert (Box3d_IsValid (b1));
 	assert (Box3d_IsValid (b2));
 
@@ -145,6 +184,30 @@ geBoolean Box3d_Intersection
 	)
 {
 	geBoolean rslt;
+
+	if (b1 == NULL)
+	{
+		MessageBox(NULL, "Box1 == NULL", "Box3d_Intersection", MB_OK);	//	post 0.55
+		return GE_FALSE;
+	}
+
+	if (b2 == NULL)
+	{
+		MessageBox(NULL, "Box2 == NULL", "Box3d_Intersection", MB_OK);	//	post 0.55
+		return GE_FALSE;
+	}
+
+	if (!Box3d_IsValid (b1))
+	{
+		MessageBox(NULL, "Box1 is not Valid", "Box3d_Intersects", MB_OK);	//	post 0.55
+		return GE_FALSE;
+	}
+
+	if (!Box3d_IsValid (b2))
+	{
+		MessageBox(NULL, "Box2 is not Valid", "Box3d_Intersects", MB_OK);	//	post 0.55
+		return GE_FALSE;
+	}
 
 	assert (Box3d_IsValid (b1));
 	assert (Box3d_IsValid (b2));
@@ -197,6 +260,9 @@ geBoolean Box3d_ContainsPoint
 	  geFloat pz
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_ContainsPoint", MB_OK);	//	post 0.55
+
 	assert (Box3d_IsValid (b));
 
 	return ((px >= b->Min.X) && (px <= b->Max.X) &&
@@ -209,6 +275,9 @@ const geVec3d *Box3d_GetMin
 	  const Box3d *b
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_GetMin", MB_OK);	//	post 0.55
+
 	assert (Box3d_IsValid (b));
 
 	return &b->Min;
@@ -219,6 +288,9 @@ const geVec3d *Box3d_GetMax
 	  const Box3d *b
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_GetMax", MB_OK);	//	post 0.55
+
 	assert (Box3d_IsValid (b));
 
 	return &b->Max;
@@ -230,6 +302,9 @@ void Box3d_GetCenter
 	  geVec3d *pCenter
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_GetCenter", MB_OK);	//	post 0.55
+
 	assert (Box3d_IsValid (b));
 	assert (pCenter != NULL);
 
@@ -247,6 +322,9 @@ geFloat Box3d_GetWidth
 	  const Box3d *b
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_GetWidth", MB_OK);	//	post 0.55
+
 	assert (Box3d_IsValid (b));
 
 	return (b->Max.X - b->Min.X + 1);
@@ -257,6 +335,10 @@ geFloat Box3d_GetHeight
 	  const Box3d *b
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_GetHeight", MB_OK);	//	post 0.55
+
+	
 	assert (Box3d_IsValid (b));
 
 	return (b->Max.Y - b->Min.Y + 1);
@@ -267,6 +349,9 @@ geFloat Box3d_GetDepth
 	  const Box3d *b
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_GetDepth", MB_OK);	//	post 0.55
+
 	assert (Box3d_IsValid (b));
 
 	return (b->Max.Z - b->Min.Z + 1);
@@ -278,6 +363,9 @@ void Box3d_GetSize
 	  geVec3d *pSize
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_GetSize", MB_OK);	//	post 0.55
+
 	assert (Box3d_IsValid (b));
 	assert (pSize != NULL);
 
@@ -296,6 +384,9 @@ void Box3d_Scale
 	  geFloat Scale
 	)
 {
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_Scale", MB_OK);	//	post 0.55
+
 	assert (Box3d_IsValid (b));
 	assert (Scale >= 0.0f);
 
@@ -315,6 +406,9 @@ void Box3d_Move
 {
 	geVec3d VecDelta;
 
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_Move", MB_OK);	//	post 0.55
+
 	assert (Box3d_IsValid (b));
 
 	geVec3d_Set (&VecDelta, dx, dy, dz);
@@ -332,6 +426,9 @@ void Box3d_Inflate
 {
 	geVec3d VecDelta;
 
+	if (b == NULL)
+		MessageBox(NULL, "Box == NULL", "Box3d_Inflate", MB_OK);	//	post 0.55
+	
 	assert (Box3d_IsValid (b));
 
 	geVec3d_Set (&VecDelta, dx, dy, dz);

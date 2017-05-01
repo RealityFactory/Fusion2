@@ -1,0 +1,2482 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+// Generated Help ID header file
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "resource.hm"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif\r\n"
+    "#include ""res\\GEditPro.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#include ""afxprint.rc""               //      print templates\r\n"
+    "#endif\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON    DISCARDABLE     "res\\icon2.ico"
+IDI_LIGHT_ENTITY        ICON    DISCARDABLE     "res\\light.ico"
+IDI_PLAYERSTART_ENTITY  ICON    DISCARDABLE     "res\\playstart.ico"
+IDI_LIBOBJECT           ICON    DISCARDABLE     "res\\libobj.ico"
+IDI_RRSTART             ICON    DISCARDABLE     "res\\rrstart.ico"
+IDI_STOP                ICON    DISCARDABLE     "res\\stop.ico"
+IDI_FFFRAME             ICON    DISCARDABLE     "res\\ffframe.ico"
+IDI_FFEND               ICON    DISCARDABLE     "res\\ffend.ico"
+IDI_CUBE_ICON           ICON    DISCARDABLE     "res\\cube_ico.ico"
+IDI_SPHERE_ICON         ICON    DISCARDABLE     "res\\icon1.ico"
+IDI_CYLINDER_ICON       ICON    DISCARDABLE     "res\\ico00001.ico"
+IDI_ARCH_ICON           ICON    DISCARDABLE     "res\\ico00002.ico"
+IDI_STAIRS_ICON         ICON    DISCARDABLE     "res\\ico00003.ico"
+IDI_CONE_ICON           ICON    DISCARDABLE     "res\\ico00004.ico"
+IDI_ICON1               ICON    DISCARDABLE     "res\\Ran_no.ico"
+IDI_SKY_ICON            ICON    DISCARDABLE     "res\\sky_icon.ico"
+IDR_GEDITPROTYPE        ICON    DISCARDABLE     "res\\ico00005.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_MAINFRAME           BITMAP  MOVEABLE PURE   "res\\Toolbar.bmp"
+IDR_BRUSHTOOLS          BITMAP  MOVEABLE PURE   "res\\toolbar1.bmp"
+IDB_HOLLOWBOX           BITMAP  MOVEABLE PURE   "res\\hollowbo.bmp"
+IDB_SOLIDBOX            BITMAP  MOVEABLE PURE   "res\\solidbox.bmp"
+IDB_SOLIDSPHERE         BITMAP  MOVEABLE PURE   "res\\solidsph.bmp"
+IDB_HOLLOWSPHERE        BITMAP  MOVEABLE PURE   "res\\hollowsp.bmp"
+IDB_CYLINDERBIT         BITMAP  MOVEABLE PURE   "res\\cylinder.bmp"
+IDR_GROUPBAR            BITMAP  MOVEABLE PURE   "res\\groupbar.bmp"
+BMP_LIGHT               BITMAP  MOVEABLE PURE   "res\\light.bmp"
+BMP_SPOTLIGHT           BITMAP  MOVEABLE PURE   "res\\spotlight.bmp"
+BMP_MODELORG            BITMAP  MOVEABLE PURE   "res\\modelorg.bmp"
+BMP_CAMERA              BITMAP  MOVEABLE PURE   "res\\camera.bmp"
+BMP_DEFAULT             BITMAP  MOVEABLE PURE   "res\\default.bmp"
+IDB_HANDLECORNER        BITMAP  MOVEABLE PURE   "res\\handleco.bmp"
+IDB_HANDLEEDGE          BITMAP  MOVEABLE PURE   "res\\handleedge.bmp"
+IDB_ROTATEHANDLEBL      BITMAP  MOVEABLE PURE   "res\\rotatebl.bmp"
+IDB_ROTATEHANDLEBR      BITMAP  MOVEABLE PURE   "res\\rotatebr.bmp"
+IDB_ROTATEHANDLETL      BITMAP  MOVEABLE PURE   "res\\rotatetl.bmp"
+IDB_ROTATEHANDLETR      BITMAP  MOVEABLE PURE   "res\\rotatetr.bmp"
+IDB_SELVERTEX           BITMAP  MOVEABLE PURE   "res\\svertex.bmp"
+IDB_SHEARHANDLELR       BITMAP  MOVEABLE PURE   "res\\shearlr.bmp"
+IDB_SHEARHANDLETB       BITMAP  MOVEABLE PURE   "res\\sheartb.bmp"
+IDB_SHOWVISIBLEGROUPS   BITMAP  MOVEABLE PURE   "res\\showvisi.bmp"
+IDB_VERTEX              BITMAP  MOVEABLE PURE   "res\\vertex.bmp"
+IDR_MODE                BITMAP  MOVEABLE PURE   "res\\mode.bmp"
+IDR_TEMPLATES           BITMAP  MOVEABLE PURE   "res\\template.bmp"
+IDB_ARCH                BITMAP  MOVEABLE PURE   "res\\arch.bmp"
+IDB_CONE                BITMAP  MOVEABLE PURE   "res\\cone.bmp"
+IDB_STAIRS              BITMAP  MOVEABLE PURE   "res\\stairs.bmp"
+IDB_LOGO                BITMAP  MOVEABLE PURE   "res\\logo.bmp"
+IDB_ENTITY              BITMAP  MOVEABLE PURE   "res\\idb_.bmp"
+IDB_PROTOGAME           BITMAP  MOVEABLE PURE   "res\\protogame4.bmp"
+IDB_LIGHTBULB           BITMAP  MOVEABLE PURE   "res\\litebulb.bmp"
+IDB_SKYBITMAP           BITMAP  MOVEABLE PURE   "res\\skybitmap.bmp"
+IDR_VIEW_TOOLBAR        BITMAP  MOVEABLE PURE   "res\\view_tool.bmp"
+BMP_SUNENTITY           BITMAP  MOVEABLE PURE   "res\\sunentity.bmp"
+IDB_SPLASH              BITMAP  DISCARDABLE     "res\\rf_edit_pro.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR MOVEABLE PURE  17, 16
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_PASTE
+    SEPARATOR
+    BUTTON      ID_EDIT_UNDO
+    BUTTON      ID_EDIT_REDO
+    SEPARATOR
+    BUTTON      ID_FILE_PRINT_PREVIEW_T_EDIT_VIEW
+    BUTTON      ID_FILE_PRINT_TEDIT_VIEW
+    SEPARATOR
+    BUTTON      ID_GBSPNOWATER
+    BUTTON      ID_COMPILE
+    BUTTON      IDM_PREVIEW
+END
+
+IDR_BRUSHTOOLS TOOLBAR MOVEABLE PURE  17, 16
+BEGIN
+    BUTTON      ID_GENERALSELECT
+    BUTTON      ID_TOOLS_TEMPLATE
+    BUTTON      ID_TOOLS_CAMERA
+    SEPARATOR
+    BUTTON      ID_TOOLS_BRUSH_MOVEROTATEBRUSH
+    BUTTON      ID_TOOLS_BRUSH_ROTATEBRUSH
+    BUTTON      ID_TOOLS_BRUSH_SCALEBRUSH
+    BUTTON      ID_TOOLS_BRUSH_SHEARBRUSH
+    SEPARATOR
+    BUTTON      ID_TOOLS_BRUSH_ROTATE90
+    BUTTON      ID_CENTERTHING
+    SEPARATOR
+    BUTTON      ID_AXIS_X
+    BUTTON      ID_AXIS_Y
+    BUTTON      ID_AXIS_Z
+    BUTTON      ID_TOOLS_USEGRID
+    BUTTON      IDM_LEVELOPTIONS
+END
+
+IDR_GROUPBAR TOOLBAR MOVEABLE PURE  17, 16
+BEGIN
+    BUTTON      ID_ENTITIES_SHOW
+    BUTTON      ID_VIEW_SHOW_ALLGROUPS
+    BUTTON      ID_VIEW_SHOW_VISIBLEGROUPS
+    BUTTON      ID_VIEW_SHOW_CURRENTGROUP
+    SEPARATOR
+    BUTTON      ID_BRUSH_GROUPS_ADDTOGROUP
+    BUTTON      ID_BRUSH_REMOVESELECTEDFROMGROUP
+    BUTTON      ID_GROUPBAR_COM
+END
+
+IDR_MODE TOOLBAR MOVEABLE PURE  19, 15
+BEGIN
+    BUTTON      IDM_MODE_ADJUST
+    BUTTON      IDM_MODE_ROTATESHEAR
+    BUTTON      IDM_MODE_VERTEX
+END
+
+IDR_TEMPLATES TOOLBAR MOVEABLE PURE  19, 15
+BEGIN
+    BUTTON      IDM_TOOLS_PLACECUBE
+    BUTTON      IDM_TOOLS_PLACECYLINDER
+    BUTTON      IDM_TOOLS_PLACESPHEROID
+    BUTTON      IDM_TOOLS_PLACEARCH
+    BUTTON      IDM_TOOLS_PLACESTAIRCASE
+    BUTTON      IDM_TOOLS_PLACEUSEROBJ
+    SEPARATOR
+    BUTTON      IDM_TOOLS_PLACELIGHT
+    BUTTON      IDM_TOOLS_PLACECAMERA
+    SEPARATOR
+    BUTTON      IDM_TOOLS_PLACEPREFAB
+    BUTTON      IDM_TOOLS_PREFABCOMBO
+    SEPARATOR
+    BUTTON      IDM_TOOLS_UPDATE_SELECTION
+    BUTTON      IDS_UPDATE_ALL
+    SEPARATOR
+    BUTTON      IDM_ANIM
+END
+
+IDR_VIEW_TOOLBAR TOOLBAR MOVEABLE PURE  16, 15
+BEGIN
+    BUTTON      ID_BUTTON32995
+    BUTTON      ID_BUTTON32996
+    BUTTON      ID_BUTTON32997
+    BUTTON      ID_BUTTON32998
+    BUTTON      ID_BUTTON32999
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics",                ID_HELP_FINDER
+        MENUITEM SEPARATOR
+        MENUITEM "&About GEditPro...",          ID_APP_ABOUT
+    END
+END
+
+IDR_GEDITPROTYPE MENU DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM "&Close",                      ID_FILE_CLOSE
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
+        MENUITEM SEPARATOR
+        MENUITEM "&Import...",                  ID_FILE_IMPORT
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW_T_EDIT_VIEW
+
+        MENUITEM "&Print\tCtrl+P",              ID_FILE_PRINT_TEDIT_VIEW
+        MENUITEM "Print Setup...",              ID_FILE_PRINT_SETUP
+        MENUITEM SEPARATOR
+        MENUITEM "&Preferences",                IDM_PREFERENCES
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               57643
+        MENUITEM "&Redo\tCtrl+Y",               57644
+        MENUITEM "&Copy\tCtrl+C",               57634
+        MENUITEM "&Paste\tCtrl+V",              57637
+        MENUITEM "&Delete\tDel",                ID_EDIT_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Select All\tCtrl+A",         ID_SELECTALL
+        MENUITEM "D&eselect All\tCtrl+D",       ID_DESELECTALL
+    END
+    POPUP "&Project"
+    BEGIN
+        MENUITEM "&Snap To Grid",               ID_TOOLS_USEGRID, CHECKED
+        MENUITEM "&Level Options",              IDM_LEVELOPTIONS
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "Tool &Bar",                   ID_VIEW_TOOLBAR
+        MENUITEM "M&ode Bar",                   IDM_MODEBAR
+        MENUITEM "&Group Bar",                  IDM_GROUPBAR
+        MENUITEM "&Command Panel",              IDM_COMMAND_PANEL
+        MENUITEM "&Properties Panel",           IDM_PROPERTIES_PANEL
+        MENUITEM "Conso&le Panel",              IDM_CONSOLE
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+        MENUITEM "Leak Finder",                 ID_VIEWLEAKFINDER
+        MENUITEM SEPARATOR
+        MENUITEM "3D &Wireframe",               ID_VIEW_3DWIREFRAME
+        MENUITEM "Te&xture View",               ID_VIEW_TEXTUREVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "ViewMgr Control",             ID_VIEW_VIEWMGR
+        MENUITEM SEPARATOR
+        MENUITEM "Zoom In\t+",                  ID_VIEW_ZOOMIN
+        MENUITEM "Zoom Out\t-",                 ID_VIEW_ZOOMOUT
+        MENUITEM SEPARATOR
+        POPUP "S&how"
+        BEGIN
+            MENUITEM "&Current Group",              ID_VIEW_SHOW_CURRENTGROUP
+
+            MENUITEM "&Visible Brush Groups",       ID_VIEW_SHOW_VISIBLEGROUPS
+
+            MENUITEM SEPARATOR
+            MENUITEM "&All Brushes",                ID_VIEW_SHOW_ALLGROUPS
+            MENUITEM "C&lip Brushes",               ID_VIEW_SHOW_CLIP
+            MENUITEM "&Hint Brushes",               ID_VIEW_SHOW_HINT
+            MENUITEM "&Detail Brushes",             ID_VIEW_SHOW_DETAIL
+        END
+    END
+    POPUP "QuickViewer"
+    BEGIN
+        MENUITEM "View with Engine",            IDM_PREVIEW
+    END
+    POPUP "&Build"
+    BEGIN
+        MENUITEM "&Rebuild BSP Tree",           ID_GBSPNOWATER
+        MENUITEM "&Compile...",                 ID_COMPILE
+    END
+    POPUP "&Mode"
+    BEGIN
+        MENUITEM "&Camera\tC",                  ID_TOOLS_CAMERA
+        MENUITEM "&Brush Select\tB",            ID_GENERALSELECT
+        MENUITEM "      B&rush Attributes",     ID_TOOLS_BRUSH_ADJUSTMENTMODE
+
+        MENUITEM "      &Face Attributes",      ID_TOOLS_FACE_ADJUSTMENTMODE
+        MENUITEM "Toggle Brush/Face Mode\tPgDn", ID_TOOLS_TOGGLEADJUSTMODE
+        MENUITEM "&Template Select\tT",         ID_TOOLS_TEMPLATE
+        MENUITEM "&Auto Rebuild BSP",           IDM_REBUILD_BSP
+    END
+    POPUP "&Tools"
+    BEGIN
+        POPUP "&New Brush"
+        BEGIN
+            MENUITEM "&Arch",                       ID_BRUSH_PRIMITIVES_ARCH
+            MENUITEM "C&one",                       ID_BRUSH_PRIMITIVES_CONE
+            MENUITEM "&Cube...",                    ID_BRUSH_PRIMITIVES_CUBE
+            MENUITEM "C&ylinder...",                ID_BRUSH_PRIMITIVES_CYLINDER
+
+            MENUITEM "&Spheroid...",                ID_BRUSH_PRIMITIVES_SPHEROID
+
+            MENUITEM "S&taircase...",               ID_BRUSH_PRIMITIVES_STAIRCASE
+
+        END
+        POPUP "&Face"
+        BEGIN
+            MENUITEM "&Reset Face",                 ID_TOOLS_FACE_RESETFACE
+        END
+        POPUP "&Brush"
+        BEGIN
+            MENUITEM "Show &Brush",                 ID_TOOLS_BRUSH_SHOWBRUSH
+            , CHECKED
+            MENUITEM SEPARATOR
+            MENUITEM "&Reset Brush",                ID_TOOLS_BRUSH_RESETBRUSH
+
+            MENUITEM "Make &Newest\tN",             ID_TOOLS_BRUSH_MAKENEWEST
+
+        END
+        MENUITEM "New Prefab Brush...",         ID_NEW_LIB_OBJECT, INACTIVE
+        POPUP "Entities"
+        BEGIN
+            MENUITEM "Place &Light",                ID_ENTITIES_PLACELIGHT
+            MENUITEM "&Copy Current",               ID_ENTITIES_COPYCURRENT
+            MENUITEM "&Visibility...",              ID_ENTITYVISIBILITY
+            MENUITEM "&Show",                       ID_ENTITIES_SHOW
+            , CHECKED
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Ne&xt Brush/Face\tRight",     ID_TOOLS_NEXTBRUSH
+        MENUITEM "&Prev Brush/Face\tLeft",      ID_TOOLS_PREVBRUSH
+        MENUITEM "&Apply Entity / Template\tEnter", ID_TOOLS_ADDTOLEVEL
+        MENUITEM SEPARATOR
+    END
+    POPUP "&Change"
+    BEGIN
+        MENUITEM "&Move\tM",                    ID_TOOLS_BRUSH_MOVEROTATEBRUSH
+
+        MENUITEM "Rotate",                      ID_TOOLS_BRUSH_ROTATEBRUSH
+        MENUITEM "Rotate &45",                  ID_TOOLS_BRUSH_ROTATE90
+        MENUITEM "Sc&ale\tL",                   ID_TOOLS_BRUSH_SCALEBRUSH
+        MENUITEM "S&hear\tR",                   ID_TOOLS_BRUSH_SHEARBRUSH
+        MENUITEM SEPARATOR
+        MENUITEM "&Scale World",                ID_TOOLS_SCALEWORLD
+        MENUITEM "&Texture Scale",              ID_TOOLS_SETTEXTURESCALE
+        MENUITEM "Center Brush/Entity",         ID_CENTERTHING
+    END
+    POPUP "&Group"
+    BEGIN
+        MENUITEM "&Add Selected To Group",      ID_BRUSH_GROUPS_ADDTOGROUP
+        MENUITEM "&Remove Selected From Group", ID_BRUSH_REMOVESELECTEDFROMGROUP
+
+        MENUITEM "&Create New Group",           ID_GROUPS_MAKENEWGROUP
+    END
+    POPUP "&Axis"
+    BEGIN
+        MENUITEM "Lock &X\tX",                  ID_AXIS_X
+        MENUITEM "Lock &Y\tY",                  ID_AXIS_Y
+        MENUITEM "Lock &Z\tZ",                  ID_AXIS_Z
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&New Window",                 ID_WINDOW_NEW
+        MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
+        MENUITEM "&Tile",                       ID_WINDOW_TILE_HORZ
+        MENUITEM "&Arrange Icons",              ID_WINDOW_ARRANGE
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help Topics\tF1",            57667
+        MENUITEM "&Search for Help On",         ID_HELP_INDEX
+        MENUITEM SEPARATOR
+        MENUITEM "&About GEditPro",             ID_APP_ABOUT
+    END
+END
+
+IDR_POPUP_MENU MENU DISCARDABLE 
+BEGIN
+    POPUP "IDR_POPUP_MENU"
+    BEGIN
+        MENUITEM "Camera",                      ID_TOOLS_CAMERA
+        MENUITEM "Brush Select",                ID_GENERALSELECT
+        MENUITEM "      Brush Attributes",      ID_TOOLS_BRUSH_ADJUSTMENTMODE
+
+        MENUITEM "      Face Attributes",       ID_TOOLS_FACE_ADJUSTMENTMODE
+        MENUITEM "Template Select",             ID_TOOLS_TEMPLATE
+        MENUITEM SEPARATOR
+        MENUITEM "Move",                        ID_TOOLS_BRUSH_MOVEROTATEBRUSH
+
+        MENUITEM "Rotate",                      ID_TOOLS_BRUSH_ROTATEBRUSH
+        MENUITEM "Rotate &45",                  ID_TOOLS_BRUSH_ROTATE90
+        MENUITEM "Resize",                      ID_TOOLS_BRUSH_SCALEBRUSH
+        MENUITEM "Shear",                       ID_TOOLS_BRUSH_SHEARBRUSH
+        MENUITEM "Center Brush/Entity",         ID_CENTERTHING
+        MENUITEM SEPARATOR
+        MENUITEM "&Command Panel",              IDM_COMMAND_PANEL
+        MENUITEM "&Properties Panel",           IDM_PROPERTIES_PANEL
+        MENUITEM SEPARATOR
+        MENUITEM "Apply Entity / Template",     ID_TOOLS_ADDTOLEVEL
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS MOVEABLE PURE 
+BEGIN
+    "B",            ID_GENERALSELECT,       VIRTKEY, NOINVERT
+    "A",            ID_SELECTALL,           VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_TOOLS_CAMERA,        VIRTKEY, NOINVERT
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "D",            ID_DESELECTALL,         VIRTKEY, CONTROL, NOINVERT
+    "G",            ID_TOOLS_GROUPMOVEMENTMODE, VIRTKEY, NOINVERT
+    "L",            ID_TOOLS_BRUSH_SCALEBRUSH, VIRTKEY, NOINVERT
+    "M",            ID_TOOLS_BRUSH_MOVEROTATEBRUSH, VIRTKEY, NOINVERT
+    "N",            ID_TOOLS_BRUSH_MAKENEWEST, VIRTKEY, NOINVERT
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_TOOLS_BRUSH_SHEARBRUSH, VIRTKEY, NOINVERT
+    "R",            ID_CENTERTHING,         VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    "T",            ID_TOOLS_TEMPLATE,      VIRTKEY, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    VK_ADD,         ID_VIEW_ZOOMIN,         VIRTKEY, NOINVERT
+    VK_DELETE,      ID_EDIT_DELETE,         VIRTKEY, NOINVERT
+    VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
+    VK_F1,          ID_CONTEXT_HELP,        VIRTKEY, SHIFT, NOINVERT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
+    VK_LEFT,        ID_TOOLS_PREVBRUSH,     VIRTKEY, NOINVERT
+    VK_NEXT,        ID_TOOLS_TOGGLEADJUSTMODE, VIRTKEY, NOINVERT
+    VK_RETURN,      ID_TOOLS_ADDTOLEVEL,    VIRTKEY, NOINVERT
+    VK_RIGHT,       ID_TOOLS_NEXTBRUSH,     VIRTKEY, NOINVERT
+    VK_SUBTRACT,    ID_VIEW_ZOOMOUT,        VIRTKEY, NOINVERT
+    "X",            ID_AXIS_X,              VIRTKEY, NOINVERT
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
+    "Y",            ID_AXIS_Y,              VIRTKEY, NOINVERT
+    "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
+    "Z",            ID_AXIS_Z,              VIRTKEY, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX_OLD DIALOG DISCARDABLE  0, 0, 170, 97
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About GEditPro"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
+    LTEXT           "GEdit Version 1.0",IDC_STATIC,35,7,107,8,SS_NOPREFIX
+    CTEXT           "Copyright © 1999",IDC_STATIC,55,30,59,9
+    DEFPUSHBUTTON   "OK",IDOK,60,78,50,14,WS_GROUP
+    CTEXT           "WildTangent, Inc.",IDC_STATIC,50,41,72,8
+    CTEXT           "All Rights Reserved",IDC_STATIC,55,51,65,8
+END
+
+IDD_BRUSHDIALOG DIALOGEX 0, 0, 100, 320
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_NAME,0,38,96,12,ES_AUTOHSCROLL | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    CONTROL         "&Solid",IDC_BRUSHSOLID,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,6,72,31,10
+    CONTROL         "C&lip",IDC_BRUSHCLIP,"Button",BS_AUTORADIOBUTTON,6,84,
+                    27,10
+    CONTROL         "&Empty",IDC_BRUSHEMPTY,"Button",BS_AUTORADIOBUTTON,6,96,
+                    34,10
+    CONTROL         "&Window",IDC_BRUSHWINDOW,"Button",BS_AUTORADIOBUTTON,48,
+                    72,42,10
+    CONTROL         "Hi&nt",IDC_BRUSHHINT,"Button",BS_AUTORADIOBUTTON,50,84,
+                    29,10
+    CONTROL         "&Cut",IDC_BRUSHSUBTRACT,"Button",BS_AUTORADIOBUTTON,50,
+                    96,27,10
+    CONTROL         "&Translucent",IDC_BRUSHTRANSLUCENT,"Button",
+                    BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | 
+                    WS_TABSTOP,4,118,53,9
+    CONTROL         "&Hollow",IDC_BRUSHHOLLOW,"Button",BS_AUTOCHECKBOX | 
+                    WS_DISABLED | WS_TABSTOP,4,130,35,10
+    LTEXT           "Hull Thickness",IDC_LBLHULLSIZE,4,141,32,16
+    EDITTEXT        IDC_HULLSIZE,40,145,26,12,ES_AUTOHSCROLL | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    CONTROL         "Wa&vy",IDC_BRUSHWAVY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,4,161,32,9
+    CONTROL         "&Flocking",IDC_BRUSHFLOCKING,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,4,191,41,9
+    CONTROL         "&Detail",IDC_BRUSHDETAIL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,4,171,36,9
+    CONTROL         "Sheet",IDC_BRUSHSHEET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,4,201,36,9
+    CONTROL         "&Area",IDC_BRUSHAREA,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,4,181,36,9
+    LISTBOX         IDC_CONTENTSLIST,0,224,96,67,LBS_OWNERDRAWFIXED | 
+                    LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | 
+                    WS_VSCROLL | WS_GROUP | WS_TABSTOP,WS_EX_STATICEDGE
+    DEFPUSHBUTTON   "Apply",IDC_APPLY,1,297,95,12
+    LTEXT           "Brush Name",IDC_STATIC,4,28,48,10
+    GROUPBOX        "Type",IDC_STATIC,0,58,96,58
+    LTEXT           "C&ontents:",IDC_STATIC,4,214,31,8
+    CTEXT           "Brush Attributes",IDC_STATIC,0,5,96,10,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "(Subtract)",IDC_STATIC,48,105,32,8
+    PUSHBUTTON      "Make All Same Type",IDC_BRUSH_ALL_SAME,0,15,96,10
+END
+
+IDD_CREATEBOX DIALOGEX 0, 0, 100, 324
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_XSIZETOP,43,54,36,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_ZSIZETOP,43,71,36,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_XSIZEBOT,43,108,35,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_ZSIZEBOT,42,124,36,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_YSIZE,54,162,33,14,ES_AUTOHSCROLL | ES_NUMBER | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_THICKNESS,54,180,33,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER | WS_GROUP,WS_EX_STATICEDGE
+    CONTROL         "Solid",IDC_SOLID,"Button",BS_AUTORADIOBUTTON | WS_GROUP | 
+                    WS_TABSTOP,6,204,31,10
+    CONTROL         "Hollow",IDC_HOLLOW,"Button",BS_AUTORADIOBUTTON,48,204,
+                    37,10
+    CONTROL         "Cut Brush",IDC_TCUT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,222,47,10
+    CONTROL         "Sheet",IDC_TSHEET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    6,234,35,10
+    DEFPUSHBUTTON   "Add to World",ID_APPLY_BOX_BTN,0,270,96,12,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,60,288,36,12,NOT WS_VISIBLE
+    PUSHBUTTON      "Defaults",IDC_Defaults,0,288,54,12
+    LTEXT           "X Size",IDC_STATIC,14,58,21,8
+    LTEXT           "Y Size",IDC_STATIC,18,168,21,8
+    LTEXT           "Z Size",IDC_STATIC,12,76,21,8
+    RTEXT           "Wall Thickness",IDC_STATIC,6,180,36,16
+    ICON            IDI_CUBE_ICON,IDC_PICTURE,3,4,20,20
+    LTEXT           "X Size",IDC_STATIC,13,112,21,8
+    LTEXT           "Z Size",IDC_STATIC,12,128,21,8
+    GROUPBOX        "Top",IDC_STATIC,2,46,94,45
+    GROUPBOX        "Bottom",IDC_STATIC,2,98,94,46
+    GROUPBOX        "Style",IDC_STATIC,2,152,94,96
+    LTEXT           "Box Template",IDC_STATIC,42,4,54,20
+    CONTROL         "Customize Template",IDC_CUSTOM_TEMPLATE_BTN,"Button",
+                    BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,0,252,96,12
+END
+
+IDD_CREATE_SPHEROID DIALOGEX 0, 0, 100, 320
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_YSIZE,18,74,57,14,ES_AUTOHSCROLL | ES_NUMBER | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_VERTSTRIPES,18,102,57,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_HORSTRIPES,18,130,57,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_THICKNESS,18,158,57,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER | WS_GROUP,WS_EX_STATICEDGE
+    CONTROL         "Solid",IDC_SOLID,"Button",BS_AUTORADIOBUTTON | WS_GROUP | 
+                    WS_TABSTOP,12,198,31,10
+    CONTROL         "Hollow",IDC_HOLLOW,"Button",BS_AUTORADIOBUTTON,54,198,
+                    37,10
+    CONTROL         "Cut Brush",IDC_TCUT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,222,47,10
+    DEFPUSHBUTTON   "Add to World",IDC_ADD_SPHERE_BTN,0,260,96,12,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,60,276,32,12,NOT WS_VISIBLE
+    PUSHBUTTON      "Defaults",IDC_Defaults,0,276,54,12
+    LTEXT           "Radius",IDC_STATIC,18,66,23,8
+    ICON            IDI_SPHERE_ICON,IDC_PICTURE,4,4,16,14
+    LTEXT           "Vertical Stripes",IDC_STATIC,18,94,52,8
+    LTEXT           "Horizontal Stripes",IDC_STATIC,18,122,56,8
+    LTEXT           "Wall Thickness",IDC_STATIC,18,150,50,8
+    GROUPBOX        "General",IDC_STATIC,4,52,92,124
+    GROUPBOX        "Style",IDC_STATIC,4,183,92,56
+    LTEXT           "Sphere Template",IDC_STATIC,34,4,58,20
+    CONTROL         "Customize Template",IDC_CUSTOMIZE_SPHERE_BTN,"Button",
+                    BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,0,244,96,12
+END
+
+IDD_CREATE_CYL DIALOGEX 0, 0, 100, 364
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_TOPXSIZE,48,48,34,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_TOPXOFF,48,64,34,12,ES_AUTOHSCROLL | ES_NUMBER | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_TOPZSIZE,48,80,34,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_TOPZOFF,48,96,34,12,ES_AUTOHSCROLL | ES_NUMBER | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_BOTXSIZE,48,132,34,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_BOTXOFF,48,148,34,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_BOTZSIZE,48,164,34,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_BOTZOFF,48,180,34,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_YSIZE,49,210,32,12,ES_AUTOHSCROLL | ES_NUMBER | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_VERTSTRIPES,49,226,32,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_THICKNESS,49,242,32,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER | WS_GROUP,WS_EX_STATICEDGE
+    EDITTEXT        IDC_RINGLENGTH,49,258,32,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER | WS_GROUP,WS_EX_STATICEDGE
+    CONTROL         "Solid",IDC_SOLID,"Button",BS_AUTORADIOBUTTON | WS_GROUP | 
+                    WS_TABSTOP,3,281,31,10
+    CONTROL         "Hollow",IDC_HOLLOW,"Button",BS_AUTORADIOBUTTON,48,281,
+                    37,10
+    CONTROL         "Cut Brush",IDC_TCUT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,48,294,47,10
+    CONTROL         "Ring",IDC_RING,"Button",BS_AUTORADIOBUTTON,3,293,30,10
+    DEFPUSHBUTTON   "Add to World",IDC_APPLY_CYL_BTN,0,328,96,12,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,72,342,24,12,NOT WS_VISIBLE
+    PUSHBUTTON      "Defaults",IDC_Defaults,0,344,60,12
+    LTEXT           "X Size",IDC_STATIC,18,52,21,8
+    LTEXT           "Y Size ",IDC_STATIC,11,212,26,8,0,0,HIDC_STATIC
+    LTEXT           "Z Size",IDC_STATIC,18,84,21,8
+    ICON            IDI_CYLINDER_ICON,IDC_PICTURE,2,2,16,14
+    LTEXT           "Stripes",IDC_STATIC,11,227,22,8
+    RTEXT           "Wall Thickness",IDC_STATIC,7,239,36,18
+    LTEXT           "X Offset",IDC_STATIC,18,68,30,8
+    LTEXT           "Z Offset",IDC_STATIC,18,100,25,8
+    GROUPBOX        "Top of Cylinder",IDC_STATIC,1,36,95,80
+    LTEXT           "X Size",IDC_STATIC,18,134,21,8
+    LTEXT           "Z Size",IDC_STATIC,18,166,21,8
+    LTEXT           "X Offset",IDC_STATIC,18,150,30,8
+    LTEXT           "Z Offset",IDC_STATIC,18,182,25,8
+    GROUPBOX        "Bottom of Cylinder",IDC_STATIC,1,119,95,80
+    GROUPBOX        "Misc",IDC_STATIC,1,202,95,102
+    RTEXT           "Ring Slope Length",IDC_STATIC,7,258,36,16
+    LTEXT           "Cylinder Template",IDC_STATIC,35,4,56,20
+    CONTROL         "Customize Template",IDC_CUSTOMIZE_CYL_BTN,"Button",
+                    BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,0,312,96,12
+END
+
+IDD_GRIDSETTINGSDIALOG DIALOG DISCARDABLE  0, 0, 224, 167
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Grid Settings"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Grid Snap",IDC_STATIC,7,7,150,62,WS_GROUP
+    CONTROL         "1 Texel",IDC_1RADIO,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,11,22,39,10
+    CONTROL         "2 Texel",IDC_2RADIO,"Button",BS_AUTORADIOBUTTON,11,36,
+                    39,10
+    CONTROL         "4 Texel",IDC_4RADIO,"Button",BS_AUTORADIOBUTTON,11,50,
+                    39,10
+    CONTROL         "  8 Texel",IDC_8RADIO,"Button",BS_AUTORADIOBUTTON,85,22,
+                    43,10
+    CONTROL         "16 Texel",IDC_16RADIO,"Button",BS_AUTORADIOBUTTON,85,36,
+                    43,10
+    CONTROL         "32 Texel",IDC_32RADIO,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,85,50,43,10
+    GROUPBOX        "Rotation",IDC_STATIC,7,74,150,63,WS_GROUP
+    LTEXT           "Rotation Snap Degrees",IDC_STATIC,17,93,75,8
+    EDITTEXT        IDC_ROTSNAPDEGREES,103,89,34,14,ES_AUTOHSCROLL | 
+                    WS_GROUP
+    CONTROL         "Spin1",IDC_SPINROTSNAPDEGREES,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,137,89,11,14
+    PUSHBUTTON      "15",IDC_SNAP15,17,113,20,14,WS_GROUP
+    PUSHBUTTON      "30",IDC_SNAP30,45,113,20,14
+    PUSHBUTTON      "45",IDC_SNAP45,71,113,20,14
+    PUSHBUTTON      "60",IDC_SNAP60,99,113,20,14
+    PUSHBUTTON      "90",IDC_SNAP90,125,113,20,14
+    CONTROL         "Snap/Rotate To Grid",IDC_USEROTSNAP,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,146,83,10
+    DEFPUSHBUTTON   "OK",IDOK,167,7,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,167,25,50,14
+END
+
+IDD_ENTITIES DIALOGEX 0, 0, 244, 364
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_PROPERTIESLIST,0,56,158,288,LBS_OWNERDRAWFIXED | 
+                    LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | 
+                    LBS_WANTKEYBOARDINPUT | NOT WS_BORDER | WS_VSCROLL | 
+                    WS_HSCROLL | WS_TABSTOP,WS_EX_STATICEDGE
+    COMBOBOX        IDC_ENTITYCOMBO,0,36,158,180,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL
+    CTEXT           "",IDC_ENTITIES_STATIC,0,22,158,8
+    CTEXT           "Entity Attributes",IDC_STATIC,0,8,158,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+END
+
+IDD_SELECTCLASSNAME DIALOG DISCARDABLE  0, 0, 222, 202
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Select Classname"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,160,12,50,14
+    LISTBOX         IDC_LIST1,10,12,130,180,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_GROUPDIALOG DIALOGEX 0, 0, 94, 388
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_GROUPCOMBO,0,90,90,51,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_GROUP | WS_TABSTOP
+    LISTBOX         IDC_BRUSHLIST,0,119,90,137,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | NOT WS_BORDER | 
+                    WS_VSCROLL | WS_TABSTOP,WS_EX_STATICEDGE
+    PUSHBUTTON      "Add To Current",IDC_ADDTOCURRENT,1,8,89,12
+    PUSHBUTTON      "&Remove From Current",IDC_REMOVEFROMCURRENT,1,24,89,12
+    PUSHBUTTON      "&Create New Group",IDC_CREATENEWGROUP,1,40,89,12
+    PUSHBUTTON      "&Delete Group",IDC_REMOVEGROUP,1,56,89,12
+    PUSHBUTTON      "&Select All",IDC_SELECTBRUSHES,0,260,42,12
+    PUSHBUTTON      "&Unselect All",IDC_DESELECTBRUSHES,44,260,46,12
+    CONTROL         "&Visible",IDC_VISIBLE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,54,276,36,12
+    CONTROL         "&Lock",IDC_BRUSHLOCK,"Button",BS_AUTOCHECKBOX | 
+                    WS_DISABLED | WS_TABSTOP,54,292,33,10
+    LTEXT           "Name",IDC_STATIC,3,82,20,8
+    CTEXT           "Brushes/Entities:",IDC_STATIC,0,107,90,8
+    LTEXT           "Group Color",IDC_STATIC,4,280,38,8
+    CONTROL         "Color",IDC_COLOURBUTTON,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,0,290,48,12
+END
+
+IDD_STAIRCASEDIALOG DIALOGEX 0, 0, 100, 302
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_HEIGHT,53,48,31,12,ES_AUTOHSCROLL | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    EDITTEXT        IDC_WIDTH,53,64,31,12,ES_AUTOHSCROLL | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    EDITTEXT        IDC_LENGTH,53,80,31,12,ES_AUTOHSCROLL | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    EDITTEXT        IDC_NUMBEROFSTAIRS,53,96,31,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    CONTROL         "Cut Brush",IDC_TCUT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,120,47,10
+    CONTROL         "Make Ramp",IDC_MAKE_RAMP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,132,55,10
+    DEFPUSHBUTTON   "Add to World",IDC_ADD_STAIRS,0,172,96,12
+    PUSHBUTTON      "Cancel",IDCANCEL,4,208,50,12,NOT WS_VISIBLE
+    PUSHBUTTON      "Defaults",ID_DEFAULTS,0,188,60,12
+    LTEXT           "Height",IDC_STATIC,13,52,22,8
+    LTEXT           "Width",IDC_STATIC,13,66,20,8
+    LTEXT           "Length",IDC_STATIC,13,84,23,8
+    LTEXT           "Number of Stairs",IDC_STATIC,12,98,40,19
+    LTEXT           "Staircase Template",IDC_STATIC,27,4,69,20
+    ICON            IDI_STAIRS_ICON,IDC_STATIC,4,4,16,14
+    CONTROL         "Customize Template",IDC_CUSTOMIZE_STAIRS,"Button",
+                    BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,0,156,96,12
+END
+
+IDD_FACEDIALOG DIALOGEX 0, 0, 100, 348
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Mirror",IDC_FACEMIRROR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,18,33,10
+    CONTROL         "Sky",IDC_FACESKY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    60,30,28,10
+    CONTROL         "Texture Lock",IDC_TEXTURELOCK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,54,58,10
+    CONTROL         "Full Bright",IDC_FACEFULLBRIGHT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,18,47,10
+    CONTROL         "Gouraud",IDC_FACEGOURAUD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,30,43,10
+    CONTROL         "Flat",IDC_FACEFLAT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,42,27,10
+    CONTROL         "Light",IDC_FACELIGHT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,42,31,10
+    LTEXT           "Intensity",IDC_STATIC,4,71,27,8
+    EDITTEXT        IDC_FACELIGHTINTENSITY,37,68,34,12,ES_AUTOHSCROLL | 
+                    ES_NUMBER | NOT WS_BORDER,WS_EX_STATICEDGE
+    GROUPBOX        "Texture Offset",IDC_STATIC,0,83,96,43
+    LTEXT           "X: ",IDC_STATIC,3,96,10,8
+    EDITTEXT        IDC_EDITXOFFSET,16,94,24,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    SCROLLBAR       IDC_SBXOFFSET_UNIT,40,94,8,12,SBS_VERT
+    SCROLLBAR       IDC_SBXOFFSET_INCR,49,94,8,12,SBS_VERT
+    COMBOBOX        IDC_CBXOFFSET,57,94,32,107,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Y:",IDC_STATIC,3,112,8,8
+    EDITTEXT        IDC_EDITYOFFSET,16,109,24,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    SCROLLBAR       IDC_SBYOFFSET_UNIT,40,109,8,12,SBS_VERT
+    SCROLLBAR       IDC_SBYOFFSET_INCR,49,109,8,12,SBS_VERT
+    COMBOBOX        IDC_CBYOFFSET,57,109,32,99,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    GROUPBOX        "Draw Scale",IDC_STATIC,0,130,96,41
+    LTEXT           "X:",IDC_STATIC,3,143,8,8
+    EDITTEXT        IDC_EDITXSCALE,16,140,24,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    SCROLLBAR       IDC_SBXSCALE_UNIT,40,140,8,12,SBS_VERT
+    SCROLLBAR       IDC_SBXSCALE_INCR,49,140,8,12,SBS_VERT
+    COMBOBOX        IDC_CBXSCALE,57,140,32,95,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Y:",IDC_STATIC,3,157,8,8
+    EDITTEXT        IDC_EDITYSCALE,16,154,24,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    SCROLLBAR       IDC_SBYSCALE_UNIT,40,154,8,12,SBS_VERT
+    SCROLLBAR       IDC_SBYSCALE_INCR,49,154,8,12,SBS_VERT
+    COMBOBOX        IDC_CBYSCALE,57,154,32,96,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    GROUPBOX        "Light Map Scale",IDC_STATIC,0,175,96,48
+    LTEXT           "X:",IDC_STATIC,3,193,8,8
+    EDITTEXT        IDC_EDITXLIGHTSCALE,17,190,24,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    SCROLLBAR       IDC_SBXLIGHTSCALE_UNIT,41,190,8,12,SBS_VERT
+    SCROLLBAR       IDC_SBXLIGHTSCALE_INCR,50,190,8,12,SBS_VERT
+    COMBOBOX        IDC_CBXLIGHTSCALE,58,190,32,95,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Y:",IDC_STATIC,3,207,8,8
+    EDITTEXT        IDC_EDITYLIGHTSCALE,17,205,24,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    SCROLLBAR       IDC_SBYLIGHTSCALE_UNIT,41,205,8,12,SBS_VERT
+    SCROLLBAR       IDC_SBYLIGHTSCALE_INCR,50,205,8,12,SBS_VERT
+    COMBOBOX        IDC_CBYLIGHTSCALE,58,205,32,96,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Angle:",IDC_STATIC,8,227,21,8
+    EDITTEXT        IDC_EDITANGLE,6,235,28,12,ES_AUTOHSCROLL | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    SCROLLBAR       IDC_SBANGLE_UNIT,35,235,8,12,SBS_VERT
+    SCROLLBAR       IDC_SBANGLE_INCR,45,235,8,12,SBS_VERT
+    COMBOBOX        IDC_CBANGLE,53,235,36,89,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "MipMap Bias",IDC_STATIC,6,260,42,8
+    EDITTEXT        IDC_MIPMAPBIAS,6,270,40,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    PUSHBUTTON      "Flip Vert",IDC_FLIPVERTICAL,60,288,36,12
+    PUSHBUTTON      "Flip Horiz",IDC_FLIPHORIZONTAL,60,300,36,12
+    PUSHBUTTON      "&Defaults",ID_DEFAULTS,60,318,36,12
+    LTEXT           "Reflectivity Scale",IDC_STATIC,60,252,40,15
+    EDITTEXT        IDC_REFLECTIVITY,60,270,35,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    LTEXT           "Transparency Value",IDC_STATIC,6,300,48,16
+    EDITTEXT        IDC_FACETRANSLUCENCY,6,318,40,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    CONTROL         "Transparent",IDC_TRANSPARENT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,288,54,10
+    PUSHBUTTON      "Apply",IDC_FACE_APPLYBTN,0,336,96,12
+    CTEXT           "Face Attributes",IDC_STATIC,0,4,96,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+END
+
+IDD_TABDIALOG DIALOG DISCARDABLE  0, 0, 191, 383
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Group",IDC_GROUP1,7,7,177,369,BS_CENTER | NOT 
+                    WS_VISIBLE
+END
+
+IDD_TEXTUREDIALOG DIALOG DISCARDABLE  0, 0, 97, 220
+STYLE WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Apply",IDC_APPLYTEXTURE,64,116,32,14,BS_NOTIFY | 
+                    WS_GROUP
+    LISTBOX         IDC_TEXTURELIST,1,6,96,108,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_GROUP | 
+                    WS_TABSTOP
+    CONTROL         "",IDC_TEXTUREIMAGE,"Static",SS_BITMAP | WS_DISABLED,2,
+                    137,15,13
+    LTEXT           "Static",IDC_SIZETEXT,2,118,44,8,NOT WS_GROUP
+END
+
+IDD_BRUSH_ENTITY_DIALOG DIALOG DISCARDABLE  0, 0, 282, 230
+STYLE WS_CHILD | WS_VISIBLE
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "CUBE_PRIMITIVE",IDC_CUBE_PRIMITIVE,15,21,20,20,
+                    BS_BITMAP | BS_NOTIFY | NOT WS_VISIBLE
+    DEFPUSHBUTTON   "Button2",IDC_SPHEROID_PRIMITIVE,39,21,20,20,BS_BITMAP | 
+                    BS_NOTIFY | NOT WS_VISIBLE
+    DEFPUSHBUTTON   "Button2",IDC_CYLINDER_PRIMITIVE,64,21,20,20,BS_BITMAP | 
+                    BS_NOTIFY | NOT WS_VISIBLE
+    DEFPUSHBUTTON   "Button2",IDC_STAIRCASE_PRIMITIVE,88,21,20,20,BS_BITMAP | 
+                    BS_NOTIFY | NOT WS_VISIBLE
+    DEFPUSHBUTTON   "Button2",IDC_ENTITIES,15,94,20,20,BS_BITMAP | BS_NOTIFY | 
+                    NOT WS_VISIBLE | WS_DISABLED
+    DEFPUSHBUTTON   "Button2",IDC_PLACE_OBJECT_BUTTON,67,94,20,20,BS_BITMAP | 
+                    BS_NOTIFY | NOT WS_VISIBLE | WS_DISABLED
+    DEFPUSHBUTTON   "Button2",IDC_ARCH_PRIMITIVE,112,21,20,20,BS_BITMAP | 
+                    BS_NOTIFY | NOT WS_VISIBLE
+    DEFPUSHBUTTON   "Button2",IDC_CONE_PRIMITIVE,15,47,20,20,BS_BITMAP | 
+                    BS_NOTIFY | NOT WS_VISIBLE
+END
+
+IDD_CREATE_ARCH DIALOGEX 0, 0, 100, 356
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_STARTANGLE,54,60,36,15,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_ENDANGLE,54,79,36,15,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_THICKNESS,54,98,36,15,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_WIDTH,54,118,36,15,ES_AUTOHSCROLL | ES_NUMBER | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_RADIUS,54,138,36,15,ES_AUTOHSCROLL | ES_NUMBER | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_WALLSIZE,54,159,36,15,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_NUMSLITS,54,179,36,15,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    CONTROL         "Solid",IDC_SOLID,"Button",BS_AUTORADIOBUTTON | WS_GROUP | 
+                    WS_TABSTOP,10,228,31,10
+    CONTROL         "Hollow",IDC_HOLLOW,"Button",BS_AUTORADIOBUTTON,54,228,
+                    37,10
+    CONTROL         "Ring",IDC_RING,"Button",BS_AUTORADIOBUTTON,10,246,31,10
+    CONTROL         "Cut Brush",IDC_TCUT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,264,47,10
+    DEFPUSHBUTTON   "Add to World",IDC_ADD_ARCH_BTN,0,309,96,12
+    PUSHBUTTON      "Cancel",IDCANCEL,52,324,44,12,NOT WS_VISIBLE
+    PUSHBUTTON      "Defaults",ID_DEFAULTS,0,324,50,12
+    GROUPBOX        "Style",IDC_STATIC,4,215,92,68
+    LTEXT           "Start Angle:",IDC_STATIC,8,63,38,8
+    LTEXT           "End Angle:",IDC_STATIC,10,81,36,8
+    LTEXT           "Thickness:",IDC_STATIC,10,100,36,8
+    LTEXT           "Width:",IDC_STATIC,23,121,22,8
+    RTEXT           "Num. Cross Sections:",IDC_STATIC,7,178,37,18
+    GROUPBOX        "General",IDC_STATIC,1,47,95,156
+    RTEXT           "Inner Radius:",IDC_STATIC,14,135,28,16
+    RTEXT           "Hollow Wall Size:",IDC_STATIC,7,158,37,16
+    LTEXT           "Arch Template",IDC_STATIC,36,4,56,20
+    ICON            IDI_ARCH_ICON,IDC_STATIC,4,4,20,20
+    CONTROL         "Customize Template",IDC_CUSTOM_ARCH_BTN,"Button",
+                    BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,0,292,96,12
+END
+
+IDD_PROGRESSDIALOG DIALOG DISCARDABLE  0, 0, 187, 66
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Progress1",IDC_STATUSPROGRESS1,"msctls_progress32",
+                    WS_BORDER,7,20,173,12
+    CONTROL         "Progress1",IDC_STATUSPROGRESS2,"msctls_progress32",
+                    WS_BORDER,7,47,173,12
+END
+
+IDD_CREATE_CONE DIALOGEX 0, 0, 100, 292
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_CONE_WIDTH,54,60,33,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_CONE_HEIGHT,54,80,33,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_CONE_STRIPS,54,101,33,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_CONE_WALL,54,125,32,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    CONTROL         "Solid",IDC_SOLID_CONE,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,6,168,31,10
+    CONTROL         "Hollow",IDC_HOLLOW_CONE,"Button",BS_AUTORADIOBUTTON,54,
+                    168,37,10
+    CONTROL         "Funnel",IDC_FUNNEL,"Button",BS_AUTORADIOBUTTON,6,186,37,
+                    10
+    CONTROL         "Cut Brush",IDC_TCUT_CONE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,6,198,47,10
+    DEFPUSHBUTTON   "Add To World",IDC_ADD_CONE_BTN,0,240,96,12
+    PUSHBUTTON      "Cancel",IDCANCEL,72,258,20,12,NOT WS_VISIBLE
+    PUSHBUTTON      "Defaults",ID_DEFAULT_CONE,0,256,60,12
+    GROUPBOX        "Style",IDC_STATIC,1,156,95,54
+    LTEXT           "Width:",IDC_STATIC,19,63,22,8,NOT WS_GROUP
+    LTEXT           "Height:",IDC_STATIC,18,84,24,8,NOT WS_GROUP
+    RTEXT           "Num. Vertical Strips:",IDC_STATIC,11,96,28,24,NOT 
+                    WS_GROUP
+    GROUPBOX        "General",IDC_STATIC,1,46,95,100
+    LTEXT           "Thickness",IDC_STATIC,7,128,34,8
+    LTEXT           "Cone Template",IDC_STATIC,36,4,56,24
+    ICON            IDI_CONE_ICON,IDC_STATIC,4,4,16,14
+    CONTROL         "Customize Template",IDC_CUSTOMIZE_CONE_BTN,"Button",
+                    BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,0,224,96,12
+END
+
+IDD_COMPILEDIALOG DIALOGEX 0, 0, 336, 249
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Compile Manager"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "&MAP File:",IDC_STATIC,8,45,31,8
+    EDITTEXT        IDC_EDIT1,7,32,269,12,ES_AUTOHSCROLL | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "Bro&wse",IDC_BROWSE,277,32,50,12
+    CONTROL         "Entities &Only",IDC_ENTITIESONLY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,66,55,10
+    CONTROL         "Suppress &Hidden Brushes",IDC_SUPPRESSHIDDEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,105,66,97,10
+    CONTROL         "Vis &Detail Brushes",IDC_VISDETAIL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,245,66,73,10
+    CONTROL         "&BSP",IDC_RUNGBSP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    7,89,30,10
+    GROUPBOX        "BSP Settings",IDC_STATIC2,7,100,73,42
+    CONTROL         "Verbose",IDC_BSPVERBOSE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,113,39,10
+    CONTROL         "Entity Verbose",IDC_ENTITYVERBOSE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,126,59,10
+    CONTROL         "&Vis",IDC_VIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,
+                    154,25,10
+    GROUPBOX        "VIS Settings",IDC_STATIC,7,164,73,40
+    CONTROL         "Full Vis",IDC_FULLVIS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,178,40,10
+    CONTROL         "Verbose",IDC_VISVERBOSE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,191,42,10
+    CONTROL         "&Light",IDC_RUNLIGHT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,106,90,31,10
+    GROUPBOX        "Light Settings:",IDC_STATIC,104,100,224,104
+    CONTROL         "Radiosity",IDC_RADBOOL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,110,113,44,10
+    CONTROL         "Extra Samples",IDC_EXSAMPBOOL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,110,127,57,10
+    CONTROL         "Fast Patch",IDC_FASTPBOOL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,110,141,47,10
+    LTEXT           "Light Scale",IDC_STATIC,220,114,37,8
+    EDITTEXT        IDC_LIGHTSCALE,261,112,55,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    LTEXT           "Reflect Scale",IDC_STATIC,212,151,43,8
+    EDITTEXT        IDC_REFLECTSCALE,261,148,55,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    LTEXT           "Bounce Limit",IDC_STATIC,215,133,44,8
+    EDITTEXT        IDC_BOUNCELIMIT,261,130,55,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    LTEXT           "Patch Size",IDC_STATIC,221,169,35,8
+    EDITTEXT        IDC_PATCHSIZE,261,166,55,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    CONTROL         "Default Light Level (RGB)",IDC_USEMINLIGHT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,140,186,95,10
+    EDITTEXT        IDC_MINLIGHT,236,184,80,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+    CONTROL         "&Preview in Reality Factory",IDC_RunAvenger,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,223,97,10
+    DEFPUSHBUTTON   "OK",IDOK,278,211,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,278,228,50,14
+    LTEXT           "Current Save Path",IDC_STATIC,8,10,64,8
+    LTEXT           "",IDC_CURRENT_SAVE_PATH,8,20,320,8
+END
+
+IDD_CONSOLE DIALOGEX 0, 0, 104, 220
+STYLE WS_CHILD | WS_VISIBLE
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_CONEDIT,7,7,89,205,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER | 
+                    WS_VSCROLL | WS_HSCROLL | NOT WS_TABSTOP,
+                    WS_EX_STATICEDGE
+END
+
+IDD_KEYEDIT DIALOG DISCARDABLE  0, 0, 150, 49
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_VALUE_EDIT,7,7,135,14,ES_AUTOHSCROLL | WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,7,28,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,93,28,50,14
+END
+
+IDD_POINTKEYEDIT DIALOG DISCARDABLE  0, 0, 164, 68
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "X:",IDC_STATIC,7,14,8,8
+    EDITTEXT        IDC_XEDIT,22,7,72,14,ES_AUTOHSCROLL | WS_GROUP
+    LTEXT           "Y:",IDC_STATIC,7,31,8,8
+    EDITTEXT        IDC_YEDIT,22,24,72,14,ES_AUTOHSCROLL | WS_GROUP
+    LTEXT           "Z:",IDC_STATIC,7,48,8,8
+    EDITTEXT        IDC_ZEDIT,22,41,72,14,ES_AUTOHSCROLL | WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,107,7,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,107,25,50,14
+END
+
+IDD_STRUCTEDIT DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_STRUCTLIST,7,7,117,81,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | LBS_WANTKEYBOARDINPUT | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+END
+
+IDD_MODELEDIT DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_MODELLIST,7,7,117,81,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    LBS_WANTKEYBOARDINPUT | WS_VSCROLL | WS_GROUP | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+END
+
+IDD_MODELKEY DIALOGEX 0, 0, 94, 404
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_MODELCOMBO,0,7,90,51,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_GROUP | WS_TABSTOP
+    PUSHBUTTON      "Add Model",IDC_ADDMODEL,0,24,48,14,WS_GROUP
+    PUSHBUTTON      "DelModel",IDC_DELETEMODEL,0,41,46,14
+    PUSHBUTTON      "EditModel",IDC_EDITMODEL,47,41,43,14,WS_DISABLED
+    PUSHBUTTON      "&Select",IDC_SELECT,0,72,44,14,WS_GROUP
+    PUSHBUTTON      "&Deselect",IDC_DESELECT,49,72,41,14
+    PUSHBUTTON      "AddBrshs",IDC_ADDBRUSHES,0,88,44,14,WS_GROUP
+    PUSHBUTTON      "RmvBrshs",IDC_REMOVEBRUSHES,49,88,41,14
+    PUSHBUTTON      "<<",IDI_RRSTART,8,135,11,14,WS_GROUP
+    PUSHBUTTON      "<",IDI_RRFRAME,21,135,11,14
+    PUSHBUTTON      "P",IDI_PLAY,34,135,11,14
+    PUSHBUTTON      "S",IDI_STOP,47,135,11,14
+    PUSHBUTTON      ">",IDI_FFFRAME,60,135,11,14
+    PUSHBUTTON      ">>",IDI_FFEND,73,135,11,14
+    LISTBOX         IDC_KEYSLIST,0,153,90,94,LBS_NOINTEGRALHEIGHT | NOT 
+                    WS_BORDER | WS_VSCROLL | WS_GROUP,WS_EX_STATICEDGE
+    PUSHBUTTON      "&Animate",IDC_ANIMATE,0,264,46,14,WS_GROUP
+    PUSHBUTTON      "Del Key",IDC_DELETEKEY,0,279,46,14,WS_GROUP
+    PUSHBUTTON      "Edit Key",IDC_EDITKEY,0,295,46,14,WS_DISABLED
+    PUSHBUTTON      "Edit Event",IDC_EDITEVENT,49,295,41,14,WS_DISABLED
+    PUSHBUTTON      "Add Event",IDC_ADDEVENT,49,264,41,14
+    PUSHBUTTON      "Del Event",IDC_DELETEEVENT,49,279,41,14
+    CONTROL         "Locked",IDC_LOCKED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,48,252,41,10
+    PUSHBUTTON      "Clone Mdl",IDC_CLONEMODEL,0,104,44,14
+    PUSHBUTTON      "Set Origin",IDC_SETMODELORIGIN,49,104,41,14
+    CONTROL         "Lock",IDC_LOCKORIGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,24,28,8
+    LTEXT           "",IDC_STATIC,0,60,80,4,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_STATIC,0,124,90,4,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "Origin",IDC_STATIC,71,32,19,8
+END
+
+IDD_ENTITYVISIBILITY DIALOG DISCARDABLE  0, 0, 186, 126
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Entity Visibility"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_LIST1,7,7,111,112,LBS_SORT | LBS_OWNERDRAWFIXED | 
+                    LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_GROUP | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+END
+
+IDD_PREFERENCES DIALOGEX 0, 0, 202, 132
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Preferences"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "Grid Background",IDC_STATIC,6,6,54,8
+    CONTROL         "Grid &Background",IDC_PREFSGRIDBG,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,6,18,69,18
+    LTEXT           "Grid Color",IDC_STATIC,6,42,32,8
+    CONTROL         "&Grid Color",IDC_PREFSGRID,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,6,54,69,18
+    LTEXT           "Snap Grid Color",IDC_STATIC,6,78,50,8
+    CONTROL         "&Snap Grid Color",IDC_PREFSSNAPGRID,"Button",
+                    BS_OWNERDRAW | WS_TABSTOP,6,90,69,18
+    LTEXT           "Entity Visibility Scale",IDC_STATIC,132,6,64,8
+    EDITTEXT        IDC_ENTITY_DRAW_SCALE,132,18,60,12,NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    CONTROL         "Spin1",IDC_SPIN_ENTITY_VISIBILITY,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS | UDS_NOTHOUSANDS,186,18,11,18
+    EDITTEXT        IDC_EDIT_UNDOS,132,60,60,12,ES_NUMBER | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    CONTROL         "",IDC_SPIN_UNDOS,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,186,60,11,20
+    DEFPUSHBUTTON   "OK",IDOK,144,90,48,18
+    PUSHBUTTON      "Cancel",IDCANCEL,144,109,48,17
+    CONTROL         "&Paths...",IDC_PATHPREFS,"Button",BS_OWNERDRAW | NOT 
+                    WS_VISIBLE | WS_TABSTOP,96,108,33,12
+    LTEXT           "Max Undo Levels",IDC_STATIC,132,48,56,8
+END
+
+IDD_SKYDIALOG DIALOGEX 0, 0, 308, 210
+STYLE DS_MODALFRAME | DS_CENTER | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Adjust Sky"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "&Left",IDC_SKYLEFT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,13,27,29,10
+    COMBOBOX        IDC_CBSKYLEFT,10,37,84,76,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Top",IDC_SKYTOP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    106,12,29,10
+    COMBOBOX        IDC_CBSKYTOP,106,22,84,76,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Right",IDC_SKYRIGHT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,206,26,30,10
+    COMBOBOX        IDC_CBSKYRIGHT,206,36,84,76,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Bottom",IDC_SKYBOTTOM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,106,46,36,10
+    COMBOBOX        IDC_CBSKYBOTTOM,106,56,84,76,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Front",IDC_SKYFRONT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,108,28,10
+    COMBOBOX        IDC_CBSKYFRONT,10,118,122,76,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "B&ack",IDC_SKYBACK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,68,94,38,10
+    COMBOBOX        IDC_CBSKYBACK,68,104,84,76,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "All the Same",IDC_ALL_THE_SAME,206,79,44,8
+    COMBOBOX        IDC_CBALLSAME,206,87,84,48,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "X",IDC_AXISX,"Button",BS_AUTORADIOBUTTON | WS_GROUP | 
+                    WS_TABSTOP,14,164,21,10
+    CONTROL         "Y",IDC_AXISY,"Button",BS_AUTORADIOBUTTON,49,164,21,10
+    CONTROL         "Z",IDC_AXISZ,"Button",BS_AUTORADIOBUTTON,82,164,21,10
+    EDITTEXT        IDC_EDITSPEED,116,166,40,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER | WS_GROUP,WS_EX_STATICEDGE
+    EDITTEXT        IDC_EDITSCALE,116,194,40,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER | WS_GROUP,WS_EX_STATICEDGE
+    PUSHBUTTON      "Ok",IDOK,248,192,50,12
+    PUSHBUTTON      "Clear All Faces",IDC_CLEAR_ALL_BTN,206,113,84,12
+    GROUPBOX        "Rotation Axis",IDC_STATIC,6,150,101,28
+    LTEXT           "Rotation speed",IDC_STATIC,116,156,60,8
+    LTEXT           "Degrees Per Second (Enter 0.0 to stop)",IDC_STATIC,161,
+                    167,67,17
+    LTEXT           "Texture Scale",IDC_STATIC,116,186,45,8
+    CONTROL         "All the Same",IDC_ALL_SAMEBTN,"Button",BS_AUTOCHECKBOX | 
+                    NOT WS_VISIBLE | WS_TABSTOP,236,144,55,10
+    COMBOBOX        IDC_NULLCOMBO,248,157,48,30,CBS_DROPDOWN | CBS_SORT | 
+                    NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "All Sky Faces",IDC_STATIC,200,64,94,68
+    GROUPBOX        "Sky Faces",IDC_STATIC,4,4,298,136
+END
+
+IDD_EVENTEDIT DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "Add model event"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Event &Time",IDC_STATIC,7,7,37,8
+    EDITTEXT        IDC_EVENTTIME,7,17,72,14,ES_AUTOHSCROLL
+    LTEXT           "Event &String",IDC_STATIC,7,37,40,8
+    EDITTEXT        IDC_EVENTSTRING,7,47,172,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,32,74,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,102,74,50,14
+END
+
+IDD_PATHSDIALOG DIALOG DISCARDABLE  0, 0, 164, 185
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Paths"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,163,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,107,163,50,14
+    LTEXT           "Texture Library Name",IDC_STATIC,7,7,68,8
+    EDITTEXT        IDC_EDITTXLIB,7,17,150,14,ES_AUTOHSCROLL
+    LTEXT           "Texture Library Search Path",IDC_STATIC,7,37,89,8
+    EDITTEXT        IDC_EDITTXLSEARCH,7,47,150,14,ES_AUTOHSCROLL
+    LTEXT           "Preview Path",IDC_STATIC,7,67,43,8
+    EDITTEXT        IDC_EDITPREVIEW,7,77,150,14,ES_AUTOHSCROLL
+    LTEXT           "Entity Header Files",IDC_STATIC,7,97,60,8
+    EDITTEXT        IDC_EDITHEADERS,7,107,150,14,ES_AUTOHSCROLL
+    LTEXT           "Premade Objects Directory",IDC_STATIC,7,127,85,8
+    EDITTEXT        IDC_EDITOBJECTSDIR,7,137,150,14,ES_AUTOHSCROLL
+END
+
+IDD_PROJECTOPTIONS DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Project Options"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,74,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,74,50,14
+    PUSHBUTTON      "&Paths...",IDC_PATHS,7,7,60,14
+    PUSHBUTTON      "&Compile Options",IDC_COMPILEOPTIONS,7,24,60,14
+    PUSHBUTTON      "&Save",IDC_SAVE,68,74,50,14
+END
+
+IDD_LEVELOPTIONS DIALOGEX 0, 0, 276, 311
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Level Options"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Headers Directories",IDC_LISTBUDDY,"Button",
+                    BS_OWNERDRAW | WS_TABSTOP,4,5,264,19,WS_EX_STATICEDGE
+    LISTBOX         IDC_PATH_LIST,4,24,264,96,LBS_OWNERDRAWFIXED | 
+                    LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    EDITTEXT        IDC_EDITTXL,5,137,259,12,ES_AUTOHSCROLL | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "&Browse",IDC_BROWSETXL,4,152,50,14
+    EDITTEXT        IDC_LIGHTMAPSCALE,95,265,40,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_DRAWSCALE,95,290,40,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_SCALE_WORLD,15,265,40,12,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    DEFPUSHBUTTON   "OK",IDOK,220,275,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,220,293,50,14
+    LTEXT           "Draw Scale",IDC_STATIC,95,281,38,8
+    LTEXT           "Lightmap Scale",IDC_STATIC,95,257,50,8
+    LTEXT           "Texture Library",IDC_STATIC,5,128,48,8
+    LTEXT           "Scale World Factor",IDC_STATIC,15,257,62,8
+    LTEXT           "Current Scale",IDC_STATIC,15,281,44,8
+    EDITTEXT        IDC_CURRENT_SCALE,15,290,40,12,ES_AUTOHSCROLL | 
+                    ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
+    GROUPBOX        "World Scale",IDC_STATIC,5,245,80,63
+    GROUPBOX        "Grid Snap",IDC_STATIC,5,175,110,60,WS_GROUP
+    CONTROL         "1 Texel",IDC_TEXEL1_RADIO,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,9,190,39,10
+    CONTROL         "2 Texel",IDC_TEXEL2_RADIO,"Button",BS_AUTORADIOBUTTON,9,
+                    205,39,10
+    CONTROL         "4 Texel",IDC_TEXEL4_RADIO,"Button",BS_AUTORADIOBUTTON,9,
+                    218,39,10
+    CONTROL         "  8 Texel",IDC_TEXEL8_RADIO,"Button",BS_AUTORADIOBUTTON,
+                    66,190,43,10
+    CONTROL         "16 Texel",IDC_TEXEL16_RADIO,"Button",BS_AUTORADIOBUTTON,
+                    66,205,43,10
+    CONTROL         "32 Texel",IDC_TEXEL32_RADIO,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,66,218,43,10
+    GROUPBOX        "Rotation",IDC_STATIC,120,175,150,60,WS_GROUP
+    LTEXT           "Rotation Snap Degrees",IDC_STATIC,130,194,75,8
+    EDITTEXT        IDC_ROTSNAPDEGREES,216,190,34,14,ES_AUTOHSCROLL | NOT 
+                    WS_BORDER | WS_GROUP,WS_EX_STATICEDGE
+    CONTROL         "Spin1",IDC_SPINROTSNAPDEGREES,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,250,190,9,14
+    PUSHBUTTON      "15",IDC_SNAP15,130,214,20,14,WS_GROUP
+    PUSHBUTTON      "30",IDC_SNAP30,158,214,20,14
+    PUSHBUTTON      "45",IDC_SNAP45,184,214,20,14
+    PUSHBUTTON      "60",IDC_SNAP60,212,214,20,14
+    PUSHBUTTON      "90",IDC_SNAP90,238,214,20,14
+    CONTROL         "Snap/Rotate To Grid",IDC_USEROTSNAP,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,180,165,83,10
+END
+
+IDD_BOOLEDIT DIALOG DISCARDABLE  0, 0, 138, 46
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,81,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,81,24,50,14
+    LISTBOX         IDC_BOOLLIST,7,7,63,27,LBS_NOINTEGRALHEIGHT | 
+                    LBS_WANTKEYBOARDINPUT | WS_TABSTOP
+END
+
+IDD_PRINT_VIEW_DLG DIALOGEX 0, 0, 202, 186
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Print \\ Print Preview"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Textured View",IDC_BTN_PRINT_TEXTURED,"Button",
+                    BS_AUTORADIOBUTTON | BS_LEFT | BS_BOTTOM | BS_PUSHLIKE | 
+                    BS_FLAT | WS_DISABLED | WS_GROUP | WS_TABSTOP,40,30,60,
+                    50
+    CONTROL         "Top View",IDC_BTN_PRINT_TOP,"Button",BS_AUTORADIOBUTTON | 
+                    BS_LEFT | BS_BOTTOM | BS_PUSHLIKE | BS_FLAT | WS_TABSTOP,
+                    100,30,60,50
+    CONTROL         "Front View",IDC_BTN_PRINT_FRONT,"Button",
+                    BS_AUTORADIOBUTTON | BS_LEFT | BS_BOTTOM | BS_PUSHLIKE | 
+                    BS_FLAT | WS_TABSTOP,40,80,60,50
+    CONTROL         "Side View",IDC_BTN_PRINT_SIDE,"Button",
+                    BS_AUTORADIOBUTTON | BS_LEFT | BS_BOTTOM | BS_PUSHLIKE | 
+                    BS_FLAT | WS_TABSTOP,100,80,60,50
+    DEFPUSHBUTTON   "OK",IDOK,141,150,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,141,167,50,14
+    CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,178,20,5,5,
+                    WS_EX_DLGMODALFRAME
+    CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,183,20,5,5,
+                    WS_EX_DLGMODALFRAME
+    CONTROL         "",IDC_STATIC,"Static",SS_GRAYRECT,10,20,168,5
+    LTEXT           "",IDC_STATIC,10,130,180,5,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_STATIC,10,30,30,100,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_STATIC,160,30,30,100,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_STATIC,10,25,180,5,SS_SUNKEN | NOT WS_GROUP
+    CONTROL         "Choose views to Print or Preview",IDC_STATIC,"Static",
+                    SS_LEFTNOWORDWRAP | WS_GROUP,10,5,120,10
+END
+
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 332, 289
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About RFEditPro"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,4,4,20,20
+    CTEXT           "RFEditPro 0.7\nfor\nGenesis3D",IDC_STATIC,114,4,102,26,
+                    SS_NOPREFIX
+    DEFPUSHBUTTON   "OK",IDOK,276,268,50,14,WS_GROUP
+    CTEXT           "http://www.Genesis3D.com",IDC_STATIC,0,35,328,8,NOT 
+                    WS_GROUP
+    EDITTEXT        IDC_EDIT1,4,55,324,201,ES_MULTILINE | ES_READONLY | NOT 
+                    WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP
+    LTEXT           "",IDC_STATIC,0,257,328,4,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_STATIC,0,50,328,4,SS_SUNKEN | NOT WS_GROUP
+END
+
+IDD_COMMANDDIALOG DIALOGEX 0, 0, 100, 412
+STYLE DS_CONTROL | WS_CHILD | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_CONTROLPARENT
+CAPTION "Command"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Tab1",IDC_COMMAND_TAB,"SysTabControl32",TCS_MULTILINE | 
+                    TCS_TOOLTIPS,0,4,100,406
+END
+
+IDD_DISCLAIMER DIALOG DISCARDABLE  0, 0, 564, 340
+STYLE WS_POPUP | WS_VISIBLE
+FONT 8, "MS Sans Serif"
+BEGIN
+END
+
+IDD_ERROR DIALOG DISCARDABLE  0, 0, 418, 199
+STYLE DS_MODALFRAME | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU
+CAPTION "Genesis3D Error"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,299,66,50,14
+    LTEXT           "Error Message",IDC_ERROR,47,7,179,47
+    PUSHBUTTON      "Details>>",IDC_MORE,357,66,50,14
+    EDITTEXT        IDC_LOG,7,103,407,89,ES_MULTILINE | ES_READONLY | 
+                    WS_VSCROLL
+    ICON            203,IDC_WARNINGICON,7,7,20,20
+END
+
+IDD_GROUPS DIALOGEX 0, 0, 94, 240
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Add Group",IDC_ADDGROUP,48,160,50,14
+    CONTROL         "Tree1",LIST_GROUP_ITEMS,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | 
+                    TVS_FULLROWSELECT | WS_TABSTOP,4,4,96,152,
+                    WS_EX_STATICEDGE
+    COMBOBOX        GRUP_CB_CURRENT,12,195,70,62,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Lock Group",GROUP_LOCK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,14,218,53,10
+    GROUPBOX        "Current",IDC_STATIC,4,184,94,53
+END
+
+IDD_LISTS DIALOGEX 0, 0, 76, 242
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Tree1",LIST_TV_ITEMS,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | 
+                    TVS_FULLROWSELECT | WS_TABSTOP,1,13,71,224,
+                    WS_EX_STATICEDGE
+END
+
+IDD_MODELS DIALOGEX 0, 0, 94, 302
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Add Model",1227,4,10,50,14
+    CONTROL         "Tree1",LIST_TV_ITEMS,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | 
+                    TVS_FULLROWSELECT | WS_TABSTOP,0,27,77,211,
+                    WS_EX_STATICEDGE
+    COMBOBOX        GRUP_CB_CURRENT,5,254,70,62,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Lock Group",GROUP_LOCK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,280,53,10
+    GROUPBOX        "Current",IDC_STATIC,0,244,80,48
+END
+
+IDD_PROPERTIES_DLG DIALOGEX 0, 0, 80, 239
+STYLE DS_LOCALEDIT | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Properties"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LISTBOX         IDC_PROPERTIESLIST,4,36,72,186,LBS_OWNERDRAWFIXED | 
+                    LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | 
+                    LBS_WANTKEYBOARDINPUT | NOT WS_BORDER | WS_VSCROLL | 
+                    WS_TABSTOP,WS_EX_STATICEDGE
+    COMBOBOX        IDC_ENTITYCOMBO,4,12,72,180,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_PROPERTIES_PANEL DIALOGEX 0, 0, 179, 409
+STYLE DS_CONTROL | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Properties"
+FONT 8, "MS Sans Serif"
+BEGIN
+END
+
+IDD_OBJECTSDLG DIALOGEX 0, 0, 77, 288
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Select",IDC_OBJACTOR_BTN,37,52,34,10
+    GROUPBOX        "Actor Objects",IDC_STATIC,4,2,72,64
+    PUSHBUTTON      "Select",IDC_OBJVISUAL_BTN,36,122,34,10
+    GROUPBOX        "Vis Effects Objects",IDC_STATIC,3,71,73,64
+    PUSHBUTTON      "Select",IDC_OBJSOUND_BTN,36,190,34,10
+    GROUPBOX        "Sound Effects Obj",IDC_STATIC,3,139,73,64
+    PUSHBUTTON      "Select",IDC_OBJOTHER_BTN,36,260,34,10
+    GROUPBOX        "Other Objects",IDC_STATIC,3,209,73,64
+    LISTBOX         IDC_OBJACTOR_LIST,8,12,64,36,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | 
+                    WS_TABSTOP,WS_EX_STATICEDGE
+    LISTBOX         IDC_OBJVISUAL_LIST,8,80,64,40,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | 
+                    WS_TABSTOP,WS_EX_STATICEDGE
+    LISTBOX         IDC_OBJSOUND_LIST,8,148,64,40,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | 
+                    WS_TABSTOP,WS_EX_STATICEDGE
+    LISTBOX         IDC_OBJOTHER_LIST,8,219,64,40,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | 
+                    WS_TABSTOP,WS_EX_STATICEDGE
+END
+
+IDD_TEXTURE_DLG DIALOGEX 0, 0, 94, 404
+STYLE WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "<none>",IDC_SIZE_TXT,4,11,52,8,NOT WS_GROUP
+    PUSHBUTTON      "Select",IDC_TEXTURE_BTN,60,4,33,15
+    LISTBOX         IDC_TEXTURE_LISTBOX,0,20,94,382,LBS_OWNERDRAWVARIABLE | 
+                    LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | 
+                    WS_TABSTOP,WS_EX_STATICEDGE
+    LTEXT           "<none>",IDC_TXT_TEXTURENAME,4,1,52,8
+END
+
+IDD_TEMPLATES_DLG DIALOGEX 0, 0, 94, 403
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Button1",IDC_BUTTON_CUBE,"Button",BS_AUTORADIOBUTTON | 
+                    BS_ICON | BS_PUSHLIKE | WS_TABSTOP,0,24,30,24
+    CONTROL         "Button2",IDC_BUTTON_SPHERE,"Button",BS_AUTORADIOBUTTON | 
+                    BS_ICON | BS_PUSHLIKE | WS_TABSTOP,0,48,30,24
+    CONTROL         "Button3",IDC_BUTTON_CYLINDER,"Button",
+                    BS_AUTORADIOBUTTON | BS_ICON | BS_PUSHLIKE | WS_TABSTOP,
+                    0,72,30,24
+    CONTROL         "Button4",IDC_BUTTON_STAIRS,"Button",BS_AUTORADIOBUTTON | 
+                    BS_ICON | BS_PUSHLIKE | WS_TABSTOP,0,96,30,24
+    CONTROL         "Button5",IDC_BUTTON_CONE,"Button",BS_AUTORADIOBUTTON | 
+                    BS_ICON | BS_PUSHLIKE | WS_TABSTOP,0,120,30,24
+    CONTROL         "",IDC_BUTTON_ARCH,"Button",BS_AUTORADIOBUTTON | BS_ICON | 
+                    BS_PUSHLIKE | WS_TABSTOP,0,144,30,24
+    PUSHBUTTON      "Select PreFab",IDC_PREFAB_BTN,0,318,62,13,NOT 
+                    WS_VISIBLE
+    PUSHBUTTON      "Select Entity",IDC_ENTITY_BTN,0,306,90,12,NOT 
+                    WS_VISIBLE | NOT WS_TABSTOP
+    PUSHBUTTON      "Add Current Item to World",IDC_TEMPLATE_APPLY,0,229,93,
+                    20,BS_MULTILINE
+    PUSHBUTTON      "",IDC_SKYBUTTON,0,264,26,23,BS_ICON
+    LISTBOX         IDC_PREFAB_LIST,30,24,62,144,LBS_SORT | LBS_HASSTRINGS | 
+                    LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL,
+                    WS_EX_STATICEDGE
+    LTEXT           "<None>",IDC_CURRENT_ITEM,0,218,93,9,SS_CENTERIMAGE | 
+                    NOT WS_GROUP,WS_EX_STATICEDGE
+    CTEXT           "Current Item",IDC_STATIC,0,209,90,8,NOT WS_GROUP
+    CTEXT           "PreFab Templates",IDC_STATIC,33,16,57,8,NOT WS_GROUP
+    CTEXT           "Stock",IDC_STATIC,0,16,24,8,NOT WS_GROUP
+    COMBOBOX        IDC_ENTITIES_COMBO,0,181,93,125,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CTEXT           "Entities",IDC_STATIC,0,172,92,8,SS_CENTERIMAGE
+    LTEXT           "Adjust Sky",IDC_STATIC,29,272,34,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,0,258,93,1
+END
+
+IDD_CONSOLE_DIALOG DIALOGEX 0, 0, 668, 66
+STYLE DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Console"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_CONSOLE_EDIT,76,4,588,60,ES_MULTILINE | ES_READONLY | 
+                    NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "Copy to NotePad",IDC_CONSOLE_COPY_BTN,8,4,64,12,
+                    BS_MULTILINE
+    PUSHBUTTON      "Close",IDC_CLOSE_CONSOLEBTN,8,50,64,12
+    DEFPUSHBUTTON   "QuickViewer",IDC_CONSOLE_QUICKVIEW_BTN,8,25,64,16
+END
+
+IDD_PROPERTIES_GENERIC_DLG DIALOG DISCARDABLE  0, 0, 105, 281
+STYLE DS_LOCALEDIT | DS_CONTROL | WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+END
+
+IDD_PLUGIN1_DIALOG DIALOGEX 0, 0, 212, 239
+STYLE DS_MODALFRAME | DS_CENTER | WS_MINIMIZEBOX | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Your Plugins Here..."
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Close",IDOK,152,220,50,12
+    CONTROL         297,IDC_STATIC,"Static",SS_BITMAP,4,8,20,20
+    CTEXT           "by TrilobiteWorks",IDC_TRILOBITE_WORKS,4,128,100,12,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_EDIT1,108,8,100,116,ES_MULTILINE | ES_READONLY | NOT 
+                    WS_BORDER | WS_VSCROLL
+    PUSHBUTTON      "Browse",IDC_PLUGIN1_BRSBTN,152,144,50,12,0,
+                    WS_EX_TRANSPARENT
+    PUSHBUTTON      "Play",IDC_PLUGIN1_PLAYBTN,151,172,50,12,WS_DISABLED
+    CONTROL         "List2",IDC_PLUGIN1_WAV1,"SysListView32",LVS_LIST | 
+                    LVS_SINGLESEL | LVS_NOSCROLL | LVS_NOCOLUMNHEADER | 
+                    LVS_NOSORTHEADER | WS_TABSTOP,4,159,200,9
+    PUSHBUTTON      "Stop",IDC_PLUGIN_STOPBTN,76,172,50,12,WS_DISABLED
+    LTEXT           "Preview AVI, MP3 and WAV files",IDC_STATIC,4,148,108,8
+    PUSHBUTTON      "Add Area Sound Object",IDC_BUTTON4,4,207,112,12,
+                    WS_DISABLED | NOT WS_TABSTOP
+    PUSHBUTTON      "Add BackGround Music Object",IDC_BUTTON5,4,220,112,12,
+                    WS_DISABLED | NOT WS_TABSTOP
+    PUSHBUTTON      "Add Cutscene Video Object",IDC_BUTTON7,4,193,112,12,
+                    WS_DISABLED | NOT WS_TABSTOP
+END
+
+IDD_TEXTUREDLG_TEXLIST DIALOGEX 0, 0, 150, 333
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Owner Draw ListBox"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,116,208,34,14
+    PUSHBUTTON      "Cancel",IDCANCEL,116,225,34,14
+    LISTBOX         IDC_MYDRAW,0,8,96,316,NOT LBS_NOTIFY | 
+                    LBS_OWNERDRAWVARIABLE | NOT WS_BORDER | WS_VSCROLL,
+                    WS_EX_STATICEDGE
+END
+
+IDD_GENEDIT_PREVIEW DIALOGEX 0, 0, 284, 214
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "RFEditPro QuickViewer"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Exit",IDOK,4,190,50,16,NOT WS_TABSTOP
+    PUSHBUTTON      "Cancel",IDCANCEL,4,172,50,16,NOT WS_VISIBLE
+    PUSHBUTTON      "&View with the Engine",IDC_SHOW_PREVIEW_BTN,88,184,184,
+                    23,WS_DISABLED | NOT WS_TABSTOP
+    PUSHBUTTON      "Browse",IDC_PREVIEW_BROWSE_BTN,224,20,50,15
+    LTEXT           "Choose a Genesis *.bsp file to preview",IDC_STATIC,4,10,
+                    156,8
+    GROUPBOX        "Resolution",IDC_STATIC,87,40,72,52
+    CONTROL         "640 x 480",IDC_RADIO_640,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,95,53,47,10
+    CONTROL         "800 x 600",IDC_RADIO_800,"Button",BS_AUTORADIOBUTTON,95,
+                    65,47,10
+    CONTROL         "1024 x 768",IDC_RADIO_1024,"Button",BS_AUTORADIOBUTTON,
+                    95,78,51,10
+    GROUPBOX        "Collision Options",IDC_STATIC,173,40,100,40
+    CONTROL         "Collision Detection",IDC_RADIO_COLLIDE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,181,53,74,10
+    CONTROL         "No Collision Detection",IDC_RADIO_NOCOLLIDE,"Button",
+                    BS_AUTORADIOBUTTON,181,65,85,10
+    GROUPBOX        "Video Driver",IDC_STATIC,4,40,68,52
+    CONTROL         "Software",IDC_SOFTWARE_RADIO,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,12,52,44,10
+    CONTROL         "Direct3D",IDC_DIRECT3D_RADIO,"Button",
+                    BS_AUTORADIOBUTTON,12,78,44,10
+    LTEXT           "To expand or shrink the view while using the Software driver, simply resize this dialog box before viewing.",
+                    IDC_SOFTWARE_TEXT,4,104,76,44,NOT WS_VISIBLE
+    EDITTEXT        IDC_CAMERA_X,232,115,32,14,ES_RIGHT | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    EDITTEXT        IDC_CAMERA_Y,232,135,32,14,ES_RIGHT | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    EDITTEXT        IDC_CAMERA_Z,232,155,32,14,ES_RIGHT | NOT WS_BORDER,
+                    WS_EX_STATICEDGE
+    GROUPBOX        "Camera Starting Position",IDC_STATIC,88,102,184,76
+    LTEXT           "X",IDC_STATIC,96,118,8,8
+    LTEXT           "Y",IDC_STATIC,95,138,8,8
+    LTEXT           "Z",IDC_STATIC,95,157,8,8
+    CONTROL         "Slider1",IDC_CAMERA_SLIDERX,"msctls_trackbar32",
+                    WS_TABSTOP,108,115,120,15
+    CONTROL         "Slider2",IDC_CAMERA_SLIDERY,"msctls_trackbar32",
+                    WS_TABSTOP,108,135,120,15
+    CONTROL         "Slider3",IDC_CAMERA_SLIDERZ,"msctls_trackbar32",
+                    WS_TABSTOP,108,154,120,15
+    PUSHBUTTON      "Zero Camera",IDC_ZERO_CAMERA_BTN,220,92,50,12
+    EDITTEXT        IDC_EDIT_PREVIEWLEVEL_PATH,5,20,210,12,ES_AUTOHSCROLL | 
+                    NOT WS_BORDER,WS_EX_STATICEDGE
+END
+
+IDD_TIP DIALOGEX 0, 0, 231, 164
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "GEditPro Tip of the Day"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "",-1,"Static",SS_WHITERECT | SS_CENTERIMAGE,12,11,207,
+                    123
+    LTEXT           "Some String",IDC_TIPSTRING,28,63,177,60
+    CONTROL         "&Show Tips on StartUp",IDC_STARTUP,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,146,85,10
+    PUSHBUTTON      "&Next Tip",IDC_NEXTTIP,109,143,50,14,WS_GROUP
+    DEFPUSHBUTTON   "&Close",IDOK,168,143,50,14,WS_GROUP
+    CONTROL         316,IDC_BULB,"Static",SS_BITMAP,20,17,27,33
+END
+
+IDD_VIEWMGR_DLG DIALOGEX 500, 40, 31, 44
+STYLE DS_ABSALIGN | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "[+]"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Restore",IDC_BTN_VIEW_RESTORE,"Button",
+                    BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_FLAT | WS_TABSTOP,
+                    0,30,31,15
+    CONTROL         "",IDC_BTN_VIEW_UL,"Button",BS_AUTORADIOBUTTON | 
+                    BS_PUSHLIKE | BS_FLAT | WS_GROUP | WS_TABSTOP,0,0,15,15
+    CONTROL         "",IDC_BTN_VIEW_UR,"Button",BS_AUTORADIOBUTTON | 
+                    BS_PUSHLIKE | BS_FLAT | WS_TABSTOP,16,0,16,15
+    CONTROL         "",IDC_BTN_VIEW_LL,"Button",BS_AUTORADIOBUTTON | 
+                    BS_PUSHLIKE | BS_FLAT | WS_TABSTOP,0,15,15,15
+    CONTROL         "",IDC_BTN_VIEW_LR,"Button",BS_AUTORADIOBUTTON | 
+                    BS_PUSHLIKE | BS_FLAT | WS_TABSTOP,16,15,16,15
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,70,0,0
+ PRODUCTVERSION 0,70,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "World Editor for the Genesis3D realtime 3D rendering engine\0"
+            VALUE "CompanyName", "trilobiteWorks.\0"
+            VALUE "FileDescription", "RFEditPro\0"
+            VALUE "FileVersion", "0, 70, 0, 0\0"
+            VALUE "InternalName", "RFEditPro\0"
+            VALUE "LegalCopyright", "Copyright © 2002 by WildTangent\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "RFEditPro.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "GEditPro\0"
+            VALUE "ProductVersion", "0, 70, 0, 0\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO MOVEABLE PURE 
+BEGIN
+    IDD_ENTITIES, DIALOG
+    BEGIN
+        RIGHTMARGIN, 158
+    END
+
+    IDD_GROUPDIALOG, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 308
+    END
+
+    IDD_STAIRCASEDIALOG, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 240
+    END
+
+    IDD_COMPILEDIALOG, DIALOG
+    BEGIN
+        TOPMARGIN, 10
+    END
+
+    IDD_COMMANDDIALOG, DIALOG
+    BEGIN
+        RIGHTMARGIN, 96
+        BOTTOMMARGIN, 399
+    END
+
+    IDD_DISCLAIMER, DIALOG
+    BEGIN
+        RIGHTMARGIN, 469
+        BOTTOMMARGIN, 331
+    END
+
+    IDD_PROPERTIES_PANEL, DIALOG
+    BEGIN
+        RIGHTMARGIN, 162
+        BOTTOMMARGIN, 377
+    END
+
+    IDD_TEXTURE_DLG, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 381
+    END
+
+    IDD_TEMPLATES_DLG, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 320
+    END
+
+    IDD_CONSOLE_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 661
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 59
+    END
+
+    IDD_PROPERTIES_GENERIC_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 274
+    END
+
+    IDD_PLUGIN1_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 205
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 232
+    END
+
+    IDD_TEXTUREDLG_TEXLIST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 143
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 326
+    END
+
+    IDD_GENEDIT_PREVIEW, DIALOG
+    BEGIN
+        RIGHTMARGIN, 275
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 212
+        HORZGUIDE, 108
+    END
+
+    IDD_TIP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 224
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 157
+    END
+
+    IDD_VIEWMGR_DLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 24
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 37
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_PANCURSOR           CURSOR  DISCARDABLE     "res\\Cross_m.cur"
+IDC_ARROWENTITY         CURSOR  DISCARDABLE     "res\\arrow.cur"
+IDC_ARROWBRUSH          CURSOR  DISCARDABLE     "res\\pointer.cur"
+IDC_EYEDROPPER          CURSOR  DISCARDABLE     "res\\eyedropper.cur"
+IDC_CURSOR1             CURSOR  DISCARDABLE     "res\\Speciale.cur"
+IDC_CYLINDER            CURSOR  DISCARDABLE     "res\\cur00001.cur"
+IDC_SPHERE              CURSOR  DISCARDABLE     "res\\cur00002.cur"
+IDC_SHEET               CURSOR  DISCARDABLE     "res\\cur00003.cur"
+IDC_VERTEX              CURSOR  DISCARDABLE     "res\\cursor1.cur"
+IDC_LIGHT               CURSOR  DISCARDABLE     "res\\cursor2.cur"
+IDC_CURSOR_PLUS         CURSOR  DISCARDABLE     "res\\CursorPlus.CUR"
+IDC_DRAGCOPY            CURSOR  DISCARDABLE     "res\\Dragcopy.cur"
+IDC_DRAGMOVE            CURSOR  DISCARDABLE     "res\\Dragmove.cur"
+IDC_MOVESELECT          CURSOR  DISCARDABLE     "res\\Move4way.cur"
+IDC_ROTATIONCENTER      CURSOR  DISCARDABLE     "res\\RotationCenter.cur"
+IDC_SHEARLR             CURSOR  DISCARDABLE     "res\\ShearLR.cur"
+IDC_SHEARTB             CURSOR  DISCARDABLE     "res\\ShearTB.cur"
+IDC_CUBE                CURSOR  DISCARDABLE     "res\\cube.cur"
+IDC_ROTATE              CURSOR  DISCARDABLE     "res\\Rotate.cur"
+IDC_CAMERA              CURSOR  DISCARDABLE     "res\\cameracur.cur"
+IDC_RAN_ARROW           CURSOR  DISCARDABLE     "res\\RAN_ARROW.CUR"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXT
+//
+
+IDR_TEXT1               TEXT    MOVEABLE PURE   "res\\text1.bin"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RT_MANIFEST
+//
+
+IDR_MANIFEST            RT_MANIFEST DISCARDABLE "res\\rt_manif.bin"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// WAVE
+//
+
+IDR_WAVE_WOOSH          WAVE    MOVEABLE PURE   "res\\tdesigner_woosh.wav"
+IDR_WAVE_QUICKBEEP      WAVE    MOVEABLE PURE   "res\\quickbeep.wav"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDR_MAINFRAME           "RFEditPro"
+    IDS_CUBE                "Cube"
+    IDS_SPHERE              "Sphere"
+    IDS_CONE                "Cone"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_STAIRS              "Stairs"
+    IDS_ARCH                "Arch"
+    IDS_CYLINDER            "Cylinder"
+    IDR_GEDITPROTYPE        "\nRFEditPro\nRFEditPro\nRFEditPro Files (*.3dt)\n.3DT\nRFEditPro.Document\nRFEditPro Document"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_LOAD_WARNING        "Some Entities or Brushes did not load properly, see console for details.\n\nTo correct this problem, go to Poject/Level Options and adjust your Headers path(s) if needed."
+    IDS_NEWGROUP            "Rotate Brush\nRotate Brush"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TOOLS_BRUSH_ROTATEBRUSH "Rotate selected brushes and entities\nRotate"
+    IDS_CREATEGROUPFAILED   "Could not create the group."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_DEFAULTGROUPNAME    "Default"
+    IDS_NOBLANKMODEL        "Blank model name not allowed"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_MODELEXISTS         "A model named '%s' already exists."
+    IDS_CAMERAENTITYNAME    "Render Camera"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_MAPERROR            "Error writing level .MAP file.\nCheck the output file path and ensure there is enough disk space."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    AFX_IDS_APP_TITLE       "RFEditPro"
+    AFX_IDS_IDLEMESSAGE     "For Help, press F1"
+    AFX_IDS_HELPMODEMESSAGE "Select an object on which to get Help"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_CLOSE           "Close the active document\nClose"
+    ID_FILE_SAVE            "Save the active document\nSave"
+    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+    ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+    ID_HELP_INDEX           "Opens Help\nHelp Topics"
+    ID_HELP_FINDER          "List Help topics\nHelp Topics"
+    ID_HELP_USING           "Display instructions about how to use help\nHelp"
+    ID_CONTEXT_HELP         "Display help for clicked on buttons, menus and windows\nHelp"
+    ID_HELP                 "Display help for current task or command\nHelp"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this document"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade Windows"
+    ID_WINDOW_TILE_HORZ     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_TILE_VERT     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+    AFX_IDS_MDICHILD        "Activate this window"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BRUSH_PRIMITIVES_CUBE "Create a cube primitive\nCube "
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BRUSH_PRIMITIVES_SPHEROID "Create a sphere primtive\nSphere"
+    ID_BRUSH_PRIMITIVES_CYLINDER "Create a Cylinder primitive\ncylinder"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BRUSH_SUBTRACTFROMWORLD "Cut (Subtract) Brush from world\nCut Brush"
+    ID_TOOLS_CAMERA         "Allows you to move the camera around\nCamera"
+    ID_AXIS_X               "Restrict movement on X axis\nRestrict X"
+    ID_AXIS_Y               "Restrict movement on Y axis\nRestrict Y"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_AXIS_Z               "Restrict movement on Z Axis\nRestrict Z"
+    ID_TOOLS_BRUSH_MOVEROTATEBRUSH "Move selected objects\nMove Brush"
+    ID_TOOLS_BRUSH_SCALEBRUSH "Scale selected objects\nScale brush"
+    ID_TOOLS_BRUSH_RESETBRUSH 
+                            "Reset the brushes shear, rotation and scale\nReset Brush"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TOOLS_BRUSH_ATTRIBUTES 
+                            "Bring up the brush attributes dialog\nBrush Attributes\n"
+    ID_TOOLS_BRUSH_SHOWBRUSH "Hide/show the Brush\nHide/show Brush"
+    ID_FILE_EXPORT          "Export bsp geometry to a .3DM file\nExport"
+    ID_TOOLS_USEGRID        "Snap/Rotate to grid\nSnap to Grid"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_3DWIREFRAME     "Render View using 3D wireframe\n3D wireframe"
+    ID_VIEW_TOPVIEW         "View map from top\nTop View"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_SIDEVIEW        "View map from side\nSide View"
+    ID_VIEW_FRONTVIEW       "View map from front\nFront View"
+    ID_VIEW_4VIEWS          "Bring up 4 view\n4 views"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TOOLS_BSPMANAGER     "Bring up bsp manager\nbsp manager"
+    ID_TOOLS_BRUSH_SHEARBRUSH "Shear selected objects\nShear"
+    ID_ENTITIES_PLACELIGHT  "Place a light entity into the world\nPlace Light"
+    ID_ENTITIES_EDITOR      "Bring Up Entity editor Dialog\nEntity Dialog"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TOOLS_ENTITY         "Move/Select Entities\nMove/SelectEntities"
+    ID_ENTITIES_SHOW        "Show/Hide the entities\nShow Entities"
+    ID_GROUPS_MAKENEWGROUP  "Create a New group from selected items\nCreate Group"
+    ID_BRUSH_GROUPEDITOR    "Bring up the group attributes dialog\nGroup Attributes"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BRUSH_GROUPS_ADDTOGROUP 
+                            "Add Selected items to current group\nAdd To Current Group"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_SHOW_ALLGROUPS  "Show All Groups\nAll Groups"
+    ID_VIEW_SHOW_VISIBLEGROUPS "Show groups marked as visible\nVisible Groups"
+    ID_VIEW_SHOW_CURRENTGROUP "Show current group\nCurrent Group"
+    ID_TOOLS_BRUSH_ADJUSTMENTMODE 
+                            "Brush Attributes Mode\nBrush Attributes Mode"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    CG_ID_VIEW_DIALOGBAR    "Show or hide DialogBar\nToggle DialogBar"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_INDICATOR_SLOCK      "SLOCK"
+    ID_INDICATOR_SELINFO    "0 items selected"
+    ID_INDICATOR_WORLDPOS   "000 000 000"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_INDICATOR_CURSORINFO "THING TO SEL"
+    ID_INDICATOR_GRID       "Grid: XXXMETER"
+    ID_INDICATOR_SNAP       "Snap: XXXMETER"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TOOLS_BRUSH_ROTATE90 "Rotate selected objects 45 in view\nRotate 45"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_TEXTUREBROWSER  "Bring up the texture browser window\nTexture Browser"
+    ID_GBSPNOWATER          "Do a quick BSP rebuild\n Rebuild Textured View"
+    ID_ENTITIES_COPYCURRENT "Copy current entity\nCopyCurrent"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TOOLS_FACE_ATTRIBUTES 
+                            "Bring up the face texture attributes dialog\nFace Texture Attributes\n"
+    ID_TOOLS_FACE_RESETFACE "Reset the face\nReset Face"
+    ID_TOOLS_FACE_ADJUSTMENTMODE "Face Attributes Mode\nFace Attributes Mode"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_CONSTRAINHOLLOWS     "Restrict scaling of walls\nConstrain Walls"
+    ID_GENERALSELECT        "Allows object selection\nModify Brushes and Faces"
+    ID_VIEW_OLDVIEW         "Resets selected faces and brushes\nReset Face\\Brush"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_THING_ATTRIBUTES     "Bring up attributes dialog for selected face/brush\nFace/Brush Attributes"
+    ID_TOOLS_CARVE          "Carving tool\nCarve"
+    IDC_VIEWTOOLBAR_COMBOBOX "Change the view type\nView Type"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_COMPILE              "Runs the .MAP/BSP file compiler.\nBuild *.bsp File"
+    ID_TOOLS_TEMPLATE       "Move and modify the template brush\nModify Templates"
+    ID_NEW_LIB_OBJECT       "Selected brushes/entities to library"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_NEW             "Just used to identify new view creation"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BRUSHINFORMATION     "Rot: ( 0.00, 0.00, 0.00 )  "
+    IDS_CANT_OPEN_FILE      "Cannot open file, check location."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BRUSH_REMOVESELECTEDFROMGROUP 
+                            "Remove selected items from group\nRemove from group"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_3DVIEWBARS      "Show or hide the 3D view tool bars\nToggle 3D View Bars"
+    ID_TOOLS_BRUSH_SHOWASSOCIATEDENTITY 
+                            "Selects the entity associated with selected brush\nSelect associated entity"
+    ID_CENTERTHING          "Centers the brush or entity in the active viewport.\nCenter Brush/Entity in View"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDM_MODEBAR             "Show or hide the Mode Toolbar\nToggle Modebar"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDM_GROUPBAR            "Show or hide the Group Toolbar\nToggle Group Bar"
+    ID_GROUPBAR_SEP         "Boogle Boo"
+    ID_GROUPBAR_COM         "Boogle Com"
+    ID_ADDTOCURRENT         "Add to Current\nAddCur"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_REMOVEFROMCURRENT    "Remove From Current\nRemove"
+    ID_DESELECTALL          "Deselect All\nDeselect All"
+    ID_SELECTALL            "Select All\nSelect All"
+    IDM_REBUILD_BSP         "Always Rebuild the BSP\nAuto Rebuild"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_IMPORT          "Import a document into the existing document\nImport"
+    ID_HELP_HOWDOI          "Step-by-step help for common operations"
+    IDM_LEVELOPTIONS        "Set defaults for level\nGrid and Level Settings"
+    IDS_CANTLOADTXL         "Unable to load texture library '%1'."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ENTITY_WARNING      "Some Entities do not have corresponding type definitions.  See console for details."
+    IDM_COMMAND_PANEL       "Show or Hide Command Panel\nToggle Command Panel"
+    IDM_CONSOLE             "View the Console Panel"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDM_POPUP_CAMERA        "Allows you to navigate inside the textured view"
+    IDM_POPUP_FACEBRUSH     "Allows you to manage brushes and entities"
+    IDM_POPUP_TEMPLATE      "Add templates and Prefabs"
+    IDM_POPUP_TEXTURE       "Choose a texture to appy to your template or brush"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDM_PROPERTIES_PANEL    "View the Properties Panel"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDM_PREFERENCES         "Application Preferences\nPrefs"
+    ID_VIEW_SHOW_CLIP       "Show Clip Brushes\nShow Clip Brushes"
+    ID_VIEW_SHOW_HINT       "Show Hint Brushes\nShow Hint Brushes"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_SHOW_DETAIL     "Show Detail Brushes\nShow Detail Brushes"
+    ID_TOOLS_SCALEWORLD     "Scale all world geometry"
+    ID_TOOLS_SETTEXTURESCALE "Set texture scale for selected brushes"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TOOLS_ADDTOLEVEL     "Add the selected Entity or Template to your world."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_PRINT_PREVIEW_T_EDIT_VIEW "Print Preview\nPrint Preview"
+    IDS_TAB_TEXTURES        "Textures"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TAB_LISTS           "Lists"
+    IDS_TAB_MODELS          "Models"
+    IDS_TAB_GROUP           "Groups"
+    IDS_TOOLBAR_GENERAL     "General"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TOOLBAR_OBJECT      "Objects"
+    IDS_TOOLBAR_MODE        "Mode"
+    IDS_TOOLBAR_GROUP       "Groups"
+    IDS_TOOLBAR_BRUSH       "Brush Tools"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TAB_OBJECTS         "Objects"
+    IDS_TAB_TEMPLATES       "Templates"
+    IDS_TAB_PROPERTIES      "Properties"
+    IDS_TAB_CONSOLE         "Console"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDM_POPUP_MOVE_ROTATE   "Lets you move or rotate your brush or template."
+    IDM_POPUP_RESIZE        "Lets you resize your brush or template"
+    IDM_POPUP_SHEAR         "Let's you tweak your brush or template"
+    IDM_POPUP_ROTATE        "Rotates selected object by preset angle"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDM_POPUP_CENTER        "Puts the selected item at the center of all view ports"
+    IDM_BUTTON_LABELS       "Show or hide labels for toolbar button controls"
+    IDM_PREVIEW             "Run the Genesis3D engine to view a world\nView with engine"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    CG_IDS_TIPOFTHEDAY      "Displays a Tip of the Day."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    CG_IDS_TIPOFTHEDAYMENU  "Ti&p of the Day..."
+    CG_IDS_DIDYOUKNOW       "Did you know..."
+    CG_IDS_FILE_ABSENT      "Tips file does not exist in the prescribed directory"
+    CG_IDP_FILE_CORRUPT     "Trouble reading the tips file"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    CG_IDS_TIPOFTHEDAYHELP  "&Help"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_VIEWMGR         "Show the ViewMgr control\nShow the ViewMgr"
+    ID_FILE_PRINT_TEDIT_VIEW "Print a view\nPrint a view"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif
+#include "res\GEditPro.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#include "afxprint.rc"               //      print templates
+#endif
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

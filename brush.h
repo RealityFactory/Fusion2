@@ -18,14 +18,15 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef _BRUSH_H_
 #define _BRUSH_H_
 
 #include <math.h>
 #include <stdio.h>
-#include "Vec3d.h"
-#include "XForm3d.h"
+#include "include/Vec3d.h"
+#include "include/XForm3d.h"
 #include "face.h"
 #include "box3d.h"
 #include "parse3dt.h"
@@ -58,8 +59,29 @@ enum BrushTypeFlags
 #define BRUSH_COUNT_NORECURSE 8
 
 typedef struct tag_FaceList FaceList;
+
+
+
 typedef struct tag_BrushList BrushList;
-typedef struct BrushTag Brush;
+
+//typedef struct BrushTag Brush;	// commented out for g3dc
+
+typedef struct BrushTag		//	moved to brush.h for g3dc
+{
+	struct BrushTag	*Prev, *Next;
+	FaceList		*Faces;			//null if multibrush
+	BrushList		*BList;			//null if csgbrush
+	unsigned long	Flags;
+	int				Type;
+	int				ModelId;
+	int				GroupId;
+	geFloat			HullSize;		//for hollows
+	uint32			Color;
+	char			*Name;
+	Box3d			BoundingBox;
+} Brush;
+
+
 
 //instancing / init
 Brush		*Brush_Create(int Type, const FaceList *fl, const BrushList *BList);
@@ -139,6 +161,7 @@ Brush		*Brush_CreateFromFile(Parse3dt *Parser, int VersionMajor, int VersionMino
 
 //operations
 void		Brush_Resize(Brush *b, float dx, float dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum);
+//void		Brush_Resize(Brush *b, float dx, float dy, int sides, int inidx, geVec3d *fnscale, int *ScaleNum, Box3d	multiBoundingBox);
 void		Brush_ResizeFinal(Brush *b, int sides, int inidx, geVec3d *fnscale);
 //void		Brush_SnapNearest(Brush *b, geFloat gsize, int sides, int inidx);
 void		Brush_SnapShearNearest(Brush *b, geFloat gsize, int sides, int inidx, int snapside);

@@ -18,11 +18,12 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
+#include "Globals.h"
 #include "FaceAttributesDialog.h"
 
-#include "FUSIONDoc.h"  // icko!
 
 
 #ifdef _DEBUG
@@ -45,7 +46,7 @@ static char THIS_FILE[] = __FILE__;
 
 // This table keeps track of the latest selection used in the combo box
 // so that it can be set correctly when the dialog is closed and re-opened.
-static int ComboBoxSelections[][2] = 
+static int ComboBoxSelections[][2] =
 	{
 		{IDC_CBXOFFSET, 2},
 		{IDC_CBYOFFSET, 2},
@@ -87,9 +88,40 @@ static void SetComboSelection (const CComboBox &Combo)
 */
 
 
-CFaceAttributesDialog::CFaceAttributesDialog(CFusionDoc* pFusionDoc, CWnd* pParent)
+typedef struct
+{
+	char *Text;
+	float val;
+} ComboBoxItem;
+
+
+
+static void FillComboBox (CComboBox &Combo, const ComboBoxItem Items[], int nItems)
+{
+	int i;
+
+	Combo.ResetContent ();
+	for (i = 0; i < nItems; ++i)
+	{
+		int Index;
+
+		Index = Combo.AddString (Items[i].Text);
+		if ((Index != CB_ERR) && (Index != CB_ERRSPACE))
+		{
+			// this big ugly cast lets us store a float in a DWORD.
+			Combo.SetItemData (Index, *((DWORD *)&(Items[i].val)));
+		}
+	}
+
+	Combo.SetCurSel (::GetComboSelection (Combo));
+}
+
+
+
+//CFaceAttributesDialog::CFaceAttributesDialog(CGEditProDoc* ptEditDoc, CWnd* pParent) // old gedit
+CFaceAttributesDialog::CFaceAttributesDialog(CWnd* pParent  /*=NULL*/)	// new g3dc
 	: CDialog(CFaceAttributesDialog::IDD, pParent)
-{	
+{
 	//{{AFX_DATA_INIT(CFaceAttributesDialog)
 	m_TextureYScale = 1.0;
 	m_TextureXScale = 1.0;
@@ -112,9 +144,10 @@ CFaceAttributesDialog::CFaceAttributesDialog(CFusionDoc* pFusionDoc, CWnd* pPare
 	m_Transparent = FALSE;
 	//}}AFX_DATA_INIT
 
-	m_pDoc		=pFusionDoc;
 
 	CDialog::Create(IDD,pParent);
+
+//	m_pDoc = CGlobals::GetActiveDocument();
 
 	SetupDialog();
 }
@@ -169,7 +202,6 @@ void CFaceAttributesDialog::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CFaceAttributesDialog, CDialog)
 	//{{AFX_MSG_MAP(CFaceAttributesDialog)
 	ON_WM_VSCROLL()
-	ON_WM_MOUSEMOVE()
 	ON_EN_CHANGE(IDC_EDITXOFFSET, OnChangeXOffset)
 	ON_EN_KILLFOCUS(IDC_EDITXOFFSET, OnKillfocusXOffset)
 	ON_EN_CHANGE(IDC_EDITYOFFSET, OnChangeYOffset)
@@ -197,13 +229,135 @@ BEGIN_MESSAGE_MAP(CFaceAttributesDialog, CDialog)
 	ON_BN_CLICKED(IDC_TEXTURELOCK, OnTexturelock)
 	ON_EN_KILLFOCUS(IDC_REFLECTIVITY, OnKillfocusReflectivity)
 	ON_EN_KILLFOCUS(IDC_FACETRANSLUCENCY, OnKillfocusFacetranslucency)
-	ON_BN_CLICKED(ID_DEFAULTS, OnResetAll)
 	ON_BN_CLICKED(IDC_TRANSPARENT, OnTransparent)
+	ON_BN_CLICKED(IDC_FACE_APPLYBTN, OnFaceApplybtn)
+	ON_BN_CLICKED(ID_DEFAULTS, OnResetAll)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CFaceAttributesDialog message handlers
+
+
+BOOL CFaceAttributesDialog::OnInitDialog()
+{
+	m_pDoc = CGlobals::GetActiveDocument();
+
+	m_pDoc->m_pMainFrame->HideAllPropDialogsBut(this);
+
+	pFace = NULL;
+
+//	UpdatePolygonFocus (pFace);			// Update dialog members from face
+
+	SetWindowPos(NULL,5,10,0,0,SWP_NOZORDER|SWP_NOSIZE);
+	this->ShowWindow(SW_SHOW);
+
+
+	GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light ) ;
+
+	UpdateData (FALSE);
+	CDialog::OnInitDialog();
+
+
+
+	return TRUE;
+}
+
+
+bool CFaceAttributesDialog::UpdateFaceAttributes(CGEditProDoc *pDoc, Face *pFace)
+{
+	if (pDoc != m_pDoc)
+		AfxMessageBox("pDoc != m_pDoc in UpdateFaceAttributes");
+
+	if (m_pDoc != NULL)
+	{
+		UpdatePolygonFocus (pFace);			// Update dialog members from face
+//		SetupDialog ();		//	no no no don't put that thang here.
+
+
+
+//		GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light ) ;
+
+				//	Restore focus to active view so arrow keys work
+				//	for cycling through individual faces
+
+				//	Restore focus to active view
+	CMDIChildWnd *pMDIChild	=(CMDIChildWnd *)pDoc->m_pMainFrame->MDIGetActive();
+	if(pMDIChild)
+	{
+		CView	*cv	=(CView *)pMDIChild->GetActiveView();
+		if( cv)
+			cv->SetFocus() ;
+	}
+
+
+		UpdateData (FALSE);
+
+	}
+
+	return true;
+}
+
+
+void CFaceAttributesDialog::ShowDialog()
+{
+	SetWindowPos(NULL,5,10,0,0,SWP_NOZORDER|SWP_NOSIZE);
+	this->ShowWindow(SW_SHOW);
+
+}
+
+
+
+
+void CFaceAttributesDialog::SetupDialog()
+{
+
+	// Fill combo boxes with proper data and set accordingly
+	static const ComboBoxItem OffsetValues[] =
+	{
+		{"4", 4.0f},
+		{"8", 8.0f},
+		{"16", 16.0f},
+		{"32", 32.0f},
+		{"64", 64.0f},
+		{"128", 128.0f}
+	};
+	static const int nOffsetItems = sizeof (OffsetValues) / sizeof (ComboBoxItem);
+
+	static const ComboBoxItem ScaleValues[] =
+	{
+		"0.1", 0.1f,
+		"0.2", 0.2f,
+		"0.5", 0.5f,
+		"0.75", 0.75f,
+		"1.0", 1.0f,
+		"2.0", 2.0f
+	};
+	static const int nScaleItems = sizeof (ScaleValues) / sizeof (ComboBoxItem);
+
+	static const ComboBoxItem AngleValues[] =
+	{
+		"5", 5.0f,
+		"10", 10.0f,
+		"15", 15.0f,
+		"30", 30.0f,
+		"45", 45.0f,
+		"90", 90.0f
+	};
+	static const int nAngleItems = sizeof (AngleValues) / sizeof (ComboBoxItem);
+
+	FillComboBox (m_ComboXOffset, OffsetValues, nOffsetItems);
+	FillComboBox (m_ComboYOffset, OffsetValues, nOffsetItems);
+	FillComboBox (m_ComboXScale, ScaleValues, nScaleItems);
+	FillComboBox (m_ComboYScale, ScaleValues, nScaleItems);
+	FillComboBox (m_ComboXLightScale, ScaleValues, nScaleItems);
+	FillComboBox (m_ComboYLightScale, ScaleValues, nScaleItems);
+	FillComboBox (m_ComboAngle, AngleValues, nAngleItems);
+}
+
+
+
+
 
 void CFaceAttributesDialog::AssignFaceValues (Face *pFace)
 {
@@ -233,8 +387,11 @@ static geBoolean AssignFaceValues (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnResetAll() 
-{	
+void CFaceAttributesDialog::OnResetAll()
+{
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData(TRUE);
 
 	m_TextureXOffset = 0;
@@ -261,7 +418,7 @@ void CFaceAttributesDialog::OnResetAll()
 
 	UpdateData(FALSE);
 
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::AssignFaceValues, this);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::AssignFaceValues, this);
 
 	AssignCurrentToViews();
 }
@@ -305,7 +462,7 @@ float CFaceAttributesDialog::GetIncrement (CComboBox &combo)
 
 
 #pragma warning (disable:4100)
-void CFaceAttributesDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
+void CFaceAttributesDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	if ((nSBCode != SB_LINEUP) && (nSBCode != SB_LINEDOWN))
 	{
@@ -401,7 +558,7 @@ void CFaceAttributesDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScro
 			UpdateData (FALSE);
 			OnKillfocusAngle ();
 			break;
-		
+
 		default :
 			assert (0);
 			return;
@@ -415,52 +572,89 @@ void CFaceAttributesDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScro
 //	And this is here to update the views as changes are made.
 void CFaceAttributesDialog::AssignCurrentToViews()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	// update child faces on all selected brushes
 	int NumSelBrushes;
 
-	NumSelBrushes = SelBrushList_GetSize (m_pDoc->pSelBrushes);
+	NumSelBrushes = SelBrushList_GetSize (m_pDoc->DocVarsGetPointer()->m_pSelBrushes);
 	for (int i = 0; i < NumSelBrushes; ++i)
 	{
-		Brush *pBrush = SelBrushList_GetBrush (m_pDoc->pSelBrushes, i);
+		Brush *pBrush = SelBrushList_GetBrush (m_pDoc->DocVarsGetPointer()->m_pSelBrushes, i);
 		Brush_UpdateChildFaces (pBrush);
 	}
-	m_pDoc->UpdateAllViews(UAV_RENDER_ONLY, NULL);
+
+	//	new g3dc
+	//	NOTE Must Deselect all brushes when going from face adjustment mode
+	//	to brush adjustment mode, or these changes won't show up.
+	//	See CGEditProDoc::OnToolsBrushAdjustmentmode()
+
+	//	Be very careful when speccing flags for UpdateAllViews()
+	//	The wrong flags at the wrong time will totally screw things up
+//	m_pDoc->UpdateAllViews(UAV_RENDER_ONLY, NULL);  // oringinal gedit
+	m_pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);	//	best current one
+
+
+
+//	m_pDoc->UpdateAllViews(UAV_ALL3DVIEWS | REBUILD_QUICK, NULL);  // experiment g3dc
+
+
+//	m_pDoc->m_pMainFrame->UpdateMainControls();
+
 }
 
+/*
+Problem updating textured view
+See the following functions
+CGEditProDoc::UpdateFaceAttributes, RebuildTrees, UpdateAllViews, OnGbspnowater()
 
-BOOL CFaceAttributesDialog::OnInitDialog()
+
+
+*/
+
+
+
+/*
+void ::OnCancel()
 {
-	UpdatePolygonFocus ();			// Update dialog members from face
+	if (m_pDoc == NULL)
+	m_pDoc = CGlobals::GetActiveDocument();
 
-	CDialog::OnInitDialog();
-
-	CenterWindow( AfxGetMainWnd() );
-
-	GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light ) ;
-
-	UpdateData (FALSE);
-
-	return TRUE;
-}
-
-void CFaceAttributesDialog::OnCancel()
-{
 	m_pDoc->NullFaceAttributes ();
 	DestroyWindow();
 }
+*/
 
-void CFaceAttributesDialog::PostNcDestroy() 
+void CFaceAttributesDialog::OnCancel()
 {
-	delete this;
+	return;
+}
+
+void CFaceAttributesDialog::PostNcDestroy()
+{
+//	delete this;
+//	DestroyWindow();
 }
 
 // The document calls this function whenever a face is selected or deselected.
-void CFaceAttributesDialog::UpdatePolygonFocus ()
+void CFaceAttributesDialog::UpdatePolygonFocus (Face *pFace)
 {
-	Face *pFace;
+	if (!m_pDoc)
+	{
+		AfxMessageBox("No Document for UpdatePolygonFocus in FaceAttribs");
+		m_pDoc = CGlobals::GetActiveDocument();
+	}
 
-	pFace = SelFaceList_GetFace (m_pDoc->pSelFaces, 0);
-	if (pFace != NULL)
+
+//	Face *pFace = NULL;
+	if (pFace == NULL)
+		pFace = SelFaceList_GetFace (m_pDoc->DocVarsGetPointer()->m_pSelFaces, 0);
+
+	if (!pFace)
+		AfxMessageBox("No pFace in FaceAttribs");
+
+	else if (pFace)
 	{
 		m_TextureAngle	= Face_GetTextureRotate (pFace);
 		Face_GetTextureShift (pFace, &m_TextureXOffset, &m_TextureYOffset);
@@ -505,7 +699,7 @@ static BOOL CheckFloatValue (CEdit &Edit)
 		int pos, len;
 		len = Text.GetLength ();
 		pos = Text.Find ('.') + 1;
-	
+
 		if (pos != len)
 		{
 			return TRUE;
@@ -515,8 +709,9 @@ static BOOL CheckFloatValue (CEdit &Edit)
 }
 */
 
+/*
 #pragma warning (disable:4100)
-void CFaceAttributesDialog::OnMouseMove(UINT nFlags, CPoint point) 
+void CFaceAttributesDialog::OnMouseMove(UINT nFlags, CPoint point)
 {
 	CPoint CursorPos;
 
@@ -537,10 +732,12 @@ void CFaceAttributesDialog::OnMouseMove(UINT nFlags, CPoint point)
 		}
 	}
 	//	End of CHANGE
-	
+
 	//CDialog::OnMouseMove(nFlags, point);
 }
 #pragma warning (default:4100)
+*/
+
 
 static BOOL OnIntEditChange (CEdit &Edit, int *val, int DefaultVal)
 {
@@ -584,37 +781,37 @@ static void OnFloatKillFocus (CEdit &Edit, float *val, float DefaultVal, const c
 	}
 }
 
-void CFaceAttributesDialog::OnChangeXOffset() 
-{	
+void CFaceAttributesDialog::OnChangeXOffset()
+{
 	OnIntEditChange (m_EditXOffset, &m_TextureXOffset, 0);
 }
 
-void CFaceAttributesDialog::OnChangeYOffset() 
+void CFaceAttributesDialog::OnChangeYOffset()
 {
 	OnIntEditChange (m_EditYOffset, &m_TextureYOffset, 0);
 }
 
-void CFaceAttributesDialog::OnChangeXScale() 
+void CFaceAttributesDialog::OnChangeXScale()
 {
 	OnFloatEditChange (m_EditXScale, &m_TextureXScale, 1.0f);
 }
 
-void CFaceAttributesDialog::OnChangeYScale() 
+void CFaceAttributesDialog::OnChangeYScale()
 {
 	OnFloatEditChange (m_EditYScale, &m_TextureYScale, 1.0f);
 }
 
-void CFaceAttributesDialog::OnChangeEditxlightscale() 
+void CFaceAttributesDialog::OnChangeEditxlightscale()
 {
 	OnFloatEditChange (m_EditLightXScale, &m_LightXScale, 1.0f);
 }
 
-void CFaceAttributesDialog::OnChangeEditylightscale() 
+void CFaceAttributesDialog::OnChangeEditylightscale()
 {
 	OnFloatEditChange (m_EditLightYScale, &m_LightYScale, 1.0f);
 }
 
-void CFaceAttributesDialog::OnChangeAngle() 
+void CFaceAttributesDialog::OnChangeAngle()
 {
 	OnFloatEditChange (m_EditAngle, &m_TextureAngle, 0.0f);
 }
@@ -623,17 +820,29 @@ static geBoolean ChangeXOffset (Face *pFace, void *lParam)
 {
 	int *pXOffset = (int *)(lParam);
 	int xOff, yOff;
-	
+
 	Face_GetTextureShift (pFace, &xOff, &yOff);
 	Face_SetTextureShift (pFace, *pXOffset, yOff);
-	return GE_TRUE;	
+	return GE_TRUE;
 }
-	
-void CFaceAttributesDialog::OnKillfocusXOffset() 
+
+void CFaceAttributesDialog::OnKillfocusXOffset()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+	BOOL bTrans = FALSE;
+	int lastValue = m_TextureXOffset;
+	int currentValue = GetDlgItemInt(IDC_EDITXOFFSET, &bTrans);
+	if (bTrans == FALSE)
+	{
+		this->SetDlgItemInt(IDC_EDITXOFFSET, lastValue);
+		return;
+	}
+
 	UpdateData (TRUE);
 	OnIntKillFocus (m_EditXOffset, &m_TextureXOffset, 0, "0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeXOffset, &m_TextureXOffset);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeXOffset, &m_TextureXOffset);
 	AssignCurrentToViews ();
 }
 
@@ -644,14 +853,26 @@ static geBoolean ChangeYOffset (Face *pFace, void *lParam)
 
 	Face_GetTextureShift (pFace, &xOff, &yOff);
 	Face_SetTextureShift (pFace, xOff, *pYOffset);
-	return GE_TRUE;	
+	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnKillfocusYOffset() 
-{	
+void CFaceAttributesDialog::OnKillfocusYOffset()
+{
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+	BOOL bTrans = FALSE;
+	int lastValue = m_TextureYOffset;
+	int currentValue = GetDlgItemInt(IDC_EDITYOFFSET, &bTrans);
+	if (bTrans == FALSE)
+	{
+		SetDlgItemInt(IDC_EDITYOFFSET, lastValue);
+		return;
+	}
+
 	UpdateData (TRUE);
 	OnIntKillFocus (m_EditYOffset, &m_TextureYOffset, 0, "0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeYOffset, &m_TextureYOffset);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeYOffset, &m_TextureYOffset);
 	AssignCurrentToViews ();
 }
 
@@ -665,11 +886,24 @@ static geBoolean ChangeTextureXScale (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnKillfocusXScale() 
+void CFaceAttributesDialog::OnKillfocusXScale()
 {
+	CString testString;							//	post 0.5 release
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+//	int	lastValue = m_TextureXScale;			//	post 0.5 release
+//	if (GetDlgItemInt(IDC_EDITXSCALE) == NULL)	//	post 0.5 release
+	float lastValue = m_TextureXScale;			// post 0.5 release
+	if (GetDlgItemText(IDC_EDITXSCALE, testString) == NULL)// post 0.5 release
+	{
+		this->SetDlgItemInt(IDC_EDITXSCALE, (int)lastValue);	//	post 0.5 release
+		return;
+	}
+
 	UpdateData (TRUE);
 	OnFloatKillFocus (m_EditXScale, &m_TextureXScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeTextureXScale, &m_TextureXScale);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeTextureXScale, &m_TextureXScale);
 	AssignCurrentToViews ();
 }
 
@@ -683,11 +917,24 @@ static geBoolean ChangeTextureYScale (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnKillfocusYScale() 
+void CFaceAttributesDialog::OnKillfocusYScale()
 {
+	CString testString;							//	post 0.5 release
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+//	int	lastValue = m_TextureYScale;			//	post 0.5 release
+//	if (GetDlgItemInt(IDC_EDITYSCALE) == NULL)	//	post 0.5 release
+	float	lastValue = m_TextureYScale;		//	post 0.5 release
+	if (GetDlgItemText(IDC_EDITYSCALE, testString) == NULL)	//	post 0.5 release
+	{
+		this->SetDlgItemInt(IDC_EDITYSCALE, (int)lastValue);	//	post 0.5 release
+		return;
+	}
+
 	UpdateData (TRUE);
 	OnFloatKillFocus (m_EditYScale, &m_TextureYScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeTextureYScale, &m_TextureYScale);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeTextureYScale, &m_TextureYScale);
 	AssignCurrentToViews ();
 }
 
@@ -700,12 +947,22 @@ static geBoolean ChangeLightXScale (Face *pFace, void *lParam)
 	Face_SetLightScale (pFace, *pXScale, yScale);
 	return GE_TRUE;
 }
-	
-void CFaceAttributesDialog::OnKillfocusEditxlightscale() 
+
+void CFaceAttributesDialog::OnKillfocusEditxlightscale()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+	int	lastValue = m_LightXScale;
+	if (GetDlgItemInt(IDC_EDITXLIGHTSCALE) == NULL)
+	{
+		this->SetDlgItemInt(IDC_EDITXLIGHTSCALE, lastValue);
+		return;
+	}
+
 	UpdateData (TRUE);
 	OnFloatKillFocus (m_EditLightXScale, &m_LightXScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeLightXScale, &m_LightXScale);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeLightXScale, &m_LightXScale);
 	AssignCurrentToViews ();
 }
 
@@ -720,11 +977,22 @@ static geBoolean ChangeLightYScale (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnKillfocusEditylightscale() 
+void CFaceAttributesDialog::OnKillfocusEditylightscale()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+	int	lastValue = m_LightYScale;
+	if (GetDlgItemInt(IDC_EDITYLIGHTSCALE) == NULL)
+	{
+		this->SetDlgItemInt(IDC_EDITYLIGHTSCALE, lastValue);
+		return;
+	}
+
+
 	UpdateData (TRUE);
 	OnFloatKillFocus (m_EditLightYScale, &m_LightYScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ChangeLightYScale, &m_LightYScale);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeLightYScale, &m_LightYScale);
 	AssignCurrentToViews ();
 }
 
@@ -736,11 +1004,22 @@ static geBoolean ChangeTextureAngle (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnKillfocusAngle() 
-{	
+void CFaceAttributesDialog::OnKillfocusAngle()
+{
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+	int	lastValue = m_TextureAngle;
+	if (GetDlgItemInt(IDC_EDITANGLE) == NULL)
+	{
+		this->SetDlgItemInt(IDC_EDITANGLE, lastValue);
+		return;
+	}
+
+
 	UpdateData (TRUE);
 	OnFloatKillFocus (m_EditAngle, &m_TextureAngle, 0, "0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::ChangeTextureAngle, &m_TextureAngle);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::ChangeTextureAngle, &m_TextureAngle);
 	AssignCurrentToViews ();
 }
 
@@ -752,11 +1031,21 @@ static geBoolean ChangeLightIntensity (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnKillfocusFacelightintensity() 
+void CFaceAttributesDialog::OnKillfocusFacelightintensity()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+	int	lastValue = m_LightIntensity;
+	if (GetDlgItemInt(IDC_FACELIGHTINTENSITY) == NULL)
+	{
+		this->SetDlgItemInt(IDC_FACELIGHTINTENSITY, lastValue);
+		return;
+	}
+
 	UpdateData (TRUE);
 	OnIntKillFocus (m_EditLightIntensity, &m_LightIntensity, 300, "300");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::ChangeLightIntensity, &m_LightIntensity);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::ChangeLightIntensity, &m_LightIntensity);
 	AssignCurrentToViews ();
 }
 
@@ -768,11 +1057,22 @@ static geBoolean ChangeMipMapBias (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnKillfocusMipmapbias() 
+void CFaceAttributesDialog::OnKillfocusMipmapbias()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+	int	lastValue = m_MipMapBias;
+	if (GetDlgItemInt(IDC_MIPMAPBIAS) == NULL)
+	{
+		this->SetDlgItemInt(IDC_MIPMAPBIAS, lastValue);
+		return;
+	}
+
+
 	UpdateData (TRUE);
 	OnFloatKillFocus (m_EditMipMapBias, &m_MipMapBias, 0, "1.0");
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::ChangeMipMapBias, &m_MipMapBias);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::ChangeMipMapBias, &m_MipMapBias);
 	AssignCurrentToViews ();
 }
 
@@ -784,8 +1084,18 @@ static geBoolean ChangeReflectivity (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnKillfocusReflectivity() 
+void CFaceAttributesDialog::OnKillfocusReflectivity()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+	int	lastValue = m_Reflectivity;
+	if (GetDlgItemInt(IDC_REFLECTIVITY) == NULL)
+	{
+		this->SetDlgItemInt(IDC_REFLECTIVITY, lastValue);
+		return;
+	}
+
 	UpdateData (TRUE);
 	OnFloatKillFocus (m_EditReflectivity, &m_Reflectivity, 0, "1.0");
 
@@ -798,7 +1108,7 @@ void CFaceAttributesDialog::OnKillfocusReflectivity()
 		m_Reflectivity	=10.0f;
 	}
 
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::ChangeReflectivity, &m_Reflectivity);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::ChangeReflectivity, &m_Reflectivity);
 	AssignCurrentToViews ();
 }
 
@@ -810,8 +1120,19 @@ static geBoolean ChangeTranslucency (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnKillfocusFacetranslucency() 
+void CFaceAttributesDialog::OnKillfocusFacetranslucency()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+	int	lastValue = m_Translucency;
+	if (GetDlgItemInt(IDC_FACETRANSLUCENCY) == NULL)
+	{
+		this->SetDlgItemInt(IDC_FACETRANSLUCENCY, lastValue);
+		return;
+	}
+
+
 	UpdateData (TRUE);
 	OnFloatKillFocus (m_EditTranslucency, &m_Translucency, 0, "255.0");
 
@@ -823,7 +1144,7 @@ void CFaceAttributesDialog::OnKillfocusFacetranslucency()
 	{
 		m_Translucency	=255.0f;
 	}
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::ChangeTranslucency, &m_Translucency);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::ChangeTranslucency, &m_Translucency);
 	AssignCurrentToViews ();
 }
 
@@ -837,15 +1158,18 @@ static geBoolean FlipVertical (Face *pFace, void *)
 }
 
 //	Flip it vertical by inverting the Y scale sign...
-void CFaceAttributesDialog::OnFlipvertical() 
+void CFaceAttributesDialog::OnFlipvertical()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData(TRUE);
 
 	m_TextureYScale = -m_TextureYScale;
 
 	UpdateData(FALSE);
 
-	SelFaceList_Enum (m_pDoc->pSelFaces, FlipVertical, NULL);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, FlipVertical, NULL);
 
 	AssignCurrentToViews();
 }
@@ -860,15 +1184,18 @@ static geBoolean FlipHorizontal (Face *pFace, void *)
 }
 
 //	Same here except flip it horizontal...
-void CFaceAttributesDialog::OnFliphorizontal() 
+void CFaceAttributesDialog::OnFliphorizontal()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData(TRUE);
 
 	m_TextureXScale = -m_TextureXScale;
 
 	UpdateData(FALSE);
 
-	SelFaceList_Enum (m_pDoc->pSelFaces, FlipHorizontal, NULL);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, FlipHorizontal, NULL);
 
 	AssignCurrentToViews();
 }
@@ -881,11 +1208,14 @@ static geBoolean SetLight (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnFacelight( void ) 
+void CFaceAttributesDialog::OnFacelight( void )
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData (TRUE);
 	GetDlgItem( IDC_FACELIGHTINTENSITY )->EnableWindow( m_Light ) ;
-	SelFaceList_Enum (m_pDoc->pSelFaces, SetLight, &m_Light);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, SetLight, &m_Light);
 	AssignCurrentToViews ();
 }
 
@@ -898,10 +1228,13 @@ static geBoolean SetMirror (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnFacemirror() 
+void CFaceAttributesDialog::OnFacemirror()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, SetMirror, &m_Mirror);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, SetMirror, &m_Mirror);
 	AssignCurrentToViews ();
 }
 
@@ -913,10 +1246,13 @@ static geBoolean SetSky (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnFacesky() 
+void CFaceAttributesDialog::OnFacesky()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, SetSky, &m_Sky);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, SetSky, &m_Sky);
 	AssignCurrentToViews ();
 }
 
@@ -930,7 +1266,10 @@ static geBoolean SetFullBright (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::SetShadingChecks ()
 {
-	Face *pFace = SelFaceList_GetFace (m_pDoc->pSelFaces, 0);
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
+	Face *pFace = SelFaceList_GetFace (m_pDoc->DocVarsGetPointer()->m_pSelFaces, 0);
 
 	m_FullBright	=Face_IsFullBright (pFace);
 	m_Gouraud		=Face_IsGouraud (pFace);
@@ -938,10 +1277,13 @@ void CFaceAttributesDialog::SetShadingChecks ()
 	UpdateData (FALSE);
 }
 
-void CFaceAttributesDialog::OnFacefullbright() 
+void CFaceAttributesDialog::OnFacefullbright()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::SetFullBright, &m_FullBright);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::SetFullBright, &m_FullBright);
 	SetShadingChecks ();
 	AssignCurrentToViews ();
 }
@@ -954,10 +1296,13 @@ static geBoolean SetGouraud (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnFacegouraud() 
+void CFaceAttributesDialog::OnFacegouraud()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::SetGouraud, &m_Gouraud);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::SetGouraud, &m_Gouraud);
 	SetShadingChecks ();
 	AssignCurrentToViews ();
 }
@@ -970,10 +1315,13 @@ static geBoolean SetFlat (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnFaceflat() 
+void CFaceAttributesDialog::OnFaceflat()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::SetFlat, &m_Flat);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::SetFlat, &m_Flat);
 	SetShadingChecks ();
 	AssignCurrentToViews ();
 }
@@ -986,25 +1334,31 @@ static geBoolean SetTextureLock (Face *pFace, void *lParam)
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnTexturelock() 
+void CFaceAttributesDialog::OnTexturelock()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::SetTextureLock, &m_TextureLock);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::SetTextureLock, &m_TextureLock);
 	AssignCurrentToViews ();
 }
 
 static geBoolean SetTransparent (Face *pFace, void *lParam)
 {
-	BOOL *pTransparent = (BOOL *)lParam;
+	 BOOL *pTransparent = (BOOL *)lParam;
 
 	Face_SetTransparent (pFace, *pTransparent);
 	return GE_TRUE;
 }
 
-void CFaceAttributesDialog::OnTransparent() 
+void CFaceAttributesDialog::OnTransparent()
 {
+	if (m_pDoc == NULL)
+		m_pDoc = CGlobals::GetActiveDocument();
+
 	UpdateData (TRUE);
-	SelFaceList_Enum (m_pDoc->pSelFaces, ::SetTransparent, &m_Transparent);
+	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::SetTransparent, &m_Transparent);
 	AssignCurrentToViews ();
 }
 
@@ -1018,7 +1372,7 @@ void CFaceAttributesDialog::OnActivate( UINT nState, CWnd* pWndOther, BOOL bMini
 	CDialog::OnActivate( nState, pWndOther, bMinimized ) ;
 }
 
-BOOL CFaceAttributesDialog::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo) 
+BOOL CFaceAttributesDialog::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo)
 {
 	switch( nID )
 	{
@@ -1029,73 +1383,13 @@ BOOL CFaceAttributesDialog::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDH
 	return CDialog::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
 }
 
-typedef struct
+
+
+
+void CFaceAttributesDialog::OnFaceApplybtn()
 {
-	char *Text;
-	float val; 
-} ComboBoxItem;
+//	m_pDoc->m_pMainFrame->UpdateMainControls();
 
-static void FillComboBox (CComboBox &Combo, const ComboBoxItem Items[], int nItems)
-{
-	int i;
-
-	Combo.ResetContent ();
-	for (i = 0; i < nItems; ++i)
-	{
-		int Index;
-
-		Index = Combo.AddString (Items[i].Text);
-		if ((Index != CB_ERR) && (Index != CB_ERRSPACE))
-		{
-			// this big ugly cast lets us store a float in a DWORD.
-			Combo.SetItemData (Index, *((DWORD *)&(Items[i].val)));
-		}
-	}
-
-	Combo.SetCurSel (::GetComboSelection (Combo));
 }
 
-void CFaceAttributesDialog::SetupDialog()
-{
-	// Fill combo boxes with proper data and set accordingly
-	static const ComboBoxItem OffsetValues[] =
-	{
-		{"4", 4.0f},
-		{"8", 8.0f},
-		{"16", 16.0f},
-		{"32", 32.0f},
-		{"64", 64.0f},
-		{"128", 128.0f}
-	};
-	static const int nOffsetItems = sizeof (OffsetValues) / sizeof (ComboBoxItem);
 
-	static const ComboBoxItem ScaleValues[] =
-	{
-		"0.1", 0.1f,
-		"0.2", 0.2f,
-		"0.5", 0.5f,
-		"0.75", 0.75f,
-		"1.0", 1.0f,
-		"2.0", 2.0f
-	};
-	static const int nScaleItems = sizeof (ScaleValues) / sizeof (ComboBoxItem);
-
-	static const ComboBoxItem AngleValues[] =
-	{
-		"5", 5.0f,
-		"10", 10.0f,
-		"15", 15.0f,
-		"30", 30.0f,
-		"45", 45.0f,
-		"90", 90.0f
-	};
-	static const int nAngleItems = sizeof (AngleValues) / sizeof (ComboBoxItem);
-
-	FillComboBox (m_ComboXOffset, OffsetValues, nOffsetItems);
-	FillComboBox (m_ComboYOffset, OffsetValues, nOffsetItems);
-	FillComboBox (m_ComboXScale, ScaleValues, nScaleItems);
-	FillComboBox (m_ComboYScale, ScaleValues, nScaleItems);
-	FillComboBox (m_ComboXLightScale, ScaleValues, nScaleItems);
-	FillComboBox (m_ComboYLightScale, ScaleValues, nScaleItems);
-	FillComboBox (m_ComboAngle, AngleValues, nAngleItems);
-}

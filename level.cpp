@@ -19,9 +19,13 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
 #include "level.h"
+#include <shlwapi.h>
+#include "Globals.h"
+/* moved to level.h for g3dc
 #include "Parse3dt.h"
 #include "EntTypeName.h"
 #include <assert.h>
@@ -31,6 +35,8 @@
 #include "FilePath.h"
 
 #define NUM_VIEWS (4)
+*/
+/*	//	moved to level.h for g3dc
 struct tag_Level
 {
     BrushList *Brushes;
@@ -71,7 +77,7 @@ struct tag_Level
 	float DrawScale;		// default draw scale
 	float LightmapScale;	// default lightmap scale
 };
-
+*/
 
 EntityViewList *Level_GetEntityVisibilityInfo (Level *pLevel)
 {
@@ -92,7 +98,8 @@ int Level_GetGroupVisibility (const Level *pLevel)
 {
 	assert (pLevel != NULL);
 
-	return pLevel->GroupVisSetting;
+//	return pLevel->GroupVisSetting;
+	return CGlobals::g_iGroupVisibility;
 }
 
 static void Level_AssignEntityName (Level *pLevel, CEntity *pEnt)
@@ -261,7 +268,7 @@ Level *Level_Create (const char *pWadName, const char *HeadersDir)
 		pLevel->CompileParams.DoVis = GE_TRUE;
 		pLevel->CompileParams.DoLight = GE_TRUE;
 		pLevel->CompileParams.RunBsp = GE_TRUE;
-		pLevel->CompileParams.RunPreview = GE_TRUE;
+		pLevel->CompileParams.RunPreview = GE_FALSE;
 		pLevel->CompileParams.UseMinLight = GE_TRUE;
 		pLevel->CompileParams.SuppressHidden = GE_FALSE;
 		pLevel->CompileParams.Filename[0] = '\0';
@@ -727,6 +734,8 @@ Level *Level_CreateFromFile (const char *FileName, const char **ErrMsg, const ch
 	char WadPath[MAX_PATH];
 	char HeadersDir[MAX_PATH];
 
+	CGEditProDoc *pDoc = CGlobals::GetActiveDocument();
+
 	assert (FileName != NULL);
 
 	Parser = Parse3dt_Create (FileName);
@@ -765,13 +774,74 @@ Level *Level_CreateFromFile (const char *FileName, const char **ErrMsg, const ch
 	// headers directory
 	if ((VersionMajor <= 1) && (VersionMinor < 31))
 	{
-		strcpy (HeadersDir, DefaultHeadersDir);
+		strcpy (HeadersDir, DefaultHeadersDir);		//	post 0.55
 	}
 	else
 	{
-		if (!Parse3dt_GetLiteral (Parser, (Expected = "HeadersDir"), HeadersDir)) goto DoneLoad;
+		if (!Parse3dt_GetLiteral (Parser, (Expected = "HeadersDir"), HeadersDir)) goto DoneLoad;	//	post 0.55
 	}
 
+	//	post 0.55	//	check to see if HeadersDir and WadPath actually exist on this system
+	if (pDoc->m_currentTemplateName != "PreFab")	// ignore if we are adding prefab
+	{
+		if (!PathFileExists(WadPath))
+		{
+			CString	wadpath = _T("");
+			
+			CString	txlPathError = _T("GEditPro checks for valid *.txl files when opening new worlds.\n\n");
+			txlPathError += _T("This *.3dt file's specified *.txl file... ");
+			txlPathError += _T(WadPath);
+			txlPathError += _T("\ndoes not exist at the specified path.\n\n");
+			txlPathError += _T("To avoid this message in the future, set the *.txl path for this *.3dt file\n");
+			txlPathError += _T("in the Project, Level Options dialog box, then save the file.\n\n");
+			txlPathError += _T("For now, please select a valid *.txl file or the application will exit.");
+				
+			AfxMessageBox(txlPathError);
+					
+				CFileDialog FileDlg (TRUE,
+					"txl",
+					WadPath,
+					OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR,
+					"Texture Library Files (*.txl)|*.txl||");
+				
+				FileDlg.m_ofn.lpstrTitle	="GEditPro Texture Finder";
+				
+				if (FileDlg.DoModal () == IDOK)
+				{
+					wadpath = FileDlg.GetPathName ();
+					strcpy(WadPath, wadpath.GetBuffer(260));
+				}
+		}
+		
+		//	post 0.55	//	check to see if headers directory exists
+		{
+			CString tempHeaderDir = HeadersDir;
+			// report path minus semicolon
+			if (tempHeaderDir.Find(";") > 0) // post 0.57
+			{
+				tempHeaderDir = tempHeaderDir.Left(tempHeaderDir.Find(";"));
+			}
+			//	if path doesn't exist	
+			if (!PathIsDirectory(tempHeaderDir))
+			{
+				CString	headersPathError = _T("GEditPro checks for valid header directories when opening new worlds.\n\n");
+				headersPathError += _T("The path to this *.3dt file's specified Headers directory does not exist on this system.\n\n");
+				headersPathError += _T("Choose [OK] if you want GEditPro to set the headers path to:\n\n");
+				headersPathError += _T(CGlobals::m_GlobalAppPath);
+				headersPathError += _T("\n\nChoose [Cancel] if you want the headers path to stay as:\n\n");
+				headersPathError += _T(HeadersDir);
+				headersPathError += _T("\n\n");
+				headersPathError += _T("After your new level file has opened, please adjust the true headers path(s) using the\n");
+				headersPathError += _T("Project, Level Options dialog box.");
+				
+				if (AfxMessageBox(headersPathError, MB_OKCANCEL) == IDOK)
+				{									//	set headers path to this app's path
+					strcpy(HeadersDir, CGlobals::m_GlobalAppPath);
+				}
+			}
+		}
+	}		//	end post 0.55
+	
 	pLevel = Level_Create (WadPath, HeadersDir);
 	if (pLevel == NULL)
 	{
@@ -1043,7 +1113,7 @@ static geBoolean Level_WriteBrushTemplates
 
 geBoolean Level_WriteToFile (Level *pLevel, const char *Filename)
 {
-	FILE	*ArFile;
+	FILE	*ArFile = NULL;
 	char QuotedString[MAX_PATH];
 	geBoolean WriteRslt;
 
@@ -1331,7 +1401,8 @@ GridInfo *Level_GetGridInfo (Level *pLevel)
 
 geBoolean Level_RebuildBspAlways (const Level *pLevel)
 {
-	return pLevel->BspRebuildFlag;
+//	return pLevel->BspRebuildFlag;
+	return 	CGlobals::g_bRebuildAlways;
 }
 
 void Level_SetBspRebuild (Level *pLevel, geBoolean RebuildFlag)

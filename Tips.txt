@@ -1,0 +1,26 @@
+You can use the ARROW keys to squentially select brushes and faces.
+You can speedup work by disabling AutoRebuild. Go to Mode->AutoRebuildBSP. Rebuild when YOU want to.
+You can create more workspace for your viewports by hiding the Command Panel and/or Properties Panel. Go to the View menu item and uncheck the item you want to hide.
+You can "CLONE" multiple brushes AND entities. While in Brush Select mode and with no tool selected, select the collection of brushes/entities you want. Press <Shift + Left-MouseClick> and drag a copy of your selection to a new location.
+Face and Brush selection in the Textured view works poorly for hollow brushes. For better results, select your brushes or entities from the Ortho views (Top, Front, Side) or from the Groups tab.
+You can apply textures to your selected object by double-clicking the texture on the Textures tab.
+If you want your textures to keep their alignment on the face "just so" even after you move the brush, you must LOCK the textures. Change to Face Attributes mode. Select the face you want, then check the 'Texture Lock' check box. 
+If your textures change to bright colors in the Textured view, this is because GEditPro needed to Invalidate all faces. Do a quick rebuild or click the handy 'Rebuild' button if it appears on the Textured view.
+You can Pan in all viewports by holding down your mousewheel button and moving your mouse. If you don't have a mousewheel button, then <SpaceBar + Left-MouseClick>.
+You can zoom in and out of each viewport by scrolling your mousewheel. Or, in the Ortho views (Top, Front, Side), use your keypad's + and - keys.
+You can move and rotate selections of multiple brushes and entities.
+You can make all selected brushes the same type by hitting the "Make All Same Type" button on the Brush Attributes dialog.
+You should use HOLLOW templates only when you need them. Make your level snappier by using SOLID templates whenever you can.
+Prefabs are ready-made collections of brushes and entities. You can create your own custom prefabs by simply doing a SaveAS to your editor's 'Objects' subdirectory.
+You may specify multiple paths for ENTITIES. Go to Project->Level Options.
+With SNAP GRID enabled, movement of single brushes and entities snap along the snap gidlines. You may specify the SNAP GRID settings by going to Project->Level Options.
+You may constrain the rotation of single brushes by enabling and setting the Rotation controls on the Project-> Level Options dialog.
+You can bring up the Right-Click context menu in the Textured view by <Ctrl + Right-MouseClick>.
+You can quickly find a face's or brush's texture by <Shift + Left-MouseClick> in the Textured view.
+You can colorfully distinguish one group from another. Go to the Goups tab and use the "Group Color" button.
+You can change the colors of the ortho viewports (Top, Front, Side). Go to File->Preferences.
+You can change the name of individual brushes. Select the brush, edit its name in the Brush Attributes dialog, then hit "Apply".
+You can change the size of the entity markers in the ortho viewports (Top, Front, Side). Go to File->Preferences and adjust the Entity Visibility Scale.
+You may have multiple GEditPro documents open at the same time.
+Camera Mode lets you mouse around in the Textured view without disrupting your textures or asking the editor to rebuild.
+The Sunlight entity shines light ONLY through SKY faces. Go to Face Attributes mode to set the SKY attribute on your selected faces.

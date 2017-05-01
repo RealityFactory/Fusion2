@@ -18,24 +18,37 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef CREATESPHEROIDDIALOG_H
 #define CREATESPHEROIDDIALOG_H
 
-#include "resource.h"
+//#include "resource.h"
 #include "BrushTemplate.h"
+#include "GEditProDoc.h"
 
 class CCreateSpheroidDialog : public CDialog
 {
 // Construction
 public:
-	virtual int DoModal(geBoolean ConvertToMetric, BrushTemplate_Spheroid *pTemplate);
+////	virtual int DoModal(geBoolean ConvertToMetric, BrushTemplate_Spheroid *pTemplate);
+	void ShowDialog(geBoolean ConvertToMetric, BrushTemplate_Spheroid *pSphereTemplate, CGEditProDoc *pDoc);
+
 	CCreateSpheroidDialog(CWnd* pParent = NULL);   // standard constructor
 	~CCreateSpheroidDialog();
+
+	
+	bool UpdateCreateSpheroidDlg(CGEditProDoc *pDoc);
+
+	bool m_customTemplate;
+
+	const	Brush	*pSphere;
+	Brush *m_recentSphere;
 
 // Dialog Data
 	//{{AFX_DATA(CCreateSpheroidDialog)
 	enum { IDD = IDD_CREATE_SPHEROID };
+	CButton	m_addSphere;
 	CStatic	m_Picture;
 	int		m_HorizontalBands;
 	int		m_VerticalBands;
@@ -43,6 +56,10 @@ public:
 	int		m_Solid;
 	float	m_Thickness;
 	BOOL	m_TCut;
+	BOOL	m_customizeSphere;
+	CString	m_minMaxErrorString;
+	CString m_wallThicknessErrorString;
+
 	//}}AFX_DATA
 
 
@@ -53,6 +70,7 @@ public:
 	virtual void Serialize(CArchive& ar);
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual void OnCancel();
 	//}}AFX_VIRTUAL
 
 // Implementation
@@ -60,7 +78,9 @@ private:
 	void		dlgFieldsToCentimeters(void);
 	void		dlgFieldsToTexels(void);
 	geBoolean	m_ConvertToMetric;
-	BrushTemplate_Spheroid *m_pTemplate;
+	BrushTemplate_Spheroid *m_pSphereTemplate;
+
+	CGEditProDoc	*m_pDoc;
 protected:
 
 	// Generated message map functions
@@ -70,6 +90,13 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnDefaults();
 	virtual void OnOK();
+	afx_msg void OnAddSphereBtn();
+	afx_msg void OnCustomizeSphereBtn();
+	afx_msg void OnKillfocusYsize();
+	afx_msg void OnKillfocusVertstripes();
+	afx_msg void OnKillfocusHorstripes();
+	afx_msg void OnKillfocusThickness();
+	afx_msg void OnTcut();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 	CBitmap mSolidSphere, mHollowSphere;

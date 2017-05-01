@@ -18,13 +18,18 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
+#include "Globals.h"
+ 
 #include "about.h"
+#include "include/Ram.h"
 
 CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 {
 	//{{AFX_DATA_INIT(CAboutDlg)
+	m_about_text = _T("");
 	//}}AFX_DATA_INIT
 }
 
@@ -32,12 +37,34 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CAboutDlg)
+	DDX_Text(pDX, IDC_EDIT1, m_about_text);
 	//}}AFX_DATA_MAP
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
 	//{{AFX_MSG_MAP(CAboutDlg)
-		// No message handlers
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
+
+
+BOOL CAboutDlg::OnInitDialog() 
+{
+	CDialog::OnInitDialog();
+	
+	char * AboutText;
+
+	AboutText = CGlobals::LoadText( IDR_TEXT1 );
+	if( AboutText != NULL )
+	{
+		UpdateData( true );
+		m_about_text = AboutText;
+		geRam_Free( AboutText );
+		//m_BuildInfoText = _T(BUILD_TYPE "   " BUILD_NUMBER);
+		UpdateData( false );
+	}
+
+	
+	return TRUE;  // return TRUE unless you set the focus to a control
+	              // EXCEPTION: OCX Property Pages should return FALSE
+}

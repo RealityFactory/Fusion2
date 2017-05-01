@@ -18,6 +18,7 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef ENTITY_H_
 #define ENTITY_H_
@@ -43,19 +44,22 @@ class CEntity;
 // make an entity array
 typedef CArray<CEntity, CEntity&> CEntityArray;
 
+
 typedef geBoolean (*EntityList_CB)( CEntity& Entity, void *lParam) ;
 	
 class CEntity
 {
 // Construction
 public:
+	CEntityArray	*CloneEntityArray(CEntityArray *pEntity);
 	void UpdateOriginFirst(const EntityTable *pEntityDefs);
 	float RayDistance (CPoint point, ViewVars *v);
 	float DistanceFrom (geVec3d const *pPoint);
 	void Export (FILE *OutFile);
 	void Move (geVec3d const *v);
 	void DoneMove (double GridSize, const EntityTable *pEntityDefs);
-	void Rotate (geXForm3d const *pXfmRotate, geVec3d const *pCenter, const EntityTable *pEntityDefs);
+	void Rotate(geXForm3d const *pXfmRotate, geVec3d const *pCenter);
+	void DoneRotate (geXForm3d const *pXfmRotate, geVec3d const *pCenter, const EntityTable *pEntityDefs);
 	void Scale (geFloat ScaleFactor, const EntityTable *pEntityDefs);
 
 	void SetKeyValue (const char *Key, const char *Value);
@@ -65,11 +69,14 @@ public:
 	BOOL GetKeyValuePair (int Index, CString &Key, CString &Value) const;
 
 	void UpdateOrigin(const EntityTable *pEntityDefs);
-    CEntity &operator=( CEntity &Entity );  // Right side is the argument.
+   CEntity &operator=( CEntity &Entity );  // Right side is the argument.
 	CString GetName (void) const;
 	CString GetClassname (void) const;
 	CEntity();
-	~CEntity ();
+#if _MFC_VER<=0x0600 // only MFC60 and below
+   CEntity(CEntity& Entity);
+#endif
+   ~CEntity ();
 	geBoolean IsCamera( void ) const;
 
 	BOOL SetOrigin (geFloat x, geFloat y, geFloat z, const EntityTable *pEntityDefs);

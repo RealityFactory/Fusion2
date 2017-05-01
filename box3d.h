@@ -18,12 +18,13 @@
 /*  Genesis3D Version 1.1 released November 15, 1999                                 */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #ifndef BOX3D_H
 #define BOX3D_H
 
-#include "basetype.h"
-#include "vec3d.h"
+#include "include/basetype.h"
+#include "include/vec3d.h"
 
 #ifdef __cplusplus
 	extern "C" {

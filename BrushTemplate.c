@@ -18,11 +18,12 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "BrushTemplate.h"
 #include "units.h"
 #include "facelist.h"
-#include "ram.h"
+#include "include/ram.h"
 
 Brush *BrushTemplate_CreateArch (const BrushTemplate_Arch *pTemplate)
 {
@@ -289,9 +290,9 @@ Brush *BrushTemplate_CreateBox (const BrushTemplate_Box *pTemplate)
 	//revisit for error handling when merged
 	geVec3d		Verts[8];
 	geVec3d		FaceVerts[4];
-	FaceList	*fl;
-	Face		*f;
-	Brush		*b;
+	FaceList	*fl = NULL;
+	Face		*f = NULL;
+	Brush		*b = NULL;
 
 	fl	=FaceList_Create(6);
 
@@ -993,7 +994,7 @@ void BrushTemplate_ArchDefaults (BrushTemplate_Arch *pArchTemplate)
 	pArchTemplate->Width		= 100;
 	pArchTemplate->Radius		= 200;
 	pArchTemplate->WallSize		= 16;
-	pArchTemplate->Style		= 0;
+	pArchTemplate->Style		= 1;		//	0=solid  1=hollow
 	pArchTemplate->EndAngle		= 180.0f;
 	pArchTemplate->StartAngle	= 0.0f;
 	pArchTemplate->TCut			= GE_FALSE;
@@ -1047,15 +1048,15 @@ geBoolean BrushTemplate_LoadArch
 
 void BrushTemplate_BoxDefaults (BrushTemplate_Box *pBoxTemplate)
 {
-	pBoxTemplate->Solid		= 1;		// hollow
+	pBoxTemplate->Solid		= 1;		//	0=solid  1=hollow
 	pBoxTemplate->TCut		= GE_FALSE;
 	// emperically derived default sizes
 	pBoxTemplate->Thickness = 16.0f;
-	pBoxTemplate->XSizeBot	= 680.0f;
-	pBoxTemplate->XSizeTop	= 680.0f;
-	pBoxTemplate->YSize		= 360.0f;
-	pBoxTemplate->ZSizeBot	= 560.0f;
-	pBoxTemplate->ZSizeTop	= 560.0f;
+	pBoxTemplate->XSizeBot	= 512.0f;
+	pBoxTemplate->XSizeTop	= 512.0f;
+	pBoxTemplate->YSize		= 512.0f;
+	pBoxTemplate->ZSizeBot	= 512.0f;
+	pBoxTemplate->ZSizeTop	= 512.0f;
 }
 
 geBoolean BrushTemplate_WriteBox (const BrushTemplate_Box *pBoxTemplate, FILE *f)
@@ -1112,10 +1113,10 @@ geBoolean BrushTemplate_LoadBox
 
 void BrushTemplate_ConeDefaults (BrushTemplate_Cone *pConeTemplate)
 {
-	pConeTemplate->Style	= 0;
+	pConeTemplate->Style	= 1;		//	0=solid  1=hollow
 	pConeTemplate->Width	= 200;
 	pConeTemplate->Height	= 300;
-	pConeTemplate->VerticalStrips = 4;
+	pConeTemplate->VerticalStrips = 8;
 	pConeTemplate->Thickness = 16;
 	pConeTemplate->TCut		= GE_FALSE;
 }
@@ -1165,15 +1166,15 @@ void BrushTemplate_CylinderDefaults (BrushTemplate_Cylinder *pCylinderTemplate)
 	pCylinderTemplate->BotXSize		= 128.0;
 	pCylinderTemplate->BotZOffset	= 0.0;
 	pCylinderTemplate->BotZSize		= 128.0;
-	pCylinderTemplate->Solid		= 0;
+	pCylinderTemplate->Solid		= 1;		//	0=solid  1=hollow
 	pCylinderTemplate->Thickness	= 16.0;
 	pCylinderTemplate->TopXOffset	= 0.0;
 	pCylinderTemplate->TopXSize		= 128.0;
 	pCylinderTemplate->TopZOffset	= 0.0;
 	pCylinderTemplate->TopZSize		= 128.0;
-	pCylinderTemplate->VerticalStripes = 6;
+	pCylinderTemplate->VerticalStripes = 8;
 	pCylinderTemplate->YSize		= 512.0;
-	pCylinderTemplate->RingLength	= 0.0;
+	pCylinderTemplate->RingLength	= 3.0;
 	pCylinderTemplate->TCut			= GE_FALSE;
 }
 
@@ -1241,7 +1242,7 @@ void BrushTemplate_SpheroidDefaults (BrushTemplate_Spheroid *pSpheroidTemplate)
 	pSpheroidTemplate->HorizontalBands	= 4;
 	pSpheroidTemplate->VerticalBands	= 8;
 	pSpheroidTemplate->YSize			= 256.0;
-	pSpheroidTemplate->Solid			= 0;
+	pSpheroidTemplate->Solid			= 1;		//	0=solid  1=hollow
 	pSpheroidTemplate->Thickness		= 16;
 	pSpheroidTemplate->TCut				= GE_FALSE;
 }

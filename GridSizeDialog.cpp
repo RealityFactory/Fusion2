@@ -21,6 +21,7 @@
 /****************************************************************************************/
 #include "stdafx.h"
 #include <afxcmn.h>
+#include "Globals.h"
 #include "GridSizeDialog.h"
 
 #ifdef _DEBUG
@@ -63,7 +64,7 @@ BEGIN_MESSAGE_MAP(CGridSizeDialog, CDialog)
 	ON_BN_CLICKED(IDC_SNAP30, OnSnap30)
 	ON_BN_CLICKED(IDC_SNAP45, OnSnap45)
 	ON_BN_CLICKED(IDC_SNAP60, OnSnap60)
-	ON_BN_CLICKED(IDC_USEROTSNAP, OnUsertosnap)
+//	ON_BN_CLICKED(IDC_USEROTSNAP, OnUsertosnap)
 	ON_BN_CLICKED(IDC_SNAP90, OnSnap90)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()

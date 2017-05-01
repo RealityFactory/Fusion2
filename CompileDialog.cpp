@@ -18,8 +18,10 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
+#include "Globals.h"
 #include "CompileDialog.h"
 
 #ifdef _DEBUG
@@ -38,6 +40,7 @@ CCompileDialog::CCompileDialog(CWnd* pParent, CompileParamsType *pParms)
 {
 	//{{AFX_DATA_INIT(CCompileDialog)
 	m_RunAvenger = pParms->RunPreview;
+//	m_RunAvenger = FALSE;
 	m_FileName = _T(pParms->Filename);
 	Rad = pParms->Light.Radiosity;
 	BounceLimit = pParms->Light.NumBounce;
@@ -54,6 +57,7 @@ CCompileDialog::CCompileDialog(CWnd* pParent, CompileParamsType *pParms)
 	m_VisVerbose = pParms->Vis.Verbose;
 	m_GbspVerbose = pParms->Bsp.Verbose;
 	m_EntityVerbose = pParms->Bsp.EntityVerbose;
+	m_currentSavePath = _T("");
 	//}}AFX_DATA_INIT
 	MinLight.Format ("%.2f %.2f %.2f", 
 		pParms->Light.MinLight.X, 
@@ -90,6 +94,7 @@ void CCompileDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Check(pDX, IDC_VISVERBOSE, m_VisVerbose);
 	DDX_Check(pDX, IDC_BSPVERBOSE, m_GbspVerbose);
 	DDX_Check(pDX, IDC_ENTITYVERBOSE, m_EntityVerbose);
+	DDX_Text(pDX, IDC_CURRENT_SAVE_PATH, m_currentSavePath);
 	//}}AFX_DATA_MAP
 }
 
@@ -118,22 +123,41 @@ void CCompileDialog::OnBrowse()
 	// make the dialog
 	CFileDialog dlg(TRUE, "MAP", Filename);
 
+
+				//	set the title for the fileOpen dialogbox
+	static char szTitle[] = _T("GEditPro File Opener");
+	dlg.m_ofn.lpstrTitle = szTitle;
+
 	// show it to the user.
 	if( dlg.DoModal() == IDOK )
 	{
 		UpdateData( TRUE );
 		Filename = dlg.GetPathName();
-		if( Finder.FindFile( Filename ) )
+//		if( Finder.FindFile( Filename ) )
 		{
 			m_FileName = Filename;
 		}
+
+		m_currentSavePath = Filename;
+		m_currentSavePath.Replace(dlg.GetFileName(), _T(""));
+		m_currentSavePath.TrimRight();
+		SetCurrentDirectory(CGlobals::m_GlobalAppPath);
+
 		UpdateData( FALSE );
+
+		RedrawWindow();
 	}
 }
 
 void CCompileDialog::OnOK() 
 {
 	CDialog::OnOK();
+
+
+	LPCTSTR mapCAPS = ".MAP";
+	LPCTSTR mapsmall = ".map";
+	LPCTSTR bspExtension = ".bsp";
+	CString	tempString;
 	
 	pParms->EntitiesOnly = (m_EntitiesOnly.GetCheck () == 1);
 	pParms->VisDetailBrushes = m_VisDetail;
@@ -145,6 +169,27 @@ void CCompileDialog::OnOK()
 	pParms->SuppressHidden = m_SuppressHidden;
 
 	strcpy (pParms->Filename, m_FileName);
+
+
+
+// new g3dc
+	//	to setup QuickViewer
+	//	replace the .map extension with .bsp
+	tempString = m_FileName;
+	if (tempString.Find(mapCAPS) != -1)
+	{
+		tempString.Replace(mapCAPS, bspExtension);
+	}
+	else if (tempString.Find(mapsmall) != -1)
+	{
+		tempString.Replace(mapsmall, bspExtension);
+	}
+	m_currentBSPfileName = tempString;
+	CGlobals::m_recentCompiledLevel = m_currentBSPfileName;
+
+
+
+
 
 	pParms->Light.Radiosity = Rad;
 	pParms->Light.FastPatch = FastPatch;
@@ -231,6 +276,8 @@ void CCompileDialog::EnableControls (void)
 BOOL CCompileDialog::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
+
+
 	
 	m_EntitiesOnly.SetCheck (pParms->EntitiesOnly);
 	m_RunGbsp.SetCheck (pParms->RunBsp);
@@ -238,6 +285,43 @@ BOOL CCompileDialog::OnInitDialog()
 	m_Vis.SetCheck (pParms->DoVis);
 
 	EnableControls ();
+
+		//	test for path chars in the filename.
+		//	if path info already present, then skip this part
+		//	otherwise, add path info to filename
+	GetCurrentDirectory(CGlobals::m_dwNameSize, CGlobals::m_currentPath);
+	m_currentSavePath = CGlobals::m_currentPath;
+	
+	if (m_FileName.Find(":") == -1)
+	{
+	CString	tempString;
+	tempString = m_currentSavePath;
+	tempString += _T("\\");
+	tempString += m_FileName;
+	m_FileName = tempString;
+	}
+	if (m_FileName.Find(":") != -1)		//	there's path info
+	{
+		if (m_FileName.Compare(m_currentSavePath) != 0) // they're differnt
+		{
+			int index;					//	get path info from m_FileName 
+			int length;					//	must remove the trailing file name
+			int section;				//	and .map extension, leaving just
+			LPCTSTR backslash = "\\";	//	the path info. Then set curr dir
+			CString tempString;			//	to this dir so our save will go
+			tempString = m_FileName;	//	smoothly.
+			index = tempString.ReverseFind('\\');
+			length = tempString.GetLength();
+			section = length - index;
+			tempString.Delete(index, section);
+
+			m_currentSavePath = tempString;
+			SetCurrentDirectory(m_currentSavePath);
+
+		}
+	}
+
+	UpdateData(FALSE);
 	
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE

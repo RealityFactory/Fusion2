@@ -18,6 +18,7 @@
 /*Genesis3D Version 1.1 released November 15, 1999                            */
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stdafx.h"
 #include "Entity.h"
@@ -26,6 +27,7 @@
 #include <assert.h>
 #include "units.h"
 #include "util.h"
+#include "Globals.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -47,7 +49,27 @@ void CEntity::Move(geVec3d const *v)
 	geVec3d_Add (&mOrigin, v, &mOrigin);
 }
 
-void CEntity::Rotate
+
+void CEntity::Rotate(geXForm3d const *pXfmRotate, geVec3d const *pCenter)
+{
+	geVec3d NewPos;
+	geBoolean bRotate, bCenter;
+
+	bRotate = geXForm3d_IsOrthogonal(pXfmRotate);
+	bCenter = geVec3d_IsValid(pCenter);
+	if (bRotate && bCenter)
+	{
+		geVec3d_Subtract (&mOrigin, pCenter, &NewPos);
+		geXForm3d_Rotate (pXfmRotate, &NewPos, &NewPos);
+//		geVec3d_Add (&NewPos, pCenter, &NewPos);
+		geVec3d_Add (&NewPos, pCenter, &mOrigin);
+
+	}
+}
+
+
+
+void CEntity::DoneRotate
 	(
 	  geXForm3d const *pXfmRotate, 
 	  geVec3d const *pCenter,
@@ -102,6 +124,26 @@ CEntity::CEntity()
 	// start off with no group
 	mGroup = 0;
 }
+
+#if _MFC_VER<=0x0600 // only MFC60 and below
+CEntity::CEntity(CEntity& Entity)
+{
+	EntityStyle = Entity.EntityStyle;
+	mFlags = Entity.mFlags;
+	mGroup = Entity.mGroup;
+	mOrigin = Entity.mOrigin;
+
+	// copy the key/value entries
+	CString Key, Value;
+	for( int Current = 0; Current < Entity.GetNumKeyValuePairs (); Current++ )
+	{
+		if (Entity.GetKeyValuePair (Current, Key, Value))
+		{
+			SetKeyValue (Key, Value);
+		}
+	}
+}
+#endif
 
 CEntity::~CEntity ()
 {
@@ -177,6 +219,58 @@ CEntity& CEntity::operator=( CEntity& Entity )
 
 	return *this;
 }
+
+
+
+
+CEntityArray	*CEntity::CloneEntityArray(CEntityArray *pEntityArray)
+{
+	CGEditProDoc *pDoc = NULL;
+	pDoc = CGlobals::GetActiveDocument();
+	CEntityArray	*pTempEntityArray = NULL;
+	pTempEntityArray = new CEntityArray;
+	pTempEntityArray->SetSize(0, 20);
+	pTempEntityArray->RemoveAll();
+
+	// copy the key/value entries
+#if _MFC_VER>0x0600 // only MFC70
+	int iArrayCount = pEntityArray->GetCount();
+#else
+	int iArrayCount = pEntityArray->GetSize();
+#endif
+	for (int iArray = 0; iArray < iArrayCount; iArray++)
+	{
+		BOOL	bIsSelected = pEntityArray->GetAt(iArray).IsSelected();
+
+		CString Key, Value;
+
+		int iNumKeyValuePairs = pEntityArray->GetAt(iArray).GetNumKeyValuePairs (); 
+		if (iNumKeyValuePairs > 0)
+		{
+			pTempEntityArray->Add(pEntityArray->GetAt(iArray));
+
+#if _MFC_VER>0x0600 // only MFC70
+			pTempEntityArray->GetAt(iArray).EntityStyle = pEntityArray->GetAt(iArray).EntityStyle;
+			pTempEntityArray->GetAt(iArray).mFlags = pEntityArray->GetAt(iArray).mFlags;
+			pTempEntityArray->GetAt(iArray).mGroup = pEntityArray->GetAt(iArray).mGroup;
+#else
+         pTempEntityArray->GetAt(iArray) = pEntityArray->GetAt(iArray);
+#endif
+			pTempEntityArray->GetAt(iArray).mOrigin = pEntityArray->GetAt(iArray).mOrigin;
+
+			pTempEntityArray->GetAt(iArray).mKeyArray.Copy(pEntityArray->GetAt(iArray).mKeyArray);
+			pTempEntityArray->GetAt(iArray).mValueArray.Copy(pEntityArray->GetAt(iArray).mValueArray);
+		}
+
+//		if (bIsSelected)
+//				pEntityArray->GetAt(iArray).DeSelect();
+	}	
+
+	return pTempEntityArray;
+}
+
+
+
 
 // Key/value string manipulation
 

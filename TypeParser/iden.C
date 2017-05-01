@@ -27,7 +27,7 @@
 
 #include	"hash.h"
 #include	"iden.h"
-#include	"ram.h"
+#include	"../include/ram.h"
 
 #define	HASHBUCKETS	200
 
