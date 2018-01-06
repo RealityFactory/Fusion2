@@ -414,12 +414,20 @@ void CTextureDialog::UpdateBitmap()
 	bmih.biClrUsed = 0;
 	bmih.biClrImportant = 0;
  
+	int width = BitmapPtr->Width;
+	int height = BitmapPtr->Height;
+
+	if(width>128)
+		width = 128;
+	if(height>128)
+		height = 128;
+
 	if( StretchDIBits(
 		(HDC)*pDC,
 		0,
 		0,
-		BitmapPtr->Width,
-		BitmapPtr->Height,
+		width,
+		height,
 	   	0,
 		0,
 		BitmapPtr->Width,

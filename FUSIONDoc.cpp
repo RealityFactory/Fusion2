@@ -5651,7 +5651,7 @@ geBoolean CFusionDoc::WriteLevelToMap
 	)
 {
 	static const int Version = 1;
-	static const int ftag = 0x4642434E;
+	static const int ftag = 0x4642434E; // NCBF
 	int NumEntities;
 	FILE *exfile;
 	ModelInfo_Type *ModelInfo;

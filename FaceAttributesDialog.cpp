@@ -31,8 +31,12 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+/* 10/31/2002 Wendell Buckner
+    Raise texture limits to 16384 x 16384.
 #define MIN_TEX_OFF	-256
-#define MAX_TEX_OFF	256
+#define MAX_TEX_OFF	256 */
+#define MIN_TEX_OFF	-16384
+#define MAX_TEX_OFF	 16384
 #define MIN_TEX_SCL	-20
 #define MAX_TEX_SCL	20
 #define MIN_TEX_ANG	-359

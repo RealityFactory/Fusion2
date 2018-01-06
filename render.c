@@ -496,6 +496,11 @@ static void	DrawScanLine16(SizeInfo *pSizeInfo,
 				  EdgeAsm *pLeft,
 				  EdgeAsm *pRight);
 
+static void DrawScanLineX_ZFill(SizeInfo *pSizeInfo,
+				  Gradients const *pGradients,
+				  EdgeAsm *pLeft,
+				  EdgeAsm *pRight, unsigned int X);
+
 static void	DrawScanLine128_ZFill(SizeInfo *pSizeInfo,
 				  Gradients const *pGradients,
 				  EdgeAsm *pLeft,
@@ -2477,11 +2482,16 @@ static void AddNodeEdges(Face *NodeFace,	//node face
 		aVOverZ =v *zinv;
 
 		//step 256 pixels in screen x to get u v z deltas
-		dzinv=(zinv+spsf->Grads.dOneOverZdX*(256.0f));
+
+
+/* 10/31/2002 Wendell Buckner
+    should this be whatever max texture resolution I'm using?
+		dzinv=(zinv+spsf->Grads.dOneOverZdX*(256.0f));        */
+		dzinv=(zinv+spsf->Grads.dOneOverZdX*(16384.0f));
 
 		//step point zero 256 in screen x and unproject back to view
 //		tview.X	=(sfnc->Points[0].X +256.0f -Cam->XCenter)/(Cam->MaxScale*dzinv);
-		tview.X	=(sfnc->Points[0].X +256.0f -Cam->XCenter)/(Cam->MaxScale*-dzinv);
+		tview.X	=(sfnc->Points[0].X +16384.0f -Cam->XCenter)/(Cam->MaxScale*-dzinv);
 		tview.Y	=(sfnc->Points[0].Y -Cam->YCenter)/(Cam->MaxScale*-dzinv);
 		tview.Z	=1.0f / dzinv;
 
@@ -2492,16 +2502,31 @@ static void AddNodeEdges(Face *NodeFace,	//node face
 		//grab x deltas from the new point for u and v
 		u	=geVec3d_DotProduct(&tworld, &TVecs->uVec) + TVecs->uOffset;
 		v	=geVec3d_DotProduct(&tworld, &TVecs->vVec) + TVecs->vOffset;
+
+
+/* 10/31/2002 Wendell Buckner
+    should this be whatever max texture resolution I'm using?
 		spsf->Grads.dUOverZdX=(dzinv*u -aUOverZ)/256.0f;
-		spsf->Grads.dVOverZdX=(dzinv*v -aVOverZ)/256.0f;
+		spsf->Grads.dVOverZdX=(dzinv*v -aVOverZ)/256.0f;      */
+		spsf->Grads.dUOverZdX=(dzinv*u -aUOverZ)/16384.0f;
+		spsf->Grads.dVOverZdX=(dzinv*v -aVOverZ)/16384.0f;
 
 		//step 256 pixels in screen y to get u v z deltas
-		dzinv=(zinv+spsf->zinvstepy*(256.0f));
+
+/* 10/31/2002 Wendell Buckner
+    should this be whatever max texture resolution I'm using?
+		dzinv=(zinv+spsf->zinvstepy*(256.0f));                */
+        dzinv=(zinv+spsf->zinvstepy*(16384.0f));
 
 		//step point zero 256 in screen y and unproject back to view
 //		tview.X	=(sfnc->Points[0].X -Cam->XCenter)/(Cam->MaxScale*dzinv);
 		tview.X	=(sfnc->Points[0].X -Cam->XCenter)/(Cam->MaxScale*-dzinv);
-		tview.Y	=(sfnc->Points[0].Y +256.0f -Cam->YCenter)/(Cam->MaxScale*-dzinv);
+
+/* 10/31/2002 Wendell Buckner
+    should this be whatever max texture resolution I'm using?
+		tview.Y	=(sfnc->Points[0].Y +256.0f -Cam->YCenter)/(Cam->MaxScale*-dzinv); */
+		tview.Y	=(sfnc->Points[0].Y +16384.0f -Cam->YCenter)/(Cam->MaxScale*-dzinv);
+
 		tview.Z	=1.0f / dzinv;
 
 		//rotate the point back to worldspace
@@ -2511,8 +2536,13 @@ static void AddNodeEdges(Face *NodeFace,	//node face
 		//grab y deltas from the new point for u and v
 		u	=geVec3d_DotProduct(&tworld, &TVecs->uVec) + TVecs->uOffset;
 		v	=geVec3d_DotProduct(&tworld, &TVecs->vVec) + TVecs->vOffset;
+
+/* 10/31/2002 Wendell Buckner
+    should this be whatever max texture resolution I'm using?
 		spsf->zinvustepy=(dzinv*u -aUOverZ)/256.0f;
-		spsf->zinvvstepy=(dzinv*v -aVOverZ)/256.0f;
+		spsf->zinvvstepy=(dzinv*v -aVOverZ)/256.0f; */
+		spsf->zinvustepy=(dzinv*u -aUOverZ)/16384.0f;
+		spsf->zinvvstepy=(dzinv*v -aVOverZ)/16384.0f;
 
 		//calculate u/z and v/z at screen 0,0
 		spsf->zinvu00=aUOverZ -
@@ -2554,6 +2584,7 @@ static void AddNodeEdges(Face *NodeFace,	//node face
     if(pAvailSurf < &surfz[MAX_SURFS])
 		pAvailSurf++;
 }
+
 
 //this turns the edge list into spans sorted by texture
 //the inner calculations of left and right u and v over z
@@ -2838,8 +2869,19 @@ static void DrawSpans(ViewVars *v, HDC ViewDC)
 			}
 			else if(sstemp->cur->RFlag & ZFILL)
 			{
+
+/* 10/31/2002 Wendell Buckner
+    Raise texture limits to 16384 x 16384. */
 				switch(w)
 				{
+                case 16384:
+				case  8192:
+                case  4096:
+				case  2048:
+				case  1024:
+                case   512:
+					DrawScanLineX_ZFill(&sstemp->sizes, &sstemp->Grads, &left, &right,w);
+					break;
 				case 256:
 					DrawScanLine256_ZFill(&sstemp->sizes, &sstemp->Grads, &left, &right);
 					break;
@@ -2891,7 +2933,1314 @@ static void DrawSpans(ViewVars *v, HDC ViewDC)
 	}
 	RestoreFPU();
 }
+
 #pragma warning (default:4100)
+
+/* 11/25/2002 Wendell Buckner
+    Created generic routine called DrawScanLineX_ZFill that draws scan lines for textures greater than 256x256. It differs from
+	The other routines used for drawing scan lines in that you pass the scan line length in the last parameter called X. Most of
+	this routine's changes revolve around the register esi which gets shifted left beyound the registers size so the overflow bits
+	are nowed pushed into eesi 32 variable to form a 64-bit psuedo register -> eesi:esi */
+int ShiftRightCount;
+int ShiftLeftCount;
+unsigned long MaskW;
+unsigned long MaskX;
+unsigned long MaskY;
+unsigned __int64 MaskZ;
+unsigned long MaskQ;
+unsigned long eesi;
+
+static void DrawScanLineX_ZFill(SizeInfo *pSizeInfo,
+				  Gradients const *pGradients,
+				  EdgeAsm *pLeft,
+				  EdgeAsm *pRight, unsigned int X)
+{
+
+/* 11/25/2002 Wendell Buckner
+    Create masks for this routine */
+	unsigned short ShiftTest = X;
+
+	ShiftRightCount = 0;
+	ShiftLeftCount = 0;
+	MaskW = X - 1;
+
+/* 11/25/2002 Wendell Buckner
+ This is normally set to to 0xff because the highest item we could see was 256 this needs to increase because we are seeking higher resolutions... */
+	MaskX = MaskW;
+
+	MaskY = (MaskW << 16) + 0xffff;
+	MaskZ =  0;
+//	MaskQ =  MaskW << 8;
+
+
+/* 11/25/2002 Wendell Buckner
+    Found out how much to shif left or right. */
+	while(ShiftTest)
+	{
+		ShiftTest <<= 1;
+		ShiftRightCount++;
+	}
+
+	ShiftTest = X;
+	while ( ShiftTest > 1 )
+	{
+		ShiftTest >>= 1;
+		ShiftLeftCount++;
+	}
+
+	MaskX <<= ShiftLeftCount;
+	MaskZ = MaskX;
+	MaskZ <<= 16;
+
+
+	eesi = 0;
+
+	_asm
+	{
+		mov		eax, pSizeInfo
+		mov		esi, [eax]SizeInfo.ScreenData
+		mov		ebx, pLeft
+		mov		eax, [ebx]EdgeAsm.X
+		mov		ecx, pRight
+		mov		ecx, [ecx]EdgeAsm.X
+		sub		ecx, eax
+		jle		Return256_ZFill
+
+		mov		eax, pSizeInfo
+		mov		edi, [eax]SizeInfo.TexData		; current texture
+		shr		edi, 1
+		mov		pTex, edi
+		mov		edi, esi
+		mov		esi, [eax]SizeInfo.ScreenWidth
+		mov		edx, [ebx]EdgeAsm.Y
+		shl		esi, 1
+		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
+		imul	edx, esi
+		mov		ebx, [ebx]EdgeAsm.X
+		add		edi, edx
+		shl		ebx, 1
+		add		edx, ebx
+		add		edi, ebx						; add in x start offset
+		shl		edx, 1							; 32 bit zbuffer
+		add		edx, eax
+		mov		pZBuf, edx
+
+
+		mov		eax, ecx
+		shr		ecx, 4
+		and		eax, 15
+		_emit 75h								; short jump 6 bytes
+		_emit 06h								; jnz any leftover?
+		dec		ecx
+		mov		eax, 16
+
+		mov		ebx, pLeft
+												; start first fdiv cooking
+
+		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
+
+		mov		[NumASpans],ecx
+		mov		[RemainingCount],eax
+		mov		esi, pTex				; while fdiv is cooking
+		mov		eax, pSizeInfo
+		mov		edx, pGradients
+
+//		fld		[edx]Gradients.dOneOverZdX	; dZ   ZL   1/ZL U/ZL V/ZL
+//		fmul	[FixedScale16]				; dZ32 ZL   1/ZL U/ZL V/ZL
+//		fistp	[DeltaW]					; ZL   1/ZL U/ZL V/ZL
+
+		fld		st							; ZL   ZL   1/ZL U/ZL V/ZL
+		fmul	[FixedScale]				; ZL16 ZL   1/ZL U/ZL V/ZL
+		fistp	[WLeft]						; ZL   1/ZL U/ZL V/ZL
+
+		fld		st							; ZL   ZL   1/ZL U/ZL V/ZL
+		fmul	st,st(4)					; VL   ZL   1/ZL U/ZL V/ZL
+		fxch	st(1)						; ZL   VL   1/ZL U/ZL V/ZL
+		fmul	st,st(3)					; UL   VL   1/ZL U/ZL V/ZL
+
+		fstp	st(5)						; VL   1/ZL U/ZL V/ZL UL
+		fstp	st(5)						; 1/ZL U/ZL V/ZL UL   VL .
+
+		fadd	[edx]Gradients.dOneOverZdX16; 1/ZR U/ZL V/ZL UL   VL
+		fxch	st(1)						; U/ZL 1/ZR V/ZL UL   VL
+		fadd	[edx]Gradients.dUOverZdX16	; U/ZR 1/ZR V/ZL UL   VL
+		fxch	st(2)						; V/ZL 1/ZR U/ZR UL   VL
+		fadd	[edx]Gradients.dVOverZdX16	; V/ZR 1/ZR U/ZR UL   VL
+
+		fld1							; 1    V/ZR 1/ZR U/ZR UL   VL
+		fdiv	st,st(2)				; ZR   V/ZR 1/ZR U/ZR UL   VL
+		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
+
+		fmul	[FixedScale]			; ZR16 ZR   V/ZR 1/ZR U/ZR UL   VL
+		fistp	[WRight]				; ZR   V/ZR 1/ZR U/ZR UL   VL
+		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
+
+		fmul	st,st(2)				; VR   ZR   V/ZR 1/ZR U/ZR UL   VL
+		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
+		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
+
+		test	ecx,ecx
+		jnz		SpanLoop256_ZFill		; grab wleft for leftover loop
+
+
+//		fld		st(3)					; 1/ZL UR   VR   V/ZR 1/ZR U/ZR UL   VL
+//		fmul	[FixedScale16]			; W32  UR   VR   V/ZR 1/ZR U/ZR UL   VL
+//		fistp	[WLeft]					; UR   VR   V/ZR 1/ZR U/ZR UL   VL
+		jmp		HandleLeftoverPixels256_ZFill
+
+/* 11/25/2002 Wendell Buckner
+    Draw 16 pixels, evertime this label is branched to... */
+
+SpanLoop256_ZFill:
+
+		mov		eax,[WRight]
+		sub		eax,[WLeft]
+		sar		eax,4
+		mov		[DeltaW],eax
+
+		fld		st(5)					; UL   UR   VR   V/ZR 1/ZR U/ZR UL   VL
+		fmul	[FixedScale]			; UL16 UR   VR   V/ZR 1/ZR U/ZR UL   VL
+		fistp	[UFixed]				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
+		fld		st(6)					; VL   UR   VR   V/ZR 1/ZR U/ZR UL   VL
+		fmul	[FixedScale]			; VL16 UR   VR   V/ZR 1/ZR U/ZR UL   VL
+		fistp	[VFixed]				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
+
+		fsubr	st(5),st				; UR   VR   V/ZR 1/ZR U/ZR dU   VL
+		fxch	st(1)					; VR   UR   V/ZR 1/ZR U/ZR dU   VL
+		fsubr	st(6),st				; VR   UR   V/ZR 1/ZR U/ZR dU   dV
+		fxch	st(6)					; dV   UR   V/ZR 1/ZR U/ZR dU   VR
+
+		fmul	[FixedScale16]			; dV16  UR   V/ZR 1/ZR U/ZR dU   VR
+		fistp	[DeltaV]				; UR   V/ZR 1/ZR U/ZR dU   VR
+		fxch	st(4)					; dU   V/ZR 1/ZR U/ZR UR   VR
+		fmul	[FixedScale16]			; duint16  V/ZR 1/ZR U/ZR UR   VR
+		fistp	[DeltaU]				; V/ZR 1/ZR U/ZR UR   VR
+
+		mov		edx,pGradients
+		fadd	[edx]Gradients.dVOverZdX16	; V/ZR 1/ZL U/ZL UL   VL
+		fxch	st(1)						; 1/ZL V/ZR U/ZL UL   VL
+//		fld		st							; 1/ZL 1/ZL V/ZR U/ZL UL   VL
+//		fmul	[FixedScale16]				; W32  1/ZL V/ZR U/ZL UL   VL
+//		fistp	[WLeft]						; 1/ZL V/ZR U/ZL UL   VL
+		fadd	[edx]Gradients.dOneOverZdX16; 1/ZR V/ZR U/ZL UL   VL
+		fxch	st(2)						; U/ZL V/ZR 1/ZR UL   VL
+		fadd	[edx]Gradients.dUOverZdX16	; U/ZR V/ZR 1/ZR UL   VL
+		fxch	st(2)						; 1/ZR V/ZR U/ZR UL   VL
+		fxch	st(1)						; V/ZR 1/ZR U/ZR UL   VL
+
+		fld1								; 1    V/ZR 1/ZR U/ZR UL   VL
+		fdiv	st,st(2)					; ZR   V/ZR 1/ZR U/ZR UL   VL
+
+
+		mov		dl,[edi]	; preread the destination cache line
+							; this moved up from the main loop to get
+							; a non blocking fill on ppros and p2's
+							; make sure dl doesn't prs!!!!
+
+		mov		eax,[VFixed]
+		mov		ebx,[UFixed]
+
+/* 11/25/2002 Wendell Buckner
+    Use generic shift right count
+		shr		eax,8                          */
+		push	ecx
+		mov		ecx, [ShiftRightCount]
+		shr		eax, cl
+		pop		ecx
+
+		mov		esi,pTex
+
+		shr		ebx,16
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		eax,0000ff00h     */
+		and		eax, [MaskX]
+
+		mov		ecx,[DeltaU]
+		mov		edx,[VFixed]
+
+		add		esi,eax
+
+/* 11/25/2002 Wendell Buckner
+    Use generic masks
+		and		ebx,0ffh      */
+		and		ebx,[MaskW]
+
+		mov		eax,[DeltaV]
+
+/* 11/25/2002 Wendell Buckner
+    Add 64 psuedo register variable + register
+		add		esi,ebx                        */
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		ebx,[UFixed]
+		push	ebp
+
+		mov		ebp,[pZBuf]
+
+		mov		eax, [WLeft]
+		add		edx,[DeltaV]
+
+		mov		[ebp+0],eax
+
+		mov		ax,[2*esi]				;get texture pixel
+
+		mov		esi,edx
+		add		ebx,ecx
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi, 8                                                                 */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh  */
+		and		ebx, [MaskY]
+
+/* 11/25/2002 Wendell Buckner
+    Use generic masks w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+        add		esi,  ebx */
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[edi+0], ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi,  eax, 16
+		and		eesi, 0xffff
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax,[WLeft]
+
+		add		esi,pTex
+		mov		[ebp+4],eax
+
+		add		ebx,ecx
+
+		mov		[WLeft], eax
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh  */
+		and		ebx, [MaskY]
+
+		mov		[edi+2],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi, 8                                                                 */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                              */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+8],eax
+
+		add		esi,ebx
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi,  eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+		mov		[edi+4],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi, 8                                                                 */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+12],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+6],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                   */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+16],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax, eesi
+		mov		eesi, esi
+		shrd	esi, eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+8],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                  */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+20],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                      */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+10],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                  */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+24],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx, 0
+		add		esi, ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+12],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                  */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx, eesi
+		and		ecx, dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi, dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+28],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx, 0
+		add		esi, ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+14],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                  */
+		push	ecx
+		mov     ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                         */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+32],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx, 0
+		add		esi, ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+16],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                  */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                         */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+36],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx, 0
+		add		esi, ebx
+		adc		eesi,ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+18],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                  */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl     esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+40],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+20],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                  */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+
+		mov		[ebp+44],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                      */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+22],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                  */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                         */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+48],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+24],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                  */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+52],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                             */
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+26],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                   */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+56],eax
+
+/* 11/25/2002 Wendell Buckner
+    Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		add		esi,ebx                                                            */
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]				;get texture pixel
+		mov		esi,edx
+
+/* 11/25/2002 Wendell Buckner
+    And w/ generic masks
+		and		ebx,00ffffffh */
+		and		ebx, [MaskY]
+
+		mov		[edi+28],ax				;write pixel
+
+/* 11/25/2002 Wendell Buckner
+    Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
+		shl		esi,8                                                                  */
+		push	ecx
+		mov		ecx,  [ShiftLeftCount]
+		shld	eesi, esi, cl
+		shl		esi,  cl
+		pop		ecx
+
+		mov		eax, [DeltaW]
+
+		add		edx,[DeltaV]
+		add		eax, [WLeft]
+
+/* 11/25/2002 Wendell Buckner
+    And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		and		esi,0ff000000h                                                        */
+		push	ecx
+		mov		ecx,  eesi
+		and		ecx,  dword ptr MaskZ[4]
+		mov		eesi, ecx
+		and		esi,  dword ptr MaskZ[0]
+		pop		ecx
+
+		mov		[ebp+60],eax
+
+//		add		esi,ebx
+		push	ecx
+		mov		ecx,  0
+		add		esi,  ebx
+		adc		eesi, ecx
+		pop		ecx
+
+		mov		[WLeft], eax
+
+/* 11/25/2002 Wendell Buckner
+    Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
+		shr		esi,16                                                                     */
+		mov		eax,  eesi
+		mov		eesi, esi
+		shrd	esi,  eax, 16
+		xchg	eesi, eax
+		shrd	eesi, eax, 16
+		and		eesi, 0xffff
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]			;get texture pixel
+
+		mov		esi,edx
+
+		pop     ebp						; restore access to stack frame
+		mov		[edi+30],ax			;write pixel
+
+		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
+
+		mov		eax,[WRight]
+
+		fmul	[FixedScale]			; ZR16 ZR   V/ZR 1/ZR U/ZR UL   VL
+
+		mov		[WLeft],eax
+
+		fistp	[WRight]				; ZR   V/ZR 1/ZR U/ZR UL   VL
+
+		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
+		fmul	st,st(2)				; VR   ZR   V/ZR 1/ZR U/ZR UL   VL
+		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
+		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
+
+		mov		ecx,pZBuf
+		add		edi,32
+
+		add		ecx,64
+		mov		pZBuf,ecx
+		dec		[NumASpans]
+
+		jnz		SpanLoop256_ZFill
+
+HandleLeftoverPixels256_ZFill:
+
+		mov		esi,pTex
+
+		cmp		[RemainingCount],0
+		jz		FPUReturn256_ZFill
+
+		mov		ebx,pRight
+		mov		edx,pGradients
+
+		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
+		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
+		fistp	[UFixed]				; inv. inv. inv. inv. inv. UL   VL
+		fld		st(6)					; VL   inv. inv. inv. inv. inv. UL   VL
+		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
+		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
+
+		dec		[RemainingCount]
+		jz		OnePixelSpan256_ZFill
+
+		mov		eax,[WRight]
+		sub		eax,[WLeft]
+		sar		eax,3			//correct on average :)
+		mov		[DeltaW],eax
+
+		fstp	[geFloatTemp]				; inv. inv. inv. inv. UL   VL
+		fstp	[geFloatTemp]				; inv. inv. inv. UL   VL
+		fld		[ebx]EdgeAsm.VOverZ			; V/Zr inv. inv. inv. UL   VL
+		fsub	[edx]Gradients.dVOverZdX	; V/ZR inv. inv. inv. UL   VL
+		fld		[ebx]EdgeAsm.UOverZ			; U/Zr V/ZR inv. inv. inv. UL   VL
+		fsub	[edx]Gradients.dUOverZdX	; U/ZR V/ZR inv. inv. inv. UL   VL
+		fld		[ebx]EdgeAsm.OneOverZ		; 1/Zr U/ZR V/ZR inv. inv. inv. UL   VL
+		fsub	[edx]Gradients.dOneOverZdX	; 1/ZR U/ZR V/ZR inv. inv. inv. UL   VL
+		fdivr	[One]						; ZR   U/ZR V/ZR inv. inv. inv. UL   VL
+		fmul	st(1),st					; ZR   UR   V/ZR inv. inv. inv. UL   VL
+		fmulp	st(2),st					; UR   VR   inv. inv. inv. UL   VL
+
+		fsubr	st(5),st					; UR   VR   inv. inv. inv. dU   VL
+		fxch	st(1)						; VR   UR   inv. inv. inv. dU   VL
+		fsubr	st(6),st					; VR   UR   inv. inv. inv. dU   dV
+		fxch	st(6)						; dV   UR   inv. inv. inv. dU   VR
+		fidiv	[RemainingCount]			; dv   UR   inv. inv. inv. dU   VR
+		fmul	[FixedScale]				; dv16 UR   inv. inv. inv. dU   VR
+		fistp	[DeltaV]					; UR   inv. inv. inv. dU   VR
+		fxch	st(4)						; dU   inv. inv. inv. UR   VR
+		fidiv	[RemainingCount]			; du   inv. inv. inv. UR   VR
+		fmul	[FixedScale]				; duint16 inv. inv. inv. UR   VR
+		fistp	[DeltaU]					; inv. inv. inv. UR   VR
+
+		fld		st(1)						; inv. inv. inv. inv. UR   VR
+		fld		st(2)						; inv. inv. inv. inv. inv. UR   VR
+
+OnePixelSpan256_ZFill:
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
+
+/* 11/25/2002 Wendell Buckner
+    This section of the code draws the left and right edges of square or face */
+LeftoverLoop256_ZFill:
+		push	ebp
+		mov		eax,ecx
+
+		mov		ebp,[DeltaW]
+
+/* 11/25/2002 Wendell Buckner
+    Use generic shift right count
+		shr		eax,8              */
+		push	ecx
+		mov		ecx, [ShiftRightCount]
+		shr		eax, cl
+		pop		ecx
+
+		add		ebp,[WLeft]
+
+		mov		edx,ebx
+
+/* 11/25/2002 Wendell Buckner
+    Use generic masks
+		and		eax,0ff00h    */
+		and		eax, [MaskX]
+
+		shr		edx,16
+		mov		[WLeft],ebp
+
+
+/* 11/25/2002 Wendell Buckner
+    Use generic masks
+		and		edx,0ffh      */
+		and		edx, [MaskW]
+
+		add		eax,edx
+
+		add		eax,esi
+
+		mov		edx,pZBuf
+		mov		ax,[2*eax]
+
+		mov		[edx],ebp
+		mov		[edi],ax
+
+		pop		ebp
+		add		edx,4
+
+		add		edi,2
+		mov		pZBuf,edx
+
+		add		ebx,DeltaU
+		add		ecx,DeltaV
+
+		dec		[RemainingCount]
+		jge		LeftoverLoop256_ZFill
+
+FPUReturn256_ZFill:
+		ffree	st(0)
+		ffree	st(1)
+		ffree	st(2)
+		ffree	st(3)
+		ffree	st(4)
+		ffree	st(5)
+		ffree	st(6)
+
+Return256_ZFill:
+	}
+}
+
 
 void DrawScanLine256(SizeInfo *pSizeInfo,
 				  Gradients const *pGradients,

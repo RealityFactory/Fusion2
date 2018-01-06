@@ -70,7 +70,7 @@ CompilerErrorEnum Compiler_RunPreview
 	// file name is "C:\Editor\levels\MyLevel.bsp"
 	//
 	{
-		char PreviewDrive[_MAX_PATH];
+/*		char PreviewDrive[_MAX_PATH];
 		char PreviewDir[_MAX_PATH];
 		char Name[_MAX_PATH];
 		char Ext[_MAX_PATH];
@@ -78,8 +78,11 @@ CompilerErrorEnum Compiler_RunPreview
 		_splitpath (PreviewFilename, NULL, NULL, Name, Ext);
 		_splitpath (GPreviewPath, PreviewDrive, PreviewDir, NULL, NULL);
 
-		strcat (PreviewDir, "levels\\");
-		_makepath (DestBspName, PreviewDrive, PreviewDir, Name, Ext);
+		strcat (PreviewDir, "media\\levels\\");
+		_makepath (DestBspName, PreviewDrive, PreviewDir, Name, Ext); */
+
+		// make dest path same as source path
+		strcpy(DestBspName, PreviewFilename);
 	}
 
 
