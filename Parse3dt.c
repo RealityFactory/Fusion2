@@ -24,7 +24,7 @@
 #include <assert.h>
 #include "util.h"
 #include <stdlib.h>
-#include "include/ram.h"
+#include "ram.h"
 #include <stdarg.h>
 #include <memory.h>
 #include <string.h>

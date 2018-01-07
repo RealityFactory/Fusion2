@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "stdafx.h"
 #include "Globals.h"
@@ -507,11 +507,12 @@ void CCreateCylDialog::OnKillfocusTopxoff()
 {
 	float	lastValue = m_TopXOffset;
 
-	if (GetDlgItemInt(IDC_TOPXOFF) == NULL)
-	{
-		this->SetDlgItemInt(IDC_TOPXOFF, lastValue);
-		return;
-	}
+// changed QD 11/03
+//	if (GetDlgItemInt(IDC_TOPXOFF) == NULL)
+//	{
+//		this->SetDlgItemInt(IDC_TOPXOFF, lastValue);
+//		return;
+//	}
 
 	UpdateData(TRUE);
 
@@ -551,11 +552,12 @@ void CCreateCylDialog::OnKillfocusTopzoff()
 {
 	float	lastValue = m_TopZOffset;
 
-	if (GetDlgItemInt(IDC_TOPZOFF) == NULL)
-	{
-		this->SetDlgItemInt(IDC_TOPZOFF, lastValue);
-		return;
-	}
+// changed QD 11/03
+//	if (GetDlgItemInt(IDC_TOPZOFF) == NULL)
+//	{
+//		this->SetDlgItemInt(IDC_TOPZOFF, lastValue);
+//		return;
+//	}
 
 	UpdateData(TRUE);
 
@@ -595,11 +597,12 @@ void CCreateCylDialog::OnKillfocusBotxoff()
 {
 	float	lastValue = m_BotXOffset;
 
-	if (GetDlgItemInt(IDC_BOTXOFF) == NULL)
-	{
-		this->SetDlgItemInt(IDC_BOTXOFF, lastValue);
-		return;
-	}
+// changed QD 11/03
+//	if (GetDlgItemInt(IDC_BOTXOFF) == NULL)
+//	{
+//		this->SetDlgItemInt(IDC_BOTXOFF, lastValue);
+//		return;
+//	}
 
 	UpdateData(TRUE);
 
@@ -639,11 +642,12 @@ void CCreateCylDialog::OnKillfocusBotzoff()
 {
 	float	lastValue = m_BotZOffset;
 
-	if (GetDlgItemInt(IDC_BOTZOFF) == NULL)
-	{
-		this->SetDlgItemInt(IDC_BOTZOFF, lastValue);
-		return;
-	}
+// changed QD 11/03
+//	if (GetDlgItemInt(IDC_BOTZOFF) == NULL)
+//	{
+//		this->SetDlgItemInt(IDC_BOTZOFF, lastValue);
+//		return;
+//	}
 
 	UpdateData(TRUE);
 
@@ -690,14 +694,15 @@ void CCreateCylDialog::OnKillfocusVertstripes()
 	}
 
 	UpdateData(TRUE);
-
-	if ((m_VerticalStripes >= 5) && (m_VerticalStripes <= 64)) 
+// changed QD 11/03
+	if ((m_VerticalStripes >= 3) && (m_VerticalStripes <= 64))
 		OnOK();
 	else
 	{
 		m_VerticalStripes = lastValue;
 		UpdateData(FALSE);
-		AfxMessageBox("Value must be >= 5 and <= 64");
+// changed QD 11/03
+		AfxMessageBox("Value must be >= 3 and <= 64");
 	}		
 }
 

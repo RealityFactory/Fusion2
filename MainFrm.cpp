@@ -1,8 +1,8 @@
 /****************************************************************************************/
 /*  MainFrm.cpp                                                                         */
 /*                                                                                      */
-/*  Author:       Tom Morris									                        */
-/*	Description:  MFC frame stuff with a bit of other misc ui stuff                     */
+/*  Author:       Tom Morris                                                            */
+/*  Description:  MFC frame stuff with a bit of other misc ui stuff                     */
 /*                                                                                      */
 /*  The contents of this file are subject to the Genesis3D Public License               */
 /*  Version 1.01 (the "License"); you may not use this file except in                   */
@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*	Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 Eclipse, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 Eclipse, Inc. All Rights Reserved                                */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 
 #include "stdafx.h"
@@ -26,7 +26,7 @@
 #include "GEditProView.h"
 #include "units.h"
 #include <assert.h>
-#include "GEditPro.h"		
+#include "GEditPro.h"
 #include "ChildFrm.h"
 #include "TextureDlg.h"
 #include "EntityTable.h"
@@ -1491,6 +1491,9 @@ void CMainFrame::UpdateMainControls()
 		}
 		//	in any case, update
 		m_dPropEntitiesDialog->UpdateEntities(pDoc);
+// changed QD 11/03
+		return;
+// end change
 	}
 
 	//	if the current mode is the GENERALSELECT Mode and select mode is Brush

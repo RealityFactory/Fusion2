@@ -26,7 +26,7 @@
 #include "Globals.h"
 #include "KeyEditDlg.h"
 #include <assert.h>
-#include "include/ram.h"
+#include "ram.h"
 #include "util.h"
 
 #ifdef _DEBUG

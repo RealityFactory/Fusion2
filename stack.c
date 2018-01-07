@@ -21,7 +21,7 @@
 /*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
 /****************************************************************************************/
 #include "stack.h"
-#include "include/ram.h"
+#include "ram.h"
 #include <assert.h>
 
 struct tag_Stack

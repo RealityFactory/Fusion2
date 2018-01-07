@@ -1,5 +1,5 @@
 /****************************************************************************************/
-/*  GEditProDoc.cpp                                                                       */
+/*  GEditProDoc.cpp                                                                     */
 /*                                                                                      */
 /*  Author:       Jim Mischel, Ken Baird, Jeff Lomax, John Moore, Bruce Cooner          */
 /*  Description:  A very large file that does too much to describe                      */
@@ -15,11 +15,11 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
-//****************************************************************************************/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
+/****************************************************************************************/
 #include "stdafx.h"
 #include "Globals.h"
 #include "GEditProDoc.h"
@@ -43,7 +43,7 @@
 
 #include "GEditProView.h"
 #include "wadfile.h"
-#include "include/XForm3d.h"
+#include "XForm3d.h"
 #include "gbsplib.h"
 #include "render.h"
 #include "EntityTable.h"
@@ -56,6 +56,10 @@
 
 #include "tLevelMgr.h"
 
+// changed QD 12/03
+#include "Export3dsDialog.h"
+// end change
+
 #include <afxole.h>
 #pragma warning(disable : 4201 4214 4115)
 #include <mmsystem.h>
@@ -63,14 +67,14 @@
 #include <errno.h>
 #include <direct.h>
 #include <assert.h>
-#include "include/basetype.h"
-#include "include/Vec3d.h"
+#include "basetype.h"
+#include "Vec3d.h"
 #include "brush.h"
 #include "typeio.h"
 #include "units.h"
 #include "FilePath.h"
 #include <io.h>		// for _access
-#include "include/ram.h"
+#include "ram.h"
 #include "util.h"
 #include "BrushTemplate.h"
 
@@ -119,7 +123,7 @@ static void fdocDrawEntity
 	// This one is the width and height of the Entity
 	EntWidthHeight.x = max( OriginView.x, EntSizeView.x ) - min( OriginView.x, EntSizeView.x ) ;
 	EntWidthHeight.y = max( OriginView.y, EntSizeView.y ) - min( OriginView.y, EntSizeView.y ) ;
-	
+
 	// This can have negative numbers
 	EntSizeView.x -= OriginView.x;
 	EntSizeView.y -= OriginView.y;
@@ -130,7 +134,7 @@ static void fdocDrawEntity
 	{
 			//	post 0.57	for changing the scale of entities
 			//	as they are drawn in the ortho views
-		static float entityScaleFactor;	
+		static float entityScaleFactor;
 		CGEditProDoc *pDoc = CGlobals::GetActiveDocument();
 		if (pDoc)
 			entityScaleFactor = pDoc->GetEntityScaleInView();
@@ -219,7 +223,7 @@ static void fdocDrawEntity
 
 		ptDirSlope.x = LineEndView.x - EntPosView.x ;	// Slope of Direction line
 		ptDirSlope.y = LineEndView.y - EntPosView.y ;
-				
+
 		fDirLength = (float)sqrt( (ptDirSlope.x*ptDirSlope.x) + (ptDirSlope.y*ptDirSlope.y)) ;	// Length of Direction line
 		fEntityLength = (float)sqrt( (EntSizeView.x*EntSizeView.x)+(EntSizeView.y*EntSizeView.y)) ;
 		fEntityLength *= 2 ;	// Arrow 2x entity size
@@ -254,7 +258,7 @@ static void fdocDrawEntity
 		{
 			fArc = 2*M_PI - fArc;
 			fArc /= 2.0f ;	// We need half the angle
-			EntSizeView.x *= 3; 
+			EntSizeView.x *= 3;
 			EntSizeView.y *= 3;
 			EntWidthHeight.x *= 3 ;
 			EntWidthHeight.y *= 3 ;
@@ -263,10 +267,10 @@ static void fdocDrawEntity
 			ArcTopLeft.y		= EntPosView.y - EntSizeView.y;
 			ArcBottomRight.x	= EntPosView.x + EntSizeView.x;
 			ArcBottomRight.y	= EntPosView.y + EntSizeView.y;
-		
+
 			fAngleToTarget = (float)atan2( ptDirSlope.y, ptDirSlope.x ) ;	// Angle line leaves
 			fAngleToTarget += M_PI ;	// The other side is where the angle starts
-			
+
 			ptStart.x = (long)((EntWidthHeight.x) * cos( fAngleToTarget + fArc )) ;
 			ptStart.y = (long)((EntWidthHeight.y) * sin( fAngleToTarget + fArc )) ;
 			ptEnd.x = (long)((EntWidthHeight.x) * cos( fAngleToTarget - fArc )) ;
@@ -280,9 +284,9 @@ static void fdocDrawEntity
 			if( !(ptStart.x == ptEnd.x && ptStart.y == ptEnd.y) )
 			{
 				pDC->Arc
-				( 
-					ArcTopLeft.x, ArcTopLeft.y, ArcBottomRight.x, ArcBottomRight.y, 
-					ptStart.x, ptStart.y, 
+				(
+					ArcTopLeft.x, ArcTopLeft.y, ArcBottomRight.x, ArcBottomRight.y,
+					ptStart.x, ptStart.y,
 					ptEnd.x, ptEnd.y
 				);
 			}
@@ -307,14 +311,13 @@ static void fdocDrawEntity
 
 
 
-	
+
 static geBoolean fdocBrushCSGCallback (const Brush *pBrush, void *lParam)
 {
 	CGEditProDoc *pDoc = (CGEditProDoc *)lParam;
 
 	return (pDoc->BrushIsVisible (pBrush) && (!Brush_IsHint(pBrush)) && (!Brush_IsClip(pBrush)));
 }
-
 
 
 typedef struct
@@ -654,7 +657,7 @@ static geBoolean	FindClosestBrushCB(Brush *pBrush, void *pVoid)
 		MessageBox(NULL, "Brush == NULL", "GEditProDoc FindClosestBrushCB", MB_OK);
 		return GE_FALSE;
 	}
-	
+
 	if(fci->pDoc->BrushIsVisible(pBrush))
 	{
 		// for each face...
@@ -762,7 +765,7 @@ struct FaceSearchCallbackData
 	Face *pFoundFace;
 	Brush *pFoundBrush;
 };
-static geBoolean fdocPointOnFace 
+static geBoolean fdocPointOnFace
 	(
 	  const Face *pFace,
 	  const geVec3d *pPoint
@@ -924,7 +927,7 @@ static geBoolean AddBrushToBspCB(Brush *pBrush, void * lParam)
 static geBoolean	IsBrushNotClipOrHint(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(Brush_IsHint(b) || Brush_IsClip(b))? GE_FALSE : GE_TRUE;
 }
 
@@ -1261,7 +1264,7 @@ static geBoolean GetObjectName (char *Name, char *Path, CGEditProDoc *pDoc)
 	{
 		return GE_FALSE;
 	}
-}	
+}
 
 typedef struct
 {
@@ -1387,7 +1390,7 @@ static geBoolean fdocValidateEntity (CEntity &Ent, void *lParam)
 
 	pData = (fdocEntityValidateData *)lParam;
 
-	// Validate the entity type (Class)	
+	// Validate the entity type (Class)
 	cstr = Ent.GetClassname() ;
 	if (!EntityTable_IsValidEntityType (pData->pEntityTable, cstr))
 	{
@@ -1474,6 +1477,11 @@ static geBoolean fdocUpdateFaceTextures (Face *pFace, void *lParam)
 
 
 	Face_SetTextureDibId (pFace, pDoc->m_pLevelMgr->GetDibId (&pDoc->DocVarsGetByValue().m_Level, Face_GetTextureName (pFace)));
+// changed QD 12/03
+	const WadFileEntry * const pbmp = pDoc->m_pLevelMgr->GetWadBitmap(&pDoc->DocVarsGetByValue().m_Level, Face_GetTextureName (pFace));
+	if(pbmp)
+		Face_SetTextureSize (pFace, pbmp->Width, pbmp->Height);
+// end change
 	return GE_TRUE;
 }
 
@@ -1483,6 +1491,30 @@ static geBoolean fdocUpdateBrushFaceTextures (Brush *pBrush, void *pVoid)
 	return GE_TRUE;
 }
 
+
+static geBoolean fdocFindAnyFace (Brush *pBrush, void *lParam)
+{
+	FaceSearchCallbackData *pData = NULL;
+	Plane PlaneInv;
+
+	pData = (FaceSearchCallbackData *)lParam;
+
+	if (pData)
+	{
+		PlaneInv = *pData->pFacePlane;
+		geVec3d_Inverse (&PlaneInv.Normal);
+		PlaneInv.Dist = -PlaneInv.Dist;
+
+		pData = (FaceSearchCallbackData *)lParam;
+		if (::fdocPointInBrushFace (pBrush, &PlaneInv, &(pData->ImpactPoint), &(pData->pFoundFace)))
+		{
+			pData->pFoundBrush = pBrush;
+			pData->Found = GE_TRUE;
+			return GE_FALSE;	// found it, so quit...
+		}
+	}
+	return GE_TRUE;
+}
 
 
 
@@ -1584,6 +1616,13 @@ BEGIN_MESSAGE_MAP(CGEditProDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_STAIRCASE, OnUpdateBrushPrimitives)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_ARCH, OnUpdateBrushPrimitives)
 	ON_UPDATE_COMMAND_UI(ID_BRUSH_PRIMITIVES_CONE, OnUpdateBrushPrimitives)
+// changed QD Actors
+	ON_COMMAND(ID_VIEW_SHOW_ACTORS, OnViewShowActors)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_SHOW_ACTORS, OnUpdateViewShowActors)
+// changed QD 11/03
+	ON_COMMAND(ID_FILE_EXPORT3DT, OnFileExport3dtv1_32)
+	ON_COMMAND(ID_FILE_EXPORT3DS, OnFileExport3ds)
+// end change
 	//}}AFX_MSG_MAP
 	ON_UPDATE_COMMAND_UI_RANGE(  ID_BRUSH_SELECTED_DELETE, ID_BRUSH_SELECTED_COPYTOCURRENT, OnSelectedTypeCmdUI)
 END_MESSAGE_MAP()
@@ -1605,6 +1644,7 @@ CGEditProDoc::CGEditProDoc() : CDocument (),
 	m_bShowClipBrushes (GE_TRUE),
 	m_bShowDetailBrushes (GE_TRUE),
 	m_bShowHintBrushes (GE_TRUE),
+	m_bShowActors (GE_TRUE), // changed QD Actors
 	m_pActiveViewFrame (NULL),
 	m_pBrushAttributes (NULL),
 	m_pFaceAttributes (NULL),
@@ -1628,13 +1668,13 @@ CGEditProDoc::CGEditProDoc() : CDocument (),
 	m_bRedoAvailability(false),
 	m_bUndoAvailability(false),
 	m_pLevelMgr(NULL),
-	m_pUpdateMgr(NULL)	
+	m_pUpdateMgr(NULL)
 
 {
 	const char *DefaultWadName = "";
 	const Prefs  *pPrefs = GetPrefs ();
 	m_pLevelMgr = new CtLevelMgr;
-	m_pUpdateMgr = new CGEditProUpdateMgr;	
+	m_pUpdateMgr = new CGEditProUpdateMgr;
 
 	DefaultWadName = Prefs_GetTxlName (pPrefs);
 
@@ -1647,8 +1687,10 @@ CGEditProDoc::CGEditProDoc() : CDocument (),
 	//	2. new Brush List
 	//	3. new Entity array
 	//	4. new Group List
-	m_CurrentDocVars.m_Level = *m_pLevelMgr->Create (WadPath, Prefs_GetHeadersList (pPrefs));
-
+// changed QD
+	m_CurrentDocVars.m_Level = *m_pLevelMgr->Create (WadPath, Prefs_GetHeadersList (pPrefs),
+									Prefs_GetActorsList (pPrefs), Prefs_GetPawnIni (pPrefs));
+// end change
 	if (!m_pLevelMgr->LoadWad (&m_CurrentDocVars.m_Level))
 	{
 		CString Msg;
@@ -1666,7 +1708,7 @@ CGEditProDoc::CGEditProDoc() : CDocument (),
 	m_CurrentDocVars.m_pTempSelEntities = new CEntityArray;
 
 	SetLockAxis( 0 ) ;	// Start with no axis locked
-	
+
 	{
 		// create our default box
 		BrushTemplate_Box *pBoxTemplate = NULL;
@@ -1691,7 +1733,7 @@ CGEditProDoc::CGEditProDoc() : CDocument (),
 
 	AddCameraEntityToLevel ();
 						//	new g3dc
-	CreateCube();		//	added in order to display cube template 
+	CreateCube();		//	added in order to display cube template
 						//	dialog on Perties Panel at startup
 
 	m_CurrentDocVars = m_pUpdateMgr->DocVarsUpdate(m_CurrentDocVars);
@@ -1732,7 +1774,7 @@ void CGEditProDoc::Serialize(CArchive& ar)
 
 WadFileEntry* CGEditProDoc::GetDibBitmap(const char *Name)
 {
-	
+
 	return m_pLevelMgr->GetWadBitmap (&m_CurrentDocVars.m_Level, Name);
 }
 
@@ -1755,7 +1797,7 @@ const char *CGEditProDoc::FindTextureLibrary (char const *WadName)
 
 //	post 0.55	//	prompts user to select a valid *.txl file should editor
 				//	fail to locate the default *.txl
-	else 
+	else
 	{
 		CString	txlPathError = _T("GEditPro checks for the default *.txl file when opening new worlds.\n\n");
 		txlPathError += _T("GEditPro now is looking for...\n\n");
@@ -1766,18 +1808,18 @@ const char *CGEditProDoc::FindTextureLibrary (char const *WadName)
 		txlPathError += _T("\ninto the above path. Or edit the RFEditPro.ini file to reflect\n");
 		txlPathError += _T("the name of your default *.txl file.\n\n");
 		txlPathError += _T("For now, please select a valid *.txl file or the application will exit.");
-		
+
 		MessageBox(NULL, txlPathError, "GEditPro cannot find default *.txl", MB_OK);
 
-		
+
 		CFileDialog FileDlg (TRUE,
 			"txl",
 			WorkPath,
 			OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR,
 			"Texture Library Files (*.txl)|*.txl||");
-		
+
 		FileDlg.m_ofn.lpstrTitle	="GEditPro Texture Finder";
-		
+
 		if (FileDlg.DoModal () == IDOK)
 		{
 			CString	wadpath = FileDlg.GetPathName();
@@ -1789,14 +1831,14 @@ const char *CGEditProDoc::FindTextureLibrary (char const *WadName)
 
 		return WorkPath;
 	}
-	
+
 	return NULL;
 }
 
 
 
 void CGEditProDoc::AddCameraEntityToLevel (void)
-{	
+{
 	// Make default camera entity
 	CEntity CameraEntity ;
 	CString cstr;
@@ -1837,7 +1879,7 @@ bool CGEditProDoc::SetEntityScaleInView(geFloat scale)	//	post 0.57
 }
 
 
-geFloat CGEditProDoc::GetEntityScaleInView()		//	post 0.57	
+geFloat CGEditProDoc::GetEntityScaleInView()		//	post 0.57
 {
 	return m_fEntityScaleInViewFactor;
 }
@@ -1932,6 +1974,226 @@ geBoolean CGEditProDoc::Save(const char *FileName)
 	return m_pLevelMgr->WriteToFile (&m_CurrentDocVars.m_Level, FileName);
 }
 
+// changed QD 11/03
+geBoolean CGEditProDoc::ExportTo3dtv1_32(const char *FileName)
+{
+	{
+		// update view information in level
+		ViewStateInfo *pViewStateInfo;
+		POSITION		pos;
+		CGEditProView	*	pView;
+		int iView;
+
+		pos = GetFirstViewPosition();
+		while( pos != NULL )
+		{
+			pView = (CGEditProView*)GetNextView(pos) ;
+			switch (Render_GetViewType (pView->VCam))
+			{
+				case VIEWSOLID :
+				case VIEWTEXTURE :
+				case VIEWWIRE :
+					iView = 0;
+					break;
+				case VIEWTOP :
+					iView = 1;
+					break;
+				case VIEWFRONT :
+					iView = 2;
+					break;
+				case VIEWSIDE :
+					iView = 3;
+					break;
+				default :
+					iView = -1;
+			}
+			if (iView != -1)
+			{
+				pViewStateInfo = m_pLevelMgr->GetViewStateInfo (&m_CurrentDocVars.m_Level, iView);
+				pViewStateInfo->IsValid = GE_TRUE;
+				pViewStateInfo->ZoomFactor = Render_GetZoom (pView->VCam);
+				Render_GetPitchRollYaw (pView->VCam, &pViewStateInfo->PitchRollYaw);
+				Render_GetCameraPos (pView->VCam, &pViewStateInfo->CameraPos);
+			}
+		}
+	}
+
+	// and then write the level info to the file
+	geBoolean fResult = m_pLevelMgr->ExportTo3dtv1_32(&m_CurrentDocVars.m_Level, FileName);
+
+/*	if(fResult == GE_TRUE)
+	{
+		// Ok, the save was successful.  Gun any ".old" files we
+		// ..have laying around for this file.
+		char szTemp[512];
+		sprintf(szTemp,"%s.old", FileName);
+		_unlink(szTemp);
+		ConPrintf("Removed file %s\n", szTemp);
+	}
+*/
+
+	return fResult;
+}
+
+geBoolean CGEditProDoc::ExportTo3ds(const char *FileName, int ExpSelected, geBoolean ExpLights, geBoolean ExpFiles)
+{
+	{
+		// update view information in level
+		ViewStateInfo *pViewStateInfo;
+		POSITION		pos;
+		CGEditProView	*	pView;
+		int iView;
+
+		pos = GetFirstViewPosition();
+		while( pos != NULL )
+		{
+			pView = (CGEditProView*)GetNextView(pos) ;
+			switch (Render_GetViewType (pView->VCam))
+			{
+				case VIEWSOLID :
+				case VIEWTEXTURE :
+				case VIEWWIRE :
+					iView = 0;
+					break;
+				case VIEWTOP :
+					iView = 1;
+					break;
+				case VIEWFRONT :
+					iView = 2;
+					break;
+				case VIEWSIDE :
+					iView = 3;
+					break;
+				default :
+					iView = -1;
+			}
+			if (iView != -1)
+			{
+				pViewStateInfo = m_pLevelMgr->GetViewStateInfo (&m_CurrentDocVars.m_Level, iView);
+				pViewStateInfo->IsValid = GE_TRUE;
+				pViewStateInfo->ZoomFactor = Render_GetZoom (pView->VCam);
+				Render_GetPitchRollYaw (pView->VCam, &pViewStateInfo->PitchRollYaw);
+				Render_GetCameraPos (pView->VCam, &pViewStateInfo->CameraPos);
+			}
+		}
+	}
+
+// changed QD 12/03
+	BrushList *BList;
+	geBoolean fResult;
+
+	BList = m_pLevelMgr->GetBrushes (&m_CurrentDocVars.m_Level);
+	if(!ExpSelected&&!ExpFiles)
+		fResult = m_pLevelMgr->ExportTo3ds(&m_CurrentDocVars.m_Level, FileName, BList, ExpSelected, ExpLights, -1);
+	else
+	{
+		int i, GroupID, GroupCount;
+		char NewFileName[MAX_PATH];
+		strcpy(NewFileName, FileName);
+		GroupID=-1;
+		GroupCount=1;
+
+		if(ExpFiles)
+		{
+			GroupListType *GroupList;
+
+			GroupList=m_pLevelMgr->GetGroups(&m_CurrentDocVars.m_Level);
+			GroupCount=Group_GetCount(GroupList);
+		}
+
+		for(i=0;i<GroupCount;i++)
+		{
+			BrushList *SBList;
+			Brush *pBrush;
+			BrushIterator bi;
+
+			SBList=BrushList_Create();
+
+			pBrush = BrushList_GetFirst (BList, &bi);
+			while (pBrush != NULL)
+			{
+				if(!strstr(Brush_GetName(pBrush),".act"))
+				{
+					if(!ExpSelected || SelBrushList_Find(m_CurrentDocVars.m_pSelBrushes, pBrush))
+					{
+						if(!ExpFiles || Brush_GetGroupId(pBrush)==i)
+						{
+							Brush *pClone =	Brush_Clone(pBrush);
+							BrushList_Append(SBList, pClone);
+						}
+					}
+				}
+
+				pBrush = BrushList_GetNext(&bi);
+			}
+			// do CSG
+			{
+				ModelIterator	mi;
+				int				j, CurId = 0;
+				ModelInfo_Type	*ModelInfo;
+				Model			*pMod;
+
+				BrushList_ClearAllCSG (SBList);
+
+				BrushList_DoCSG(SBList, CurId, ::fdocBrushCSGCallback, this);
+
+				//build individual model mini trees
+				ModelInfo = m_pLevelMgr->GetModelInfo (&m_CurrentDocVars.m_Level);
+				pMod = ModelList_GetFirst (ModelInfo->Models, &mi);
+
+				for(j=0;j < ModelList_GetCount(ModelInfo->Models);j++)//, n=NULL)
+				{
+					CurId = Model_GetId (pMod);
+
+					BrushList_DoCSG(SBList, CurId, ::fdocBrushCSGCallback, this);
+				}
+			}
+
+			if(ExpFiles)
+			{
+				GroupID=i;
+
+				//build individual filenames
+				char Name[MAX_PATH];
+				char c[2];
+				c[1]='\0';
+				::FilePath_GetName (FileName, Name);
+				c[0] = (char)(48+(i-i%100)/100);
+				strcat(Name, c);
+				c[0] = (char)(48+((i-i%10)/10)%10);
+				strcat(Name, c);
+				c[0] = (char)(48+i%10);
+				strcat(Name, c);
+
+				::FilePath_ChangeName(FileName, Name, NewFileName);
+			}
+
+			fResult = m_pLevelMgr->ExportTo3ds(&m_CurrentDocVars.m_Level, NewFileName, SBList, ExpSelected, ExpLights, GroupID);
+			if(!fResult)
+				CGlobals::GetActiveDocument()->m_pMainFrame->ConPrintf("Error exporting group %i\n", i);
+			BrushList_Destroy(&SBList);
+		}
+
+	}
+// end change
+
+
+/*
+	if(fResult == GE_TRUE)
+	{
+		// Ok, the save was successful.  Gun any ".old" files we
+		// ..have laying around for this file.
+		char szTemp[512];
+		sprintf(szTemp,"%s.old", FileName);
+		_unlink(szTemp);
+		ConPrintf("Removed file %s\n", szTemp);
+	}
+*/
+	return fResult;
+}
+
+// end change
+
 /*
 	Load file versions later than 1.0
 */
@@ -1951,9 +2213,11 @@ geBoolean CGEditProDoc::Load(const char *FileName)
 	FilePath_GetDriveAndDir (FileName, WorkingDir);
 	::SetCurrentDirectory (WorkingDir);
 
+// changed QD
 	if (pPrefs)
-		m_CurrentDocVars.m_Level = *m_pLevelMgr->CreateFromFile (FileName, &Errmsg, Prefs_GetHeadersList (pPrefs));
-
+		m_CurrentDocVars.m_Level = *m_pLevelMgr->CreateFromFile (FileName, &Errmsg, Prefs_GetHeadersList (pPrefs),
+															Prefs_GetActorsList(pPrefs), Prefs_GetPawnIni(pPrefs));
+// end change
 	WadPath = m_pLevelMgr->GetWadPath (&m_CurrentDocVars.m_Level);
 
 	if (WadPath)
@@ -1971,7 +2235,7 @@ geBoolean CGEditProDoc::Load(const char *FileName)
 
 	if( ValidateEntities( &m_CurrentDocVars) == FALSE || ValidateBrushes( ) == FALSE )
 	{
-		ShowConsole();							
+		ShowConsole();
 		AfxMessageBox( IDS_LOAD_WARNING ) ;
 
 		if (ValidateEntities( &m_CurrentDocVars) == FALSE)	//	post 0.55
@@ -2011,10 +2275,10 @@ LoadError:
 
 //	obsolete -- not used
 // play a sound from a resource
-geBoolean CGEditProDoc::PlayResource (char const * pName) 
-{     
+geBoolean CGEditProDoc::PlayResource (char const * pName)
+{
 	BOOL bRtn;
-	char * lpRes = NULL; 
+	char * lpRes = NULL;
 	HGLOBAL hRes;
 	HRSRC hResInfo;
 	HINSTANCE hInst = AfxGetInstanceHandle ();
@@ -2026,34 +2290,34 @@ geBoolean CGEditProDoc::PlayResource (char const * pName)
         return FALSE;
 	}
 
-	// Load the WAVE resource.  
-    hRes = ::LoadResource(hInst, hResInfo);     
+	// Load the WAVE resource.
+    hRes = ::LoadResource(hInst, hResInfo);
 	if (hRes == NULL)
 	{
         return FALSE;
 	}
 
-	// Lock the WAVE resource and play it.  
-    lpRes = (char *)::LockResource(hRes);     
-	if (lpRes != NULL) 
+	// Lock the WAVE resource and play it.
+    lpRes = (char *)::LockResource(hRes);
+	if (lpRes != NULL)
 	{
         bRtn = (::sndPlaySound(lpRes, SND_MEMORY | SND_SYNC | SND_NODEFAULT) != 0);
 		::UnlockResource(hRes);
 	}
-	else 
+	else
 	{
         bRtn = GE_FALSE;
 	}
 
-	// Free the WAVE resource and return success or failure. 
+	// Free the WAVE resource and return success or failure.
     FreeResource (hRes);
-	return bRtn; 
+	return bRtn;
 }
 
 
 
 //	called by AddBrushToWorld
-void CGEditProDoc::OnBrushAddtoworld() 
+void CGEditProDoc::OnBrushAddtoworld()
 {
 	geBoolean Placed;
 	CGEditProDocVars thisFunctionDocVars;
@@ -2072,19 +2336,19 @@ void CGEditProDoc::OnBrushAddtoworld()
 			char ObjectName[MAX_PATH];
 
 			// get the current object from the library and place it down
-			GotName = m_pMainFrame->m_TemplatesTab.GetCurrentTemplateName(ObjectName);	
+			GotName = m_pMainFrame->m_TemplatesTab.GetCurrentTemplateName(ObjectName);
 			if (GotName)
 			{
 				Placed = PlaceObject (ObjectName, &m_RegularEntity.mOrigin, &thisFunctionDocVars);
-				
+
 				::PlaySound(MAKEINTRESOURCE(IDR_WAVE_WOOSH), AfxGetResourceHandle(), SND_RESOURCE | SND_ASYNC);
-				
+
 	//			PlayResource ("SND_WHOOSH");
 				//	Be very careful when speccing flags for UpdateAllViews()
 				//	The wrong flags at the wrong time will totally screw things up
 				//	g3dc tuning comment
-				//	SetMode() has its own UpdateMainControls() 
-				//	and ConfigureCurrentTool() calls	
+				//	SetMode() has its own UpdateMainControls()
+				//	and ConfigureCurrentTool() calls
 				//UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 
 				//	need to SetMode because a DoGeneralSelect() was performed in the
@@ -2092,8 +2356,8 @@ void CGEditProDoc::OnBrushAddtoworld()
 				//	and sets the edit tool to NULL. But we want to continue to
 				//	place prefabs. So we call SetMode to bring us back into
 				//	ID_TOOLS_TEMPLATE mode and set the move/rotate button. :-)
-				//	SetMode() has its own UpdateMainControls() 
-				//	and ConfigureCurrentTool() calls	
+				//	SetMode() has its own UpdateMainControls()
+				//	and ConfigureCurrentTool() calls
 				SetMode(MAINFRM_COMMANDPANEL_TEMPLATES);	//	new g3dc
 			}
 		}
@@ -2111,7 +2375,7 @@ void CGEditProDoc::OnBrushAddtoworld()
 			// now create a new entity of the currently-selected type
 			GotName = m_pMainFrame->m_TemplatesTab.GetCurrentEntityName(EntityName);	// new g3dc
 			if (GotName)
-			{	
+			{
 				if (CreateEntityFromName (EntityName, NewEnt))
 				{
 					geVec3d org;
@@ -2201,7 +2465,7 @@ void CGEditProDoc::OnBrushAddtoworld()
 		{
 			org = (*Entities)[ Ent ].mOrigin;
 			((*Entities)[ Ent ].SetOrigin(org.X, org.Y, org.Z, m_pLevelMgr->GetEntityDefs (&thisFunctionDocVars.m_Level)));
-		}		
+		}
 	}
 
 
@@ -2219,12 +2483,12 @@ void CGEditProDoc::OnBrushAddtoworld()
 
 // This code is STILL called from the toolbar button, but the "correct"
 // interface is now on the Brush Attributes Dialog
-void CGEditProDoc::OnBrushSubtractfromworld() 
+void CGEditProDoc::OnBrushSubtractfromworld()
 {
 	CGEditProDocVars thisFunctionDocVars;
 	thisFunctionDocVars = DocVarsCreateUniqueCopy(m_CurrentDocVars);
 
-	
+
 	Brush	*nb = NULL;
 	BrushList *BList = NULL;
 	BList = m_pLevelMgr->GetBrushes (&thisFunctionDocVars.m_Level);
@@ -2285,6 +2549,11 @@ void CGEditProDoc::CopySelectedBrushes(void)
 			Brush *pClone = NULL;
 
 			pBrush = SelBrushList_GetBrush (m_CurrentDocVars.m_pSelBrushes, 0);
+// changed QD Actors
+// don't copy ActorBrushes
+			if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+				continue;
+// end change
 			pClone = Brush_Clone (pBrush);
 			m_pLevelMgr->AppendBrush (&m_CurrentDocVars.m_Level, pClone);
 			SelBrushList_Add (m_CurrentDocVars.m_pSelBrushes, pClone);
@@ -2363,7 +2632,7 @@ BOOL CGEditProDoc::TempDeleteSelected(CGEditProDocVars *pDocVars)
 		Brush *pBrush = NULL;
 
 		pBrush = SelBrushList_GetBrush (pDocVars->m_pTempSelBrushes, i);
-	
+
 		if (pBrush)
 		{
 			m_pLevelMgr->RemoveBrush (&pDocVars->m_Level, pBrush);
@@ -2422,7 +2691,7 @@ void CGEditProDoc::SetDefaultBrushTexInfo(Brush *b)
 	{
 		const BrushList *BList = NULL;	//	post 0.55
 		BList = Brush_GetBrushList(b);
-		if (BList == NULL)	
+		if (BList == NULL)
 		{
 			MessageBox(NULL, "BrushList == NULL", "GEditProDoc SetDefaultBrushTexInfo", MB_OK);
 			return;
@@ -2548,17 +2817,17 @@ void CGEditProDoc::OnUpdateBrushPrimitives (CCmdUI *pCmdUI)
 	pCmdUI->Enable( (m_iModeTool == ID_TOOLS_TEMPLATE ) ? TRUE : FALSE ) ;
 }
 
-void CGEditProDoc::OnBrushPrimitivesCube() 
+void CGEditProDoc::OnBrushPrimitivesCube()
 {
 	CreateCube() ;
 }
 
 
-void CGEditProDoc::CreateCube() 
+void CGEditProDoc::CreateCube()
 {
 	if (m_pMainFrame->m_createBoxDialog.m_hWnd != NULL)	//	new g3dc
 		return;							//	already showing
-	
+
 	BrushTemplate_Box *pBoxTemplate = NULL;
 	pBoxTemplate = m_pLevelMgr->GetBoxTemplate (&m_CurrentDocVars.m_Level);
 
@@ -2569,22 +2838,22 @@ void CGEditProDoc::CreateCube()
 	if (!m_pMainFrame->m_createBoxDialog.Create(IDD_CREATEBOX, &m_pMainFrame->m_PropertiesPanel))
 	{
 		TRACE0("Failed to create m_createBoxDialog\n");
-		return;	
+		return;
 	}
-	
+
 	m_pMainFrame->m_createBoxDialog.ShowDialog((m_pLevelMgr->GetGridType (&m_CurrentDocVars.m_Level) == GridMetric), pBoxTemplate, this); // new g3dc
 
 }/* CGEditProDoc::CreateCube */
 
 
 
-void CGEditProDoc::OnBrushPrimitivesSpheroid() 
+void CGEditProDoc::OnBrushPrimitivesSpheroid()
 {
 	CreateSpheroid() ;
 }
 
 
-void CGEditProDoc::CreateSpheroid() 
+void CGEditProDoc::CreateSpheroid()
 {
 	if (m_pMainFrame->m_createSpheroidDialog.m_hWnd != NULL)	//	new g3dc
 		return;									//	already showing
@@ -2601,20 +2870,20 @@ void CGEditProDoc::CreateSpheroid()
 	if	(!m_pMainFrame->m_createSpheroidDialog.Create(IDD_CREATE_SPHEROID, &m_pMainFrame->m_PropertiesPanel))
 	{
 		TRACE0("Failed to create m_createSpheroidDialog\n");
-		return;	
+		return;
 	}
 
 	m_pMainFrame->m_createSpheroidDialog.ShowDialog(m_pLevelMgr->GetGridType (&m_CurrentDocVars.m_Level) == GridMetric, pTemplate, this);
 
 }/* CGEditProDoc::CreateSpheroid */
 
-void CGEditProDoc::OnBrushPrimitivesCylinder() 
+void CGEditProDoc::OnBrushPrimitivesCylinder()
 {
 	CreateCylinder() ;
 }
 
 
-void CGEditProDoc::CreateCylinder() 
+void CGEditProDoc::CreateCylinder()
 {
 
 	if (m_pMainFrame->m_createCylDialog.m_hWnd != NULL)	//	new g3dc
@@ -2627,20 +2896,20 @@ void CGEditProDoc::CreateCylinder()
 	BrushTemplate_Cylinder *pCylTemplate = NULL;
 	pCylTemplate = m_pLevelMgr->GetCylinderTemplate (&m_CurrentDocVars.m_Level);
 
-	if (pCylTemplate == NULL)	
+	if (pCylTemplate == NULL)
 		return;
-	
+
 	if	(!m_pMainFrame->m_createCylDialog.Create(IDD_CREATE_CYL, &m_pMainFrame->m_PropertiesPanel))
 	{
 		TRACE0("Failed to create m_createCylinderDialog\n");
-		return;	
+		return;
 	}
 
 	m_pMainFrame->m_createCylDialog.ShowDialog(m_pLevelMgr->GetGridType (&m_CurrentDocVars.m_Level) == GridMetric, pCylTemplate, this);
 
 }/* CGEditProDoc::CreateCylinder */
 
-void CGEditProDoc::OnBrushPrimitivesStaircase() 
+void CGEditProDoc::OnBrushPrimitivesStaircase()
 {
 	CreateStaircase() ;
 }
@@ -2649,22 +2918,22 @@ void CGEditProDoc::OnBrushPrimitivesStaircase()
 void CGEditProDoc::CreateStaircase()
 {
 
-	if (m_pMainFrame->m_createStaircaseDialog.m_hWnd != NULL)	
+	if (m_pMainFrame->m_createStaircaseDialog.m_hWnd != NULL)
 		return;									//	already showing
-	
-	if (&m_CurrentDocVars.m_Level == NULL)	
+
+	if (&m_CurrentDocVars.m_Level == NULL)
 		return;
-	
+
 	BrushTemplate_Staircase *pStairTemplate = NULL;
 	pStairTemplate = m_pLevelMgr->GetStaircaseTemplate (&m_CurrentDocVars.m_Level);
 
-	if (pStairTemplate == NULL)	
+	if (pStairTemplate == NULL)
 		return;
 
 	if	(!m_pMainFrame->m_createStaircaseDialog.Create(IDD_STAIRCASEDIALOG, &m_pMainFrame->m_PropertiesPanel))
 	{
 		TRACE0("Failed to create m_createStaircaseDialog\n");
-		return;	
+		return;
 	}
 
 	m_pMainFrame->m_createStaircaseDialog.ShowDialog(m_pLevelMgr->GetGridType (&m_CurrentDocVars.m_Level) == GridMetric, pStairTemplate, this);
@@ -2673,7 +2942,7 @@ void CGEditProDoc::CreateStaircase()
 
 
 
-void CGEditProDoc::OnBrushPrimitivesArch() 
+void CGEditProDoc::OnBrushPrimitivesArch()
 {
 	CreateArch ();
 }
@@ -2682,53 +2951,53 @@ void CGEditProDoc::OnBrushPrimitivesArch()
 
 void CGEditProDoc::CreateArch()
 {
-	if (m_pMainFrame->m_createArchDialog.m_hWnd != NULL)	
+	if (m_pMainFrame->m_createArchDialog.m_hWnd != NULL)
 		return;									//	already showing
 
-	if (&m_CurrentDocVars.m_Level == NULL)	
+	if (&m_CurrentDocVars.m_Level == NULL)
 		return;
-	
+
 	BrushTemplate_Arch *pArchTemplate = NULL;
 	pArchTemplate = m_pLevelMgr->GetArchTemplate (&m_CurrentDocVars.m_Level);
 
 	if (pArchTemplate == NULL)
 		return;
 
-	
+
 	if	(!m_pMainFrame->m_createArchDialog.Create(IDD_CREATE_ARCH, &m_pMainFrame->m_PropertiesPanel))
 	{
 		TRACE0("Failed to create m_createArchDialog\n");
-		return;	
+		return;
 	}
 
 	m_pMainFrame->m_createArchDialog.ShowDialog(m_pLevelMgr->GetGridType (&m_CurrentDocVars.m_Level) == GridMetric, pArchTemplate, this);
 
 }/* CGEditProDoc::CreateArch */
 
-	
-void CGEditProDoc::OnBrushPrimitivesCone() 
+
+void CGEditProDoc::OnBrushPrimitivesCone()
 {
 	CreateCone ();
 }
 void CGEditProDoc::CreateCone()
 {
-	if (m_pMainFrame->m_createConeDialog.m_hWnd != NULL)	
+	if (m_pMainFrame->m_createConeDialog.m_hWnd != NULL)
 		return;									//	already showing
 
-	if (&m_CurrentDocVars.m_Level == NULL)	
+	if (&m_CurrentDocVars.m_Level == NULL)
 		return;
 
 	BrushTemplate_Cone *pConeTemplate = NULL;
 	pConeTemplate = m_pLevelMgr->GetConeTemplate (&m_CurrentDocVars.m_Level);
 
-	if (pConeTemplate == NULL)	
+	if (pConeTemplate == NULL)
 		return;
 
 
 	if	(!m_pMainFrame->m_createConeDialog.Create(IDD_CREATE_CONE, &m_pMainFrame->m_PropertiesPanel))
 	{
 		TRACE0("Failed to create m_createConeDialog\n");
-		return;	
+		return;
 	}
 
 	m_pMainFrame->m_createConeDialog.ShowDialog(m_pLevelMgr->GetGridType (&m_CurrentDocVars.m_Level) == GridMetric, pConeTemplate, this);
@@ -2742,8 +3011,8 @@ void CGEditProDoc::BrushSelect(Brush *pBrush)
 	{
 		SelBrushList_Add (m_CurrentDocVars.m_pSelBrushes, pBrush);
 						//	update all selcetions. Prevent unintended selections
-						//	across groups. 
-		m_pMainFrame->UpdateMainControls(); 
+						//	across groups.
+		m_pMainFrame->UpdateMainControls();
 	}
 }
 
@@ -2756,7 +3025,7 @@ geBoolean CGEditProDoc::BrushIsSelected(Brush const *pBrush)
 
 
 
-void CGEditProDoc::OnToolsUsegrid() 
+void CGEditProDoc::OnToolsUsegrid()
 {
 	GridInfo *pGridInfo = m_pLevelMgr->GetGridInfo (&m_CurrentDocVars.m_Level);
 
@@ -2768,7 +3037,7 @@ void CGEditProDoc::OnToolsUsegrid()
 	UpdateAllViews(UAV_GRID_ONLY, NULL);
 }
 
-void CGEditProDoc::OnUpdateToolsUsegrid(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateToolsUsegrid(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck( m_pLevelMgr->UseGrid (&m_CurrentDocVars.m_Level));
 }
@@ -2791,7 +3060,7 @@ geBoolean CGEditProDoc::CreateEntityFromName(char const *pEntityType, CEntity &N
 	for (int PropNo = 0; PropNo < pProps->NumProps; ++PropNo)
 	{
 	    EntityProperty *p = &(pProps->Props[PropNo]);
-		
+
 		NewEnt.SetKeyValue (p->pKey, p->pValue);
 
 	}
@@ -2812,7 +3081,7 @@ void CGEditProDoc::CreateEntity(char const *pEntityType)
 
 		m_RegularEntity = NewEnt;
 		m_iCurrentEntity = -1;
-		// set this flag so that doc knows when enter is pressed that user is NOT adding 
+		// set this flag so that doc knows when enter is pressed that user is NOT adding
 		// objects to level
 		m_bPlaceObjectFlag = FALSE;
 
@@ -2829,7 +3098,7 @@ void CGEditProDoc::CreateEntity(char const *pEntityType)
 	}
 }
 
-// creates a template entity with which the user specifies a location for any 
+// creates a template entity with which the user specifies a location for any
 // objects they place
 void CGEditProDoc::CreateObjectTemplate()
 {
@@ -2881,12 +3150,12 @@ void CGEditProDoc::OnEntitiesShow(void)
 	UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 }
 
-void CGEditProDoc::OnUpdateEntitiesShow(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateEntitiesShow(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck( m_iShowEntities );
 }
 
-void CGEditProDoc::OnViewShowAllGroups() 
+void CGEditProDoc::OnViewShowAllGroups()
 {
 	m_pCurBrush	= m_pBTemplate;
 	CGlobals::g_iGroupVisibility = Group_ShowAll;
@@ -2897,7 +3166,7 @@ void CGEditProDoc::OnViewShowAllGroups()
 }
 
 
-void CGEditProDoc::OnViewShowCurrentGroup() 
+void CGEditProDoc::OnViewShowCurrentGroup()
 {
 	m_pCurBrush = m_pBTemplate;
 
@@ -2908,24 +3177,24 @@ void CGEditProDoc::OnViewShowCurrentGroup()
 	UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 }
 
-void CGEditProDoc::OnViewShowVisibleGroups() 
+void CGEditProDoc::OnViewShowVisibleGroups()
 {
 	m_pCurBrush	= m_pBTemplate;
 	CGlobals::g_iGroupVisibility = Group_ShowVisible;
-	
+
 	//	Be very careful when speccing flags for UpdateAllViews()
 	//	The wrong flags at the wrong time will totally screw things up
 	UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 }
 
-void CGEditProDoc::OnUpdateViewShowVisibleGroups(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateViewShowVisibleGroups(CCmdUI* pCmdUI)
 {
 	BOOL	bEnable ;
 	int Setting;
-	
+
 	Setting = CGlobals::g_iGroupVisibility;
 	bEnable = ( Group_GetCount( m_pLevelMgr->GetGroups (&m_CurrentDocVars.m_Level)) ) ? TRUE : FALSE ;
-	
+
 	if (((pCmdUI->m_nID == ID_VIEW_SHOW_ALLGROUPS) && (Setting == Group_ShowAll)) ||
 		((pCmdUI->m_nID == ID_VIEW_SHOW_CURRENTGROUP) && (Setting == Group_ShowCurrent)) ||
 		((pCmdUI->m_nID == ID_VIEW_SHOW_VISIBLEGROUPS) && (Setting == Group_ShowVisible)))
@@ -2940,13 +3209,13 @@ void CGEditProDoc::OnUpdateViewShowVisibleGroups(CCmdUI* pCmdUI)
 	pCmdUI->Enable( bEnable ) ;
 }
 
-void CGEditProDoc::OnUpdateViewShowAllGroups(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateViewShowAllGroups(CCmdUI* pCmdUI)
 {
 	OnUpdateViewShowVisibleGroups( pCmdUI ) ;
 }
 
 
-void CGEditProDoc::OnUpdateViewShowCurrentGroup(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateViewShowCurrentGroup(CCmdUI* pCmdUI)
 {
 	OnUpdateViewShowVisibleGroups( pCmdUI ) ;
 }
@@ -3011,14 +3280,14 @@ void CGEditProDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 	int GroupVis = m_pLevelMgr->GetGroupVisibility (&m_CurrentDocVars.m_Level);
 
 	BList = m_pLevelMgr->GetBrushes (&m_CurrentDocVars.m_Level);
-	if (BList == NULL)	
+	if (BList == NULL)
 	{
 		MessageBox(NULL, "BList == NULL", "GEditProDoc RenderOrthoView", MB_OK);
 		return;
 	}
-	
+
 	inidx	=Render_GetInidx(v);
-	
+
 	Box3d_SetBogusBounds (&ViewBox);
 
 	Render_ViewToWorld(v, 0, 0, &XTemp);
@@ -3144,7 +3413,7 @@ void CGEditProDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 
 			pDC->SelectObject (&PenAllItems);
 		}
-		GroupId	=Group_GetNextId(Groups, &gi);	
+		GroupId	=Group_GetNextId(Groups, &gi);
 	}
 
 	// find and render the camera entity
@@ -3160,7 +3429,7 @@ void CGEditProDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 	{
 		CEntityArray *Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
 		int NumSelBrushes = SelBrushList_GetSize (m_CurrentDocVars.m_pSelBrushes);
-				
+
 		// render selected brushes and entities
 		pDC->SelectObject(&PenSelected);
 
@@ -3176,14 +3445,14 @@ void CGEditProDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 			return;
 		}
 
-			
+
 			if (fdocShowBrush (pBrush, &ViewBox))
 			{
 				if(Brush_IsMulti (pBrush))
 				{
 					const BrushList *BrushList;	//	post 0.55
 					BrushList = Brush_GetBrushList(pBrush);
-					if (BrushList == NULL)	
+					if (BrushList == NULL)
 					{
 						MessageBox(NULL, "BrushList == NULL", "GEditProDoc RenderOrthoView", MB_OK);
 						return;
@@ -3237,7 +3506,7 @@ void CGEditProDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 					{
 						const BrushList *CurBrushList;	//	post 0.55
 						CurBrushList = Brush_GetBrushList(m_pCurBrush);
-						if (CurBrushList == NULL)	
+						if (CurBrushList == NULL)
 						{
 							MessageBox(NULL, "CurBrushList == NULL", "GEditProDoc RenderOrthoView", MB_OK);
 							return;
@@ -3261,30 +3530,30 @@ void CGEditProDoc::RenderOrthoView(ViewVars *v, CDC *pDC)
 	pDC->SelectObject(oldpen);
 }/* CGEditProDoc::RenderOrthoView */
 
-void CGEditProDoc::OnUpdateBrushAdjustmentmode(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateBrushAdjustmentmode(CCmdUI* pCmdUI)
 {
 	pCmdUI->Enable( TRUE); //( m_iModeTool == ID_GENERALSELECT ) ? TRUE : FALSE ) ;
 	pCmdUI->SetCheck( ( m_AdjustMode == ADJUST_MODE_BRUSH ) ? TRUE : FALSE ) ;
 }
 
-void CGEditProDoc::OnToolsBrushAdjustmentmode() 
+void CGEditProDoc::OnToolsBrushAdjustmentmode()
 {
 	if( m_iCurrentTool == CURTOOL_NONE )
 	{
 		SetAdjustmentMode( ADJUST_MODE_BRUSH ) ;
 	}
-	
+
 	UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 
 }
 
-void CGEditProDoc::OnUpdateFaceAdjustmentmode(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateFaceAdjustmentmode(CCmdUI* pCmdUI)
 {
 	pCmdUI->Enable( TRUE); //( m_iModeTool == ID_GENERALSELECT ) ? TRUE : FALSE ) ;
 	pCmdUI->SetCheck( (m_AdjustMode==ADJUST_MODE_FACE) ? TRUE : FALSE ) ;
 }
 
-void CGEditProDoc::OnToolsFaceAdjustmentmode() 
+void CGEditProDoc::OnToolsFaceAdjustmentmode()
 {
 		//	0.57	for informing user about this operatin and AutoRebuild
 	static int	iCount;
@@ -3302,7 +3571,7 @@ void CGEditProDoc::OnToolsFaceAdjustmentmode()
 	if ((!CGlobals::g_bRebuildAlways) && iCount <1)
 	{
 		iCount++;
-		int result = 0; 
+		int result = 0;
 		result = AfxMessageBox(message, MB_YESNOCANCEL);
 		switch (result)
 		{
@@ -3322,28 +3591,28 @@ void CGEditProDoc::OnToolsFaceAdjustmentmode()
 		UpdateAllViews( UAV_ALL3DVIEWS | REBUILD_QUICK, NULL );
 		SetAdjustmentMode( ADJUST_MODE_FACE ) ;
 	}
-	
+
 			//	post 0.57	for putting 'Rebuild' button on Texture view
 	if (!CGlobals::g_bRebuildAlways)
 	{
 		m_pMainFrame->SendMessageToDescendants(WM_COMMAND, IDC_BTN_REBUILD_COMMAND);
 		CGlobals::g_iRebuildClickCount = 0;
 	}
-	
+
 
 
 }
 
-void CGEditProDoc::OnToolsToggleadjustmode() 
+void CGEditProDoc::OnToolsToggleadjustmode()
 {
 	if( m_iCurrentTool == CURTOOL_NONE )
 	{
-		SetAdjustmentMode( ADJUST_MODE_TOGGLE ) ;	// Flip between Brush & face 
+		SetAdjustmentMode( ADJUST_MODE_TOGGLE ) ;	// Flip between Brush & face
 	}
-	
+
 }
 
-void CGEditProDoc::OnUpdateToolsToggleadjustmode(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateToolsToggleadjustmode(CCmdUI* pCmdUI)
 {
 	pCmdUI->Enable (TRUE);//(m_iModeTool == ID_GENERALSELECT) ? TRUE : FALSE);
 }
@@ -3441,7 +3710,7 @@ int CGEditProDoc::FindClosestThing(POINT const *ptFrom, ViewVars *v,
 	geBoolean FoundBrush;
 	geFloat MinEdgeDist;
 	Brush *pMinBrush = NULL;
-		
+
 	geBoolean FoundEntity;
 	geFloat MinEntityDist;
 	CEntity *pMinEntity = NULL;
@@ -3472,7 +3741,7 @@ int CGEditProDoc::FindClosestThing(POINT const *ptFrom, ViewVars *v,
 	{
 		*pDist = MinEdgeDist;
 		if( ppMinBrush != NULL )
-			*ppMinBrush = pMinBrush;	
+			*ppMinBrush = pMinBrush;
 		rslt = fctBRUSH;
 	}
 	return rslt;
@@ -3543,6 +3812,24 @@ void CGEditProDoc::DoBrushSelection(Brush* pBrush, BrushSel nSelType )
 			else
 			{
 				SelBrushList_Remove (m_CurrentDocVars.m_pSelBrushes, pBrush);
+// changed QD
+				if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+				{
+					CEntityArray *Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
+
+					for(int i=0;i < Entities->GetSize();i++)
+					{
+						Brush *b=(*Entities)[i].GetActorBrush();
+						if(b!=NULL)
+							if(SelBrushList_Find (m_CurrentDocVars.m_pSelBrushes, b))
+								if ((*Entities)[i].IsSelected())
+								{
+									(*Entities)[i].DeSelect();
+									--m_iNumSelEntities;
+								}
+					}
+				}
+// end change
 			}
 		}
 		else
@@ -3560,6 +3847,24 @@ void CGEditProDoc::DoBrushSelection(Brush* pBrush, BrushSel nSelType )
 			else
 			{
 				SelBrushList_Add (m_CurrentDocVars.m_pSelBrushes, pBrush);
+// changed QD
+				if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+				{
+					CEntityArray *Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
+
+					for(int i=0;i < Entities->GetSize();i++)
+					{
+						Brush *b=(*Entities)[i].GetActorBrush();
+						if(b!=NULL)
+							if(SelBrushList_Find (m_CurrentDocVars.m_pSelBrushes, b))
+								if (!(*Entities)[i].IsSelected())
+								{
+									(*Entities)[i].Select();
+									++m_iNumSelEntities;
+								}
+					}
+				}
+// end change
 			}
 		}
 	}
@@ -3572,6 +3877,14 @@ void CGEditProDoc::SelectEntity(CEntity *pEntity)
 		if (!pEntity->IsSelected ())
 		{
 			pEntity->Select ();
+// changed QD Actors
+			Brush *pBrush;
+			pBrush = pEntity->GetActorBrush();
+			if(pBrush!=NULL)
+			{
+				SelBrushList_Add (m_CurrentDocVars.m_pSelBrushes, pBrush);
+			}
+// end change
 			++m_iNumSelEntities;
 		}
 	}
@@ -3584,6 +3897,14 @@ void CGEditProDoc::DeselectEntity(CEntity *pEntity)
 		if (pEntity->IsSelected ())
 		{
 			pEntity->DeSelect ();
+// changed QD
+			Brush *pBrush;
+			pBrush = pEntity->GetActorBrush();
+			if(pBrush!=NULL)
+			{
+				SelBrushList_Remove(m_CurrentDocVars.m_pSelBrushes, pBrush);
+			}
+// end change
 			--m_iNumSelEntities;
 			if (m_iNumSelEntities < 0)
 			{
@@ -3654,7 +3975,7 @@ void CGEditProDoc::SelectAll (void)
 
 	m_iNumSelEntities = 0;
 	m_pLevelMgr->EnumEntities (&m_CurrentDocVars.m_Level, this, ::fdocSelectEntity);
-	m_pLevelMgr->EnumBrushes (&m_CurrentDocVars.m_Level, this, ::fdocSelectBrush);	
+	m_pLevelMgr->EnumBrushes (&m_CurrentDocVars.m_Level, this, ::fdocSelectBrush);
 
 	UpdateSelected();	//	calls UpdateMainControls()
 }
@@ -3685,7 +4006,7 @@ BOOL CGEditProDoc::IsEntitySelected(void)
 void CGEditProDoc::SetSelectedEntity( int ID )
 {
 	CEntityArray *pTempEntities = NULL;
-	
+
 	if (m_pLevelMgr)
 	{
 		pTempEntities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
@@ -3708,6 +4029,14 @@ void CGEditProDoc::DeleteEntity(int EntityIndex)
 	Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
 
 	DeselectEntity (&(*Entities)[EntityIndex]);
+// changed QD Actors
+	Brush *b = (*Entities)[EntityIndex].GetActorBrush();
+	if(b!=NULL)
+	{
+		SelBrushList_Remove(m_CurrentDocVars.m_pSelBrushes, b);
+		m_pLevelMgr->RemoveBrush(&m_CurrentDocVars.m_Level, b);
+	}
+// end change
 	Entities->RemoveAt( EntityIndex );
 	m_dwSelState&=(~ENTITYCLEAR);
 	m_dwSelState|=(m_iNumSelEntities >1)? MULTIENTITY : (m_iNumSelEntities+1)<<7;
@@ -3748,7 +4077,7 @@ void CGEditProDoc::AdjustEntityAngle( const ViewVars * v, const geFloat dx )
 			pEnt->GetAngles( &Angles, m_pLevelMgr->GetEntityDefs (&m_CurrentDocVars.m_Level) ) ;
 			geVec3d_Add (&Angles, &Vec, &Angles);
 			pEnt->SetAngles( &Angles, m_pLevelMgr->GetEntityDefs (&m_CurrentDocVars.m_Level) ) ;
-		
+
 			if (pEnt->IsCamera())
 			{
 				SetCameraDocumentCoords(&pEnt->mOrigin, &Angles);
@@ -3756,7 +4085,7 @@ void CGEditProDoc::AdjustEntityAngle( const ViewVars * v, const geFloat dx )
 				SetRenderedViewCamera( &(pEnt->mOrigin), &Angles) ;
 				//	Be very careful when speccing flags for UpdateAllViews()
 				//	The wrong flags at the wrong time will totally screw things up
-				UpdateAllViews(UAV_RENDER_ONLY, NULL);		
+				UpdateAllViews(UAV_RENDER_ONLY, NULL);
 			}
 
 
@@ -3775,7 +4104,7 @@ void CGEditProDoc::AdjustEntityArc( const ViewVars * v, const geFloat dx )
 	pEnt = &(*Entities)[m_iCurrentEntity];
 
 	pEnt->GetArc( &fArc, m_pLevelMgr->GetEntityDefs (&m_CurrentDocVars.m_Level) ) ;
-	
+
 	fArcDelta = Render_ViewDeltaToRadians( v, dx ) ;
 	fArc -= fArcDelta;
 	if (fArc > 2*M_PI)
@@ -3889,7 +4218,7 @@ void CGEditProDoc::SelectOrthoRect(CPoint ptStart, CPoint ptEnd, ViewVars *v)
 				Min = Render_OrthoWorldToView ( v, &bbox->Min ); // Get Brush BB in View Coords
 				Max = Render_OrthoWorldToView ( v, &bbox->Max );
 				if( viewRect.PtInRect( Min ) && viewRect.PtInRect( Max ) )		// If Brush ENTIRELY in rect...
-				{			
+				{
 					DoBrushSelection( pBrush, brushSelAlways ) ;
 				}
 			}
@@ -3946,7 +4275,7 @@ void CGEditProDoc::PlaceTemplateEntity3D(CPoint point, ViewVars *v)
 	bdat.m_pCurBrush	=NULL;
 	bdat.pDoc		= this;
 	BrushList_EnumCSGBrushes(BList, &bdat, SelectBrush3DCB);
-	
+
 	if(bdat.m_pCurBrush)
 	{
 		if(bdat.CurFace)
@@ -3985,14 +4314,15 @@ void CGEditProDoc::SelectRay(CPoint point, ViewVars *v)
 	BrushList				*BList = NULL;
 	SelectBrush3DCBData		bdat;
 	geVec3d					ClickPosWorld;
-	geBoolean				EntitySelected	=FALSE;
+	ClickPosWorld.X = ClickPosWorld.Y = ClickPosWorld.Z = 0.0f;
+	geBoolean				EntitySelected	= FALSE;
 
 	Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
 	BList = m_pLevelMgr->GetBrushes (&m_CurrentDocVars.m_Level);
 
-	if (BList == NULL)	
+	if (BList == NULL)
 	{
-		MessageBox(NULL, "BrushList == NULL", "GEditProDoc SelectRay", MB_OK);
+		MessageBox(NULL, "BrushList == NULL", "RFEditProDoc SelectRay", MB_OK);
 		return;
 	}
 
@@ -4013,20 +4343,20 @@ void CGEditProDoc::SelectRay(CPoint point, ViewVars *v)
 		{
 			if (EntityIsVisible (pEnt))
 			{
-				bdat.CurDist=pEnt->RayDistance (point, v);
+				bdat.CurDist = pEnt->RayDistance (point, v);
 				if ((bdat.CurDist < 900.0f)
 					&& (bdat.CurDist < MinEDist)
 					&& (bdat.CurDist > MIN_ENTITY_SELECT_DIST))
 				{
 					MinEDist=bdat.CurDist;
-					CurEnt	=i;
+					CurEnt	= i;
 				}
 			}
 		}
 	}
 	bdat.m_pCurBrush	= NULL;
-	bdat.CurFace	= NULL;
-	bdat.pDoc		= this;
+	bdat.CurFace		= NULL;
+	bdat.pDoc			= this;
 	BrushList_EnumCSGBrushes(BList, &bdat, SelectBrush3DCB);
 
 	if((bdat.MinBDist < 999999.0f) && (MinEDist > MIN_ENTITY_SELECT_DIST))
@@ -4052,22 +4382,21 @@ void CGEditProDoc::SelectRay(CPoint point, ViewVars *v)
 						fDist	=(Face_PlaneDistance(bdat.CurFace, &bdat.vp)  / fDist);
 
 						geVec3d_Scale(&bdat.wp, fDist, &ClickPosWorld);
-						fDist	=geVec3d_Length(&ClickPosWorld);
+						fDist = geVec3d_Length(&ClickPosWorld);
 
-						if(MinEDist < fDist)
+						if (MinEDist < fDist)
 						{
 							if((GetAsyncKeyState(VK_CONTROL) & 0x8000) == 0)
 							{
 								ResetAllSelections ();
 							}
 							DoEntitySelection(&(*Entities)[CurEnt]);
-							EntitySelected	=GE_TRUE;
+							EntitySelected = GE_TRUE;
 						}
 					}
 				}
 			}
 		}
-
 	}
 	if(!EntitySelected && bdat.m_pCurBrush)
 	{
@@ -4076,21 +4405,21 @@ void CGEditProDoc::SelectRay(CPoint point, ViewVars *v)
 		{
 			ResetAllSelections ();
 		}
-		/*
-		At this point, bdat.m_pCurBrush points to the CSG brush that contains
-		the hit face.  We want the leaf brush that contains the CSG face
-		that was hit.
 
-		So, we search the entire brush list looking for a leaf face (non-cut)
-		that has a face that's coplanar with the hit face, and that contains
-		the impact point.  If none is found, we then search for a matching 
-		cut brush face (again, in leafs) that contains the point.
-		*/
+		//	At this point, bdat.m_pCurBrush points to the CSG brush that contains
+		//	the hit face.  We want the leaf brush that contains the CSG face
+		//	that was hit.
+
+		//	So, we search the entire brush list looking for a leaf face (non-cut)
+		//	that has a face that's coplanar with the hit face, and that contains
+		//	the impact point.  If none is found, we then search for a matching
+		//	cut brush face (again, in leafs) that contains the point.
 		{
-			const Plane *pPlane = NULL;
-			geFloat fDist = 0.0f;
-			geVec3d ClickPosWorld;
-			FaceSearchCallbackData fsData;
+			const Plane				*pPlane = NULL;
+			geFloat					fDist = 0.0f;
+			geVec3d					vecClickPosWorld;
+			vecClickPosWorld.X = vecClickPosWorld.Y = vecClickPosWorld.Z = 0.0f;
+			FaceSearchCallbackData	fsData;
 
 			if (Brush_GetType (bdat.m_pCurBrush) == BRUSH_LEAF)
 			{
@@ -4107,13 +4436,17 @@ void CGEditProDoc::SelectRay(CPoint point, ViewVars *v)
 				if (pPlane)
 				{
 					fDist	= geVec3d_DotProduct(&bdat.wp, &pPlane->Normal);
-					if(fDist != 0.0f)
+					if (fDist != 0.0f)
 					{
 						//grab plane distance and move inward by 16
 						fDist	= (Face_PlaneDistance(bdat.CurFace, &bdat.vp)) / fDist;
 					}
 
 					geVec3d_Scale(&bdat.wp, fDist, &ClickPosWorld);
+
+					//add in distance from the camera
+					geVec3d_Subtract(&ClickPosWorld, &bdat.vp, &ClickPosWorld);
+					geVec3d_Inverse (&ClickPosWorld);
 
 					// OK, now search list for a face that contains this point and
 					// is coplanar with the matched face.
@@ -4126,14 +4459,14 @@ void CGEditProDoc::SelectRay(CPoint point, ViewVars *v)
 					BrushList_EnumLeafBrushes (BList, &fsData, ::fdocFindLeafFace);
 					if (!fsData.Found)
 					{
-						BrushList_EnumLeafBrushes (BList, &fsData, ::fdocFindCutFace);
+						BrushList_EnumLeafBrushes (BList, &fsData, ::fdocFindAnyFace);
 					}
 				}
 			}
 			if (fsData.Found)
 			{
 				//	reset the click-try count to 0
-				CGlobals::g_iRebuildClickCount = 0;	
+				CGlobals::g_iRebuildClickCount = 0;
 
 				// We found the hit face.
 				if (m_AdjustMode == ADJUST_MODE_BRUSH)
@@ -4172,30 +4505,16 @@ void CGEditProDoc::SelectRay(CPoint point, ViewVars *v)
 				}
 			}
 			if (!fsData.Found)
-			{			
-				if (CGlobals::g_bRebuildAlways)
+			{
+				//	keep track of the number of missed hits
+				CGlobals::g_iRebuildClickCount++;
+				//	need to do this because tools still think there are
+				//	brushes selected. This makes it possible to select anew.
+				m_iCurrentTool = CURTOOL_NONE;
+				if (CGlobals::g_iRebuildClickCount  > 2)
 				{
-					//	need to do this because tools still think there are
-					//	brushes selected. This makes it possible to select anew.
-					m_iCurrentTool = CURTOOL_NONE;
-					//	use REBUILD_QUICK very sparingly
-					//	it slows things down hugely
-					UpdateAllViews( UAV_ALL3DVIEWS | REBUILD_QUICK, NULL ); //posthoot
-				}
-				//	otherwise put up a button on the textured view
-				//	and notify the user of the need to rebuild
-				if (!CGlobals::g_bRebuildAlways)
-				{
-					//	keep track of the number of missed hits
-					CGlobals::g_iRebuildClickCount++;
-					//	need to do this because tools still think there are
-					//	brushes selected. This makes it possible to select anew.
-					m_iCurrentTool = CURTOOL_NONE;
-					if (CGlobals::g_iRebuildClickCount  > 2)
-					{
-						this->m_pMainFrame->SendMessage(WM_COMMAND, IDC_BTN_REBUILD_COMMAND);
-						CGlobals::g_iRebuildClickCount = 0;
-					}
+					m_pMainFrame->SendMessage(WM_COMMAND, IDC_BTN_REBUILD_COMMAND);
+					CGlobals::g_iRebuildClickCount = 0;
 				}
 			}
 		}
@@ -4211,6 +4530,7 @@ void CGEditProDoc::SelectRay(CPoint point, ViewVars *v)
 	UpdateSelected();	//	Repositioned here. calls m_pMainFrame->UpdateMainControls()
 
 }
+
 
 //selects the texture of the face clicked (doesn't select the face)
 void CGEditProDoc::SelectTextureFromFace3D(CPoint point, ViewVars *v)
@@ -4232,7 +4552,7 @@ void CGEditProDoc::SelectTextureFromFace3D(CPoint point, ViewVars *v)
 	bdat.m_pCurBrush	=NULL;
 	bdat.pDoc		= this;
 	BrushList_EnumCSGBrushes(BList, &bdat, SelectBrush3DCB);
-	
+
 	if(bdat.m_pCurBrush)
 	{
 		if(bdat.CurFace)
@@ -4245,7 +4565,7 @@ void CGEditProDoc::SelectTextureFromFace3D(CPoint point, ViewVars *v)
 void CGEditProDoc::UpdateFaceAttributesDlg (void)
 {
 	if (m_pMainFrame->m_dPropFaceAttributesDialog)	//	 new g3dc
-	{			
+	{
 		m_pMainFrame->UpdateMainControls();
 
 	}
@@ -4321,10 +4641,10 @@ void CGEditProDoc::GetCursorInfo(char *info, int MaxSize)
 
 	pos = GetFirstViewPosition();
 	info[0]	= 0;
-	ShiftHeld = CGlobals::IsKeyDown(VK_SHIFT);	
+	ShiftHeld = CGlobals::IsKeyDown(VK_SHIFT);
 
 	GetCursorPos(&CursorPos);
-	
+
 	while(pos != NULL)
 	{
 		pView = (CGEditProView*)GetNextView(pos);
@@ -4332,7 +4652,7 @@ void CGEditProDoc::GetCursorInfo(char *info, int MaxSize)
 		{
 			pView->GetClientRect(&ClientRect);
 			pView->ClientToScreen(&ClientRect);
-	
+
 
 		if(ClientRect.PtInRect(CursorPos))
 		{
@@ -4349,7 +4669,7 @@ void CGEditProDoc::GetCursorInfo(char *info, int MaxSize)
 				}
 			}
 				//	otherwise, cursor is in one of the three ortho viewports
-			else 
+			else
 			{
 				if(!pView->IsPanning && m_iCurrentTool!=ID_TOOLS_BRUSH_SCALEBRUSH
 					&& m_iCurrentTool!=ID_TOOLS_BRUSH_SHEARBRUSH)
@@ -4366,7 +4686,7 @@ void CGEditProDoc::GetCursorInfo(char *info, int MaxSize)
 						;;	//	don't do anything
 					}
 						//	otherwise, we found something, or we're very close to something
-					else		
+					else
 					{
 						switch (FoundThingType)
 						{
@@ -4374,7 +4694,7 @@ void CGEditProDoc::GetCursorInfo(char *info, int MaxSize)
 							SetCursor(AfxGetApp()->LoadCursor(IDC_ARROWBRUSH));
 							strncpy (info, Brush_GetName(pMinBrush), MaxSize);
 							break;
-														
+
 						case fctENTITY :
 							SetCursor(AfxGetApp()->LoadCursor(IDC_ARROWENTITY));
 							strncpy (info, pMinEntity->GetName (), MaxSize);
@@ -4393,7 +4713,7 @@ void CGEditProDoc::GetCursorInfo(char *info, int MaxSize)
 
 /////////////////////////////////////////////////////////////////////////////////////
 //	SetPrintingState
-//	
+//
 /////////////////////////////////////////////////////////////////////////////////////
 bool	CGEditProDoc::SetPrintingState(bool bState)
 {
@@ -4405,7 +4725,7 @@ bool	CGEditProDoc::SetPrintingState(bool bState)
 
 /////////////////////////////////////////////////////////////////////////////////////
 //	GetPrintingState
-//	
+//
 /////////////////////////////////////////////////////////////////////////////////////
 bool	CGEditProDoc::GetPrintingState()
 {
@@ -4425,7 +4745,7 @@ void CGEditProDoc::OnSelectedTypeCmdUI(CCmdUI* pCmdUI)
 }
 
 // NO UI EXISTS FOR THIS FUNCTION
-void CGEditProDoc::OnBrushSelectedCopytocurrent() 
+void CGEditProDoc::OnBrushSelectedCopytocurrent()
 {
 //	ConPrintf("Temporarily Disabled...\n");	//	old gedit
 	m_pMainFrame->ConPrintf("Temporarily Disabled...\n");	//	new g3dc
@@ -4458,6 +4778,15 @@ BOOL CGEditProDoc::DeleteSelectedBrushes(void)
 //					DeleteEntity(Ent--);
 
 					DeselectEntity (&(*pEntities)[Ent]);
+// changed QD 01/04 bug fix
+// didn't see that DeleteEntity was commented out above (btw why?)
+					Brush *b = (*pEntities)[Ent].GetActorBrush();
+					if(b)
+					{
+						SelBrushList_Remove(m_CurrentDocVars.m_pSelBrushes, b);
+						m_pLevelMgr->RemoveBrush (&thisFunctionDocVars.m_Level, b);
+					}
+// end change
 					pEntities->RemoveAt( Ent );
 					m_dwSelState&=(~ENTITYCLEAR);
 					m_dwSelState|=(m_iNumSelEntities >1)? MULTIENTITY : (m_iNumSelEntities+1)<<7;
@@ -4480,11 +4809,16 @@ BOOL CGEditProDoc::DeleteSelectedBrushes(void)
 			ModelInfo_Type		*pModelInfo = NULL;
 			pModelInfo = m_pLevelMgr->GetModelInfo (&thisFunctionDocVars.m_Level);	//	post 0.57
 
-			pBrush = SelBrushList_GetBrush (m_CurrentDocVars.m_pSelBrushes, 0);	
+			pBrush = SelBrushList_GetBrush (m_CurrentDocVars.m_pSelBrushes, 0);
+// changed QD Actors
+// no chance to delete ActorBrushes!!!
+			if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+				continue;
+// end change
 			if (pBrush)
 			{
 
-			//	post 0.57			
+			//	post 0.57
 			//	Deleting models if they are associated with brushes that are getting deleted
 			BrushModelId = Brush_GetModelId (pBrush);//post 0.57
 
@@ -4548,10 +4882,55 @@ BOOL CGEditProDoc::DeleteSelectedBrushes(void)
 	return FALSE;
 }
 
-void CGEditProDoc::OnBrushSelectedDelete() 
+void CGEditProDoc::OnBrushSelectedDelete()
 {
 	DeleteSelectedBrushes();
 }
+
+// changed QD 11/03
+void CGEditProDoc::OnFileExport3dtv1_32()
+{
+	static const char FDTitle[] = "Export";
+	CFileDialog dlg(TRUE, "3dt", NULL, OFN_OVERWRITEPROMPT,	"rfEDIT Files v1.32 (*.3DT)|*.3DT||");
+
+	dlg.m_ofn.lpstrTitle = FDTitle;
+	if (dlg.DoModal () == IDOK)
+	{
+		if (dlg.m_ofn.nFilterIndex == 1)
+		{
+			char Name[MAX_PATH];
+
+			::FilePath_SetExt (dlg.GetPathName (), ".3dt", Name);
+			ExportTo3dtv1_32(Name);
+		}
+	}
+}
+
+void CGEditProDoc::OnFileExport3ds()
+{
+// changed QD 12/03
+	Export3dsDialog ExpDlg;
+
+	if (ExpDlg.DoModal () == IDOK)
+	{
+		static const char FDTitle[] = "Export";
+		CFileDialog dlg(TRUE, "3ds", NULL, OFN_OVERWRITEPROMPT,	"Autodesk 3DS (*.3DS)|*.3DS||");
+
+		dlg.m_ofn.lpstrTitle = FDTitle;
+		if (dlg.DoModal () == IDOK)
+		{
+			if (dlg.m_ofn.nFilterIndex == 1)
+			{
+				char Name[MAX_PATH];
+
+				::FilePath_SetExt (dlg.GetPathName (), ".3ds", Name);
+				ExportTo3ds(Name, ExpDlg.m_ExportAll, ExpDlg.m_ExportLights, ExpDlg.m_GroupFile);
+			}
+		}
+	}
+
+}
+// end change
 
 void CGEditProDoc::SetupDefaultFilename (void)
 {
@@ -4571,7 +4950,7 @@ void CGEditProDoc::SetupDefaultFilename (void)
 }
 
 
-void CGEditProDoc::OnFileSave() 
+void CGEditProDoc::OnFileSave()
 {
 	if (m_iIsNewDocument)
 	{
@@ -4584,7 +4963,7 @@ void CGEditProDoc::OnFileSave()
 	}
 }
 
-void CGEditProDoc::OnFileSaveAs() 
+void CGEditProDoc::OnFileSaveAs()
 {
 	SetupDefaultFilename ();
 	CDocument::OnFileSaveAs ();
@@ -4616,9 +4995,9 @@ BOOL CGEditProDoc::OnSaveDocument(LPCTSTR lpszPathName)
 	return TRUE;
 }
 
-BOOL CGEditProDoc::OnOpenDocument(LPCTSTR lpszPathName) 
+BOOL CGEditProDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
-	::FilePath_GetDriveAndDir (lpszPathName, LastPath);	
+	::FilePath_GetDriveAndDir (lpszPathName, LastPath);
 
 	if( Load( lpszPathName ) == GE_FALSE )
 		return FALSE ;
@@ -4667,17 +5046,17 @@ void	CGEditProDoc::InvalidateDrawTreeOriginalFaces(void)
 
 
 //	g3dc tuning comment
-//	This function causes the main performance bottleneck if Options, 
+//	This function causes the main performance bottleneck if Options,
 //	Auto Rebuild is selected.
 //	Main slowdown is caused by:
 //		BrushList_DoCSG(BList, CurId, ::fdocBrushCSGCallback, this)
 //		BrushList_EnumCSGBrushes (BList, &BspCallbackData, ::AddBrushToBspCB)
-//		
+//
 
 void	CGEditProDoc::RebuildTrees(void)
 {
 //	AfxMessageBox("Starting to RebuildTrees Now");
-	
+
 	ModelIterator	mi;
 	int				i, CurId = 0;
 	Node			*n;
@@ -4693,6 +5072,9 @@ void	CGEditProDoc::RebuildTrees(void)
 	wndProgress.SetRange(0,100);
 	wndProgress.SetStep(10);
 
+// changed QD 11/03 Actors
+	UpdateEntityActors();
+// end change
 
 	BList = m_pLevelMgr->GetBrushes (&m_CurrentDocVars.m_Level);
 
@@ -4724,12 +5106,12 @@ void	CGEditProDoc::RebuildTrees(void)
 	BspCallbackData.pTree		=&m_pWorldBsp;
 	BspCallbackData.bAddFlocking=GE_FALSE;
 
-	wndProgress.StepIt();	// 40	
+	wndProgress.StepIt();	// 40
 
 	BrushList_EnumCSGBrushes (BList, &BspCallbackData, ::AddBrushToBspCB) ;
 
 	wndProgress.StepIt();	// 50
-	
+
 	BspCallbackData.bAddFlocking=GE_TRUE;
 	BrushList_EnumCSGBrushes (BList, &BspCallbackData, ::AddBrushToBspCB) ;
 
@@ -4763,7 +5145,7 @@ void	CGEditProDoc::RebuildTrees(void)
 	}
 
 	wndProgress.StepIt();	// 90
-	
+
 	if(m_AdjustMode==ADJUST_MODE_FACE)
 	{
 		ResetAllSelectedFaces();	//	post release 0.5. eliminates crash
@@ -4780,14 +5162,14 @@ void	CGEditProDoc::RebuildTrees(void)
 	m_pMainFrame->m_wndStatusBar.SetPaneText(0, "For Help, press F1");
 }
 
-void CGEditProDoc::OnRebuildBSPTree() 
+void CGEditProDoc::OnRebuildBSPTree()
 {
 	//	post 0.57 gets rid of the "Rebuild?" button on the texture view
 	this->m_pMainFrame->SendMessageToDescendants(WM_COMMAND, IDC_BTN_REBUILD_HIDE);
 	CGlobals::g_iRebuildClickCount = 0;
 
-	
-	RebuildTrees();	//	disabled for ver 0.57. 
+
+	RebuildTrees();	//	disabled for ver 0.57.
 	//	Be very careful when speccing flags for UpdateAllViews()
 	//	The wrong flags at the wrong time will totally screw things up
 	UpdateAllViews(UAV_ALL3DVIEWS, NULL);
@@ -4795,7 +5177,7 @@ void CGEditProDoc::OnRebuildBSPTree()
 
 
 //==============================================================
-// This function will delete our current thing if we 
+// This function will delete our current thing if we
 // have something. e.g. entity or brush
 //==============================================================
 void CGEditProDoc::DeleteCurrentThing()
@@ -5013,6 +5395,11 @@ void CGEditProDoc::RenderWorld(ViewVars *v, CDC *pDC)
 		Brush *pBrush = NULL;
 
 		pBrush = SelBrushList_GetBrush (m_CurrentDocVars.m_pSelBrushes, i);
+// changed QD Actors
+		if(!m_bShowActors)
+			if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+				continue;
+// end change
 		if (pBrush)
 		{
 			if(Brush_IsMulti(pBrush))
@@ -5083,6 +5470,10 @@ void CGEditProDoc::MoveSelectedBrushList(SelBrushList *pList, geVec3d const *v)
 			pBrush = SelBrushList_GetBrush (pList, i);
 			if (pBrush)
 			{
+// changed QD Actors
+				if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+				continue;
+// end change
 				Brush_Move (pBrush, v);
 			}
 		}
@@ -5161,7 +5552,7 @@ void CGEditProDoc::GetRotationPoint
 		// we're animating a model, so use its current position
 		Model_GetCurrentPos (pModel, pVec);
 		// We have to add the current move translation
-		ModelTab = &m_pMainFrame->m_ModelsTab;	//	new g3dc	
+		ModelTab = &m_pMainFrame->m_ModelsTab;	//	new g3dc
 		if (ModelTab != NULL)
 		{
 			ModelTab->GetTranslation (&Xlate);
@@ -5198,6 +5589,11 @@ void CGEditProDoc::RotateSelectedBrushList(SelBrushList *pList, geVec3d const *v
 	for(i=0;i < NumBrushes;i++)
 	{
 		Brush *pBrush = SelBrushList_GetBrush (pList, i);
+// changed QD Actors
+// don't rotate ActorBrushes
+		if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+			continue;
+// end change
 		Brush_Rotate (pBrush, &rm, &RotationPoint);
 	}
 
@@ -5239,7 +5635,7 @@ void CGEditProDoc::RotateSelectedBrushesDirect(geVec3d const *v)
 	CGEditProDocVars	thisFunctionDocVars;
 
 	thisFunctionDocVars = DocVarsCreateUniqueCopy(m_CurrentDocVars);
-	TempDeleteSelected(&m_CurrentDocVars);	
+	TempDeleteSelected(&m_CurrentDocVars);
 
 	m_iLastOp = BRUSH_ROTATE;
 
@@ -5248,7 +5644,7 @@ void CGEditProDoc::RotateSelectedBrushesDirect(geVec3d const *v)
 	// current translations.
 	GetRotationPoint (&RotationPoint);
 
-	
+
 	geVec3d_Add(v, &m_vecFinalRot, &m_vecFinalRot);
 	geXForm3d_SetEulerAngles(&rm, v);
 
@@ -5256,9 +5652,16 @@ void CGEditProDoc::RotateSelectedBrushesDirect(geVec3d const *v)
 	{
 		Brush *pBrush = NULL;
 		pBrush = SelBrushList_GetBrush (thisFunctionDocVars.m_pSelBrushes, i);
-
+// changed QD Actors
+// don't rotate ActorBrushes
+		if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+			continue;
+// end change
 		if (pBrush)
+		{
+
 			Brush_Rotate (pBrush, &rm, &RotationPoint);
+		}
 	}
 
 //	post 0.5 release	//	rotate selected entities along with brushes
@@ -5373,13 +5776,13 @@ void CGEditProDoc::DoneRotate(void)
 		if (pTrueEntities)
 		{
 			pTrueEnt = this->FindCameraEntity(&m_CurrentDocVars);
-		
+
 				if (pTrueEnt)
 				{
 					if (pTrueEnt->IsSelected())
 					{
 						return;
-	
+
 					}
 				}
 		}
@@ -5411,6 +5814,11 @@ void CGEditProDoc::DoneRotate(void)
 		pBrush = SelBrushList_GetBrush (thisFunctionDocVars.m_pSelBrushes, i);
 		if (pBrush)
 		{
+// changed QD Actors
+// don't rotate ActorBrushes
+			if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+				continue;
+// end change
 			Brush_Rotate (pBrush, &rm, &RotationPoint);
 		}
 	}
@@ -5426,7 +5834,7 @@ void CGEditProDoc::DoneRotate(void)
 			CEntity  *pTrueEnt = NULL;
 			pTrueEnt = &pTrueEntities->GetAt(iZeppo);
 			if (pTrueEnt)
-			{	
+			{
 				geVec3d Angles;
 				geVec3d_Clear(&Angles);
 				pTrueEnt->SetOrigin(pTrueEnt->mOrigin.X, pTrueEnt->mOrigin.Y, pTrueEnt->mOrigin.Z, thisFunctionDocVars.m_Level.m_pEntityDefs);
@@ -5444,7 +5852,7 @@ void CGEditProDoc::DoneRotate(void)
 						SetRenderedViewCamera( &(pTrueEnt->mOrigin), &Angles) ;
 						//	Be very careful when speccing flags for UpdateAllViews()
 						//	The wrong flags at the wrong time will totally screw things up
-						UpdateAllViews(UAV_RENDER_ONLY, NULL);		
+						UpdateAllViews(UAV_RENDER_ONLY, NULL);
 					}
 
 				}
@@ -5535,7 +5943,7 @@ void CGEditProDoc::DoneShear(int sides, int inidx)
 	int NumSelBrushes = SelBrushList_GetSize (thisFunctionDocVars.m_pSelBrushes);
 
 	int i;
-	
+
 	for (i = 0; i < NumSelBrushes; ++i)
 	{
 		Brush *pBrush = NULL;
@@ -5546,6 +5954,11 @@ void CGEditProDoc::DoneShear(int sides, int inidx)
 
 		if (pBrush && tBrush)
 		{
+// changed QD Actors
+// don't shear ActorBrushes
+		if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+			continue;
+// end change
 		Brush_ShearFinal(pBrush, sides, inidx, &m_vecFinalScale);
 
 		//check which side of the bounds changed
@@ -5615,21 +6028,21 @@ void CGEditProDoc::ResizeSelected(float dx, float dy, int sides, int inidx)
 		vecFake.X = vecFake.Y = vecFake.Z = 1.0f;
 
 		NumBrushes = SelBrushList_GetSize (m_CurrentDocVars.m_pTempSelBrushes);
-		
+
 		if (NumBrushes > 0)
 		{
 		for (i = 0; i < NumBrushes; ++i)
 			{
 				Brush *pBrush = NULL;
-				
+
 				pBrush = SelBrushList_GetBrush (m_CurrentDocVars.m_pTempSelBrushes, i);
 
 				if (pBrush)
-				{	
+				{
 					//	set default bounding box to be taht of the first selected
 					//	brush ... to get us in range
-					if (i == 0)	
-					{	
+					if (i == 0)
+					{
 						int iOffset = 0;
 						multiBoundingBox.Min.X = pBrush->BoundingBox.Min.X - iOffset;
 						multiBoundingBox.Min.Y = pBrush->BoundingBox.Min.Y - iOffset;
@@ -5659,7 +6072,7 @@ void CGEditProDoc::ResizeSelected(float dx, float dy, int sides, int inidx)
 		for (i = 0; i < NumBrushes; ++i)
 		{
 			Brush *pBrush = NULL;
-			
+
 			pBrush = SelBrushList_GetBrush (m_CurrentDocVars.m_pTempSelBrushes, i);
 
 			if (pBrush)
@@ -5671,10 +6084,10 @@ void CGEditProDoc::ResizeSelected(float dx, float dy, int sides, int inidx)
 				pBrush->BoundingBox.Max.X = multiBoundingBox.Max.X;
 				pBrush->BoundingBox.Max.Y = multiBoundingBox.Max.Y;
 				pBrush->BoundingBox.Max.Z = multiBoundingBox.Max.Z;
-				
+
 				//	give the final resize vector only ONCE. Otherwise, if multiple brushes
 				//	are being resized, the scale will mulitply for each brush
-				if (i == 0)	
+				if (i == 0)
 					Brush_Resize (pBrush, dx, dy, sides, inidx, &m_vecFinalScale, &m_iScaleNum);
 				else	//	give it a fake vector
 					Brush_Resize (pBrush, dx, dy, sides, inidx, &vecFake, &m_iScaleNum);
@@ -5720,12 +6133,16 @@ void CGEditProDoc::DoneResize(int sides, int inidx)
 			Brush *pBrush = NULL;
 
 			pBrush = SelBrushList_GetBrush (m_CurrentDocVars.m_pSelBrushes, i);
-
+// changed QD Actors
+// don't resize ActorBrushes
+			if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+				continue;
+// end change
 			if (pBrush)
 			{
 				//	set default bounding box to be taht of the first selected
 				//	brush ... to get us in range
-				if (i == 0)	
+				if (i == 0)
 				{
 					multiBoundingBox.Min.X = pBrush->BoundingBox.Min.X;
 					multiBoundingBox.Min.Y = pBrush->BoundingBox.Min.Y;
@@ -5758,7 +6175,11 @@ void CGEditProDoc::DoneResize(int sides, int inidx)
 		Brush *pBrush = NULL;
 
 		pBrush = SelBrushList_GetBrush (thisFunctionDocVars.m_pSelBrushes, i);
-
+// changed QD Actors
+// don't resize ActorBrushes
+		if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+			continue;
+// end change
 		if (pBrush)
 		{
 			pBrush->BoundingBox.Min.X = multiBoundingBox.Min.X;
@@ -5828,8 +6249,8 @@ void CGEditProDoc::DoneMove (void)
 					if (pTrueEnt->IsSelected())
 					{
 						if( pTrueEnt->IsCamera() == GE_TRUE )	// Camera Entity?
-						{	
-							DoneMoveEntity (&m_CurrentDocVars);	
+						{
+							DoneMoveEntity (&m_CurrentDocVars);
 							return;
 						}
 					}
@@ -5862,7 +6283,14 @@ void CGEditProDoc::DoneMove (void)
 
 			pBrush = SelBrushList_GetBrush (thisFunctionDocVars.m_pSelBrushes, i);
 			if (pBrush)
+			{
+// changed QD Actors
+// ActorBrushes will be moved via their entities
+				if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+					continue;
+// end change
 				Brush_Move (pBrush, &m_vecFinalPos);
+			}
 		}
 
 		if (GetSelState() & ANYENTITY)
@@ -5908,24 +6336,24 @@ void CGEditProDoc::DoneMoveEntity(CGEditProDocVars	*pDocVars)
 				pTrueEnt = &(*pTrueEntities)[i];
 
 				if (/*pSelEnt && */pTrueEnt)
-				{		
+				{
 					pTrueEnt->SetOrigin(pTrueEnt->mOrigin.X, pTrueEnt->mOrigin.Y, pTrueEnt->mOrigin.Z, pDocVars->m_Level.m_pEntityDefs);
 					if (pTrueEnt->IsSelected ())
 					{
 						pTrueEnt->DoneMove (SnapSize, pDocVars->m_Level.m_pEntityDefs);
 						if( pTrueEnt->IsCamera() == GE_TRUE )	// Camera Entity?
-						{				
+						{
 							geVec3d	PitchRollYaw ;
-							
+
 							pTrueEnt->GetAngles( &PitchRollYaw, m_pLevelMgr->GetEntityDefs (&pDocVars->m_Level) ) ;
 							SetRenderedViewCamera( &(pTrueEnt->mOrigin), &PitchRollYaw ) ;
 							SetCameraDocumentCoords(&pTrueEnt->mOrigin, &PitchRollYaw);
 
 							//	Be very careful when speccing flags for UpdateAllViews()
 							//	The wrong flags at the wrong time will totally screw things up
-							UpdateAllViews(UAV_RENDER_ONLY, NULL);		
+							UpdateAllViews(UAV_RENDER_ONLY, NULL);
 						}// Camera entity, update camera
-				
+
 					}// Entity Selected
 
 				}// Loop thru Entities
@@ -5963,14 +6391,14 @@ void CGEditProDoc::DoneMoveEntity(CGEditProDocVars	*pDocVars)
 					{
 						pTrueEnt->DoneMove (SnapSize, m_pLevelMgr->GetEntityDefs (&pDocVars->m_Level));
 						if( pTrueEnt->IsCamera() == GE_TRUE )	// Camera Entity?
-						{				
+						{
 							geVec3d	PitchRollYaw ;
 
 							pTrueEnt->GetAngles( &PitchRollYaw, m_pLevelMgr->GetEntityDefs (&pDocVars->m_Level)) ;
 							SetRenderedViewCamera( &(pTrueEnt->mOrigin), &PitchRollYaw ) ;
 							//	Be very careful when speccing flags for UpdateAllViews()
 							//	The wrong flags at the wrong time will totally screw things up
-							UpdateAllViews(UAV_RENDER_ONLY, NULL);		
+							UpdateAllViews(UAV_RENDER_ONLY, NULL);
 						}// Camera entity, update camera
 					}// Entity Selected
 				}
@@ -6020,7 +6448,7 @@ void CGEditProDoc::UpdateEntityOrigins()
 		SetRenderedViewCamera( &(pEnt->mOrigin), &vecAngles ) ;
 		//	Be very careful when speccing flags for UpdateAllViews()
 		//	The wrong flags at the wrong time will totally screw things up
-		UpdateAllViews(UAV_RENDER_ONLY, NULL);		
+		UpdateAllViews(UAV_RENDER_ONLY, NULL);
 	}
 }
 
@@ -6054,7 +6482,7 @@ void CGEditProDoc::MoveEntity(geVec3d *v)
 				}
 
 				if (pEntity->IsCamera())
-				{	
+				{
 					geVec3d	vecOrigin, vecAngles;
 					geVec3d_Clear(&vecOrigin);
 					geVec3d_Clear(&vecAngles);
@@ -6304,6 +6732,21 @@ void CGEditProDoc::ConfigureCurrentTool(void)
 void CGEditProDoc::UpdateSelected()
 {
 	int		i;
+
+// changed QD 11/03 Actors
+// allow entity rotation, while ActorBrush is Selected
+	CEntityArray *pEntities = NULL;
+	pEntities = m_CurrentDocVars.m_Level.m_pEntities;
+
+	for(i=0;i < pEntities->GetSize();i++)
+	{
+		Brush *pBrush = (*pEntities)[i].GetActorBrush();
+
+		if(pBrush)
+			SelBrushList_Remove(m_CurrentDocVars.m_pSelBrushes, pBrush);
+	}
+
+// end change
 	int NumSelFaces = SelFaceList_GetSize (m_CurrentDocVars.m_pSelFaces);
 
 	int NumSelBrushes = SelBrushList_GetSize (m_CurrentDocVars.m_pSelBrushes);
@@ -6366,9 +6809,10 @@ void CGEditProDoc::UpdateSelected()
 	}
 	if(m_dwSelState & ONEENTITY)
 	{
-		CEntityArray *pEntities = NULL;
-		pEntities = m_CurrentDocVars.m_Level.m_pEntities;
-		
+// changed QD Actors
+//		CEntityArray *pEntities = NULL;
+//		pEntities = m_CurrentDocVars.m_Level.m_pEntities;
+
 		if (pEntities)
 		{
 			for(i=0;i < pEntities->GetSize() && !((*pEntities)[i].IsSelected ());i++);
@@ -6378,6 +6822,20 @@ void CGEditProDoc::UpdateSelected()
 	else
 		m_iCurrentEntity	=-1;
 
+// changed QD 11/03 Actors
+	for(i=0;i < pEntities->GetSize();i++)
+	{
+		Brush *pBrush = (*pEntities)[i].GetActorBrush();
+
+		if(pBrush)
+		{
+			if((*pEntities)[i].IsSelected())
+					SelBrushList_Add(m_CurrentDocVars.m_pSelBrushes, pBrush);
+		}
+	}
+
+// end change
+
 	m_pMainFrame->UpdateMainControls(); // DoGeneralSelect depends on this here
 
 
@@ -6385,7 +6843,7 @@ void CGEditProDoc::UpdateSelected()
 
 void CGEditProDoc::NullBrushAttributes(void)
 {
-	m_pBrushAttributes=NULL;  
+	m_pBrushAttributes=NULL;
 }
 
 
@@ -6444,7 +6902,7 @@ void CGEditProDoc::SetMode(int mMode)
 	m_pMainFrame->HideAllPropDialogsBut((CWnd*)this);
 
 	if (mMode == MAINFRM_COMMANDPANEL_TEMPLATES)
-	{	
+	{
 		m_pTempBrush = m_pCurBrush;	//	for restoring later
 		m_iModeTool = ID_TOOLS_TEMPLATE;
 		m_pLevelMgr->EnumEntities (&m_CurrentDocVars.m_Level, this, ::fdocDeselectEntity);
@@ -6472,7 +6930,7 @@ void CGEditProDoc::SetMode(int mMode)
 		}
 	}
 	else
-	{	
+	{
 		m_iModeTool = ID_GENERALSELECT;
 		m_iCurrentTool = CURTOOL_NONE;
 	}
@@ -6495,8 +6953,8 @@ void CGEditProDoc::DoGeneralSelect (void)
 	if (m_iModeTool ==ID_GENERALSELECT)	//	save some effort
 		return;
 					//	clear the properties panel. new g3dc
-	m_pMainFrame->HideAllPropDialogsBut((CWnd*)this);		
-	
+	m_pMainFrame->HideAllPropDialogsBut((CWnd*)this);
+
 	m_iCurrentTool	=CURTOOL_NONE;
 	m_iModeTool		=ID_GENERALSELECT;
 	ConfigureCurrentTool();	//	calls UpdateAllViews()
@@ -6539,7 +6997,7 @@ void CGEditProDoc::SetAdjustmentMode( fdocAdjustEnum nCmdIDMode )
 		case ADJUST_MODE_FACE :
 		{
 			m_AdjustMode = nCmdIDMode;
-			
+
 			// Select all faces on all selected brushes
 			int iBrush;
 			int NumSelBrushes = SelBrushList_GetSize (m_CurrentDocVars.m_pSelBrushes);
@@ -6549,7 +7007,7 @@ void CGEditProDoc::SetAdjustmentMode( fdocAdjustEnum nCmdIDMode )
 				Brush *pBrush = NULL;
 
 				pBrush = SelBrushList_GetBrush (m_CurrentDocVars.m_pSelBrushes, iBrush);
-				if (pBrush)		
+				if (pBrush)
 				{
 				if (Brush_IsMulti (pBrush))
 				{
@@ -6573,7 +7031,7 @@ void CGEditProDoc::SetAdjustmentMode( fdocAdjustEnum nCmdIDMode )
 
 
 
-void CGEditProDoc::OnCloseDocument() 
+void CGEditProDoc::OnCloseDocument()
 {
 										//	Clear the slate.
 										//	still needed here even though
@@ -6586,7 +7044,7 @@ void CGEditProDoc::OnCloseDocument()
 	m_pMainFrame->m_CommandTabControl = (CTabCtrl*)m_pMainFrame->m_CommandDialogBar.GetDlgItem( IDC_COMMAND_TAB ) ;
 							// Default to TemplatesTab
 	m_pMainFrame->m_CommandTabControl->SetCurSel( MAINFRM_COMMANDPANEL_TEMPLATES ) ;
-	m_pMainFrame->m_eCurrentTab = MAINFRM_COMMANDPANEL_TEMPLATES ;	
+	m_pMainFrame->m_eCurrentTab = MAINFRM_COMMANDPANEL_TEMPLATES ;
 
 
 	CDocument::OnCloseDocument();
@@ -6594,7 +7052,7 @@ void CGEditProDoc::OnCloseDocument()
 
 
 
-void CGEditProDoc::OnThingAttributes() 
+void CGEditProDoc::OnThingAttributes()
 {
 	switch( m_AdjustMode )
 	{
@@ -6612,9 +7070,9 @@ void CGEditProDoc::OnThingAttributes()
 	}
 }
 
-void CGEditProDoc::OnEditDelete() 
+void CGEditProDoc::OnEditDelete()
 {
-	DeleteCurrentThing ();	
+	DeleteCurrentThing ();
 }
 
 
@@ -6642,13 +7100,27 @@ geBoolean CGEditProDoc::WriteLevelToMap(const char *Filename)
 {
 	static const int Version = 1;
 	static const int ftag = 0x4642434E;
-	int NumEntities;
+	int NumEntities, i;
 	FILE *exfile = NULL;
 	ModelInfo_Type *ModelInfo = NULL;
 	BrushList *BList = NULL;
 	fdocEntityCountData	ecnt;
 	CompileParamsType *CompileParams = NULL;
 	CompileParams = m_pLevelMgr->GetCompileParams (&m_CurrentDocVars.m_Level);
+
+// changed QD Actors
+// don't want to compile ActorBrushes
+	CEntityArray *Entities;
+	Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
+
+	for(i=0;i < Entities->GetSize();i++)
+	{
+		Brush *pBrush = (*Entities)[i].GetActorBrush();
+
+		if(pBrush!=NULL)
+			m_pLevelMgr->RemoveBrush(&m_CurrentDocVars.m_Level, pBrush);
+	}
+// end change
 
 	BList = m_pLevelMgr->GetBrushes (&m_CurrentDocVars.m_Level);
 
@@ -6728,8 +7200,8 @@ geBoolean CGEditProDoc::WriteLevelToMap(const char *Filename)
 						nSkyFaces = 0;
 						for (iFace = 0; iFace < 6; ++iFace)
 						{
-							SkyFaceTexture *pFace = NULL; 
-	
+							SkyFaceTexture *pFace = NULL;
+
 							pFace = &pSkyFaces[iFace];
 							if (pFace)
 							{
@@ -6738,7 +7210,7 @@ geBoolean CGEditProDoc::WriteLevelToMap(const char *Filename)
 									++nSkyFaces;
 								}
 								pFace = NULL;
-	
+
 							}	//	if (pFace...
 						}
 
@@ -6767,7 +7239,7 @@ geBoolean CGEditProDoc::WriteLevelToMap(const char *Filename)
 						for (iFace = 0; iFace < 6; ++iFace)
 						{
 							SkyFaceTexture *pFace = NULL;
-	
+
 							pFace = &pSkyFaces[iFace];
 							if (pFace)
 							{
@@ -6802,6 +7274,15 @@ geBoolean CGEditProDoc::WriteLevelToMap(const char *Filename)
 			}	//	if (ModelInfo...
 		}	//	if (exfile...
 	}	//	if (BList...
+// changed QD Actors
+	for(i=0;i < Entities->GetSize();i++)
+	{
+		Brush *pBrush = (*Entities)[i].GetActorBrush();
+
+		if(pBrush!=NULL)
+			m_pLevelMgr->AppendBrush(&m_CurrentDocVars.m_Level, pBrush);
+	}
+// end change
 	return GE_TRUE;
 }
 
@@ -6814,7 +7295,7 @@ void	CGEditProDoc::ShowConsole()
 
 
 
-void CGEditProDoc::OnCompile() 
+void CGEditProDoc::OnCompile()
 {
 	geBoolean		NoErrors;
 	CompilerErrorEnum CompileRslt;
@@ -6831,7 +7312,7 @@ void CGEditProDoc::OnCompile()
 		}
 		return;
 	}
-	
+
 	CMainFrame	*pMainFrame = CGlobals::GetActiveDocument()->m_pMainFrame;	// new g3dc
 	pMainFrame->ConClear();		//	new g3dc
 	ShowConsole();
@@ -6932,11 +7413,34 @@ void CGEditProDoc::CompileDone (CompilerErrorEnum CompileRslt)
 
 void CGEditProDoc::ScaleWorld(geFloat ScaleFactor)
 {
-	assert (ScaleFactor > 0.0f);
+// changed QD Actors 12/03
+	if (ScaleFactor <= 0.0f) return;
+// don't want to scale ActorBrushes
+	int i;
+	CEntityArray *Entities;
+	Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
+
+	for(i=0;i < Entities->GetSize();i++)
+	{
+		Brush *pBrush = (*Entities)[i].GetActorBrush();
+
+		if(pBrush!=NULL)
+			m_pLevelMgr->RemoveBrush(&m_CurrentDocVars.m_Level, pBrush);
+	}
+// end change
 
 	// scale the brushes
 	BrushList_Scale (m_pLevelMgr->GetBrushes (&m_CurrentDocVars.m_Level), ScaleFactor);
 
+// changed QD Actors
+	for(i=0;i < Entities->GetSize();i++)
+	{
+		Brush *pBrush = (*Entities)[i].GetActorBrush();
+
+		if(pBrush!=NULL)
+			m_pLevelMgr->AppendBrush(&m_CurrentDocVars.m_Level, pBrush);
+	}
+// end change
 	// scale the entity positions
 	ScaleEntityInfo ScaleInfo;
 
@@ -6948,7 +7452,7 @@ void CGEditProDoc::ScaleWorld(geFloat ScaleFactor)
 	// and scale the models
 	ModelList_ScaleAll (m_pLevelMgr->GetModelInfo(&m_CurrentDocVars.m_Level)->Models, ScaleFactor);
 
-	m_fWorldScaleFactor *= ScaleFactor;	//	post 0.57 fore keeping track of 
+	m_fWorldScaleFactor *= ScaleFactor;	//	post 0.57 fore keeping track of
 										//	scaling history
 
 	//	Be very careful when speccing flags for UpdateAllViews()
@@ -7064,6 +7568,10 @@ void CGEditProDoc::AddSelToGroup(void)
 		Brush *pBrush;
 
 		pBrush = SelBrushList_GetBrush (m_CurrentDocVars.m_pSelBrushes, i);
+// changed QD Actors
+		if(strstr(Brush_GetName(pBrush),".act")!=NULL)
+			continue;
+// end change
 		Group_AddBrush (entData.Groups, m_iCurrentGroup, pBrush);
 	}
 	// tag all selected entities with this group id...
@@ -7113,25 +7621,25 @@ void CGEditProDoc::SelectGroupBrushes(BOOL Select, int WhichGroup) // select/uns
 
 BOOL CGEditProDoc::OneBrushSelectedOnly(void)
 {
-	return ((m_iModeTool==ID_TOOLS_TEMPLATE) || 
+	return ((m_iModeTool==ID_TOOLS_TEMPLATE) ||
 			((SelBrushList_GetSize (m_CurrentDocVars.m_pSelBrushes)==1) && (m_iNumSelEntities == 0) &&
 			 (SelFaceList_GetSize (m_CurrentDocVars.m_pSelFaces) == 0)));
 }
 
 
-void CGEditProDoc::OnUpdateBrushSubtractfromworld(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateBrushSubtractfromworld(CCmdUI* pCmdUI)
 {
 	BOOL EnableFlag;
 
-	EnableFlag = ((m_iModeTool==ID_GENERALSELECT) && 
+	EnableFlag = ((m_iModeTool==ID_GENERALSELECT) &&
 				  (SelBrushList_GetSize (m_CurrentDocVars.m_pSelBrushes)==1) &&
-				  (SelFaceList_GetSize (m_CurrentDocVars.m_pSelFaces) == 0) && 
+				  (SelFaceList_GetSize (m_CurrentDocVars.m_pSelFaces) == 0) &&
 				  (m_iNumSelEntities == 0));
 	pCmdUI->Enable (EnableFlag);
 }
 
 
-void CGEditProDoc::OnUpdateThingAttributes(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateThingAttributes(CCmdUI* pCmdUI)
 {
 	if(m_iModeTool==ID_GENERALSELECT)
 	{
@@ -7147,27 +7655,27 @@ void CGEditProDoc::OnUpdateThingAttributes(CCmdUI* pCmdUI)
 				assert (0);
 				break;
 		}
-	} 
-	else 
+	}
+	else
 	{
 		pCmdUI->Enable(0);
 	}
 }
 
-void CGEditProDoc::OnUpdateToolsBrushShowassociatedentity(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateToolsBrushShowassociatedentity(CCmdUI* pCmdUI)
 {
 	if((m_iModeTool==ID_GENERALSELECT) && (m_AdjustMode==ADJUST_MODE_BRUSH))
 	{
 		pCmdUI->Enable (SelBrushList_GetSize (m_CurrentDocVars.m_pSelBrushes)==1);
 	}
-	else 
+	else
 	{
 		pCmdUI->Enable(0);
 	}
 }
 
 
-void CGEditProDoc::OnUpdateEntitiesEditor(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateEntitiesEditor(CCmdUI* pCmdUI)
 {
 	BOOL	bEnable ;
 
@@ -7175,7 +7683,7 @@ void CGEditProDoc::OnUpdateEntitiesEditor(CCmdUI* pCmdUI)
 	pCmdUI->Enable( bEnable ) ;
 }
 
-void CGEditProDoc::OnNewLibObject() 
+void CGEditProDoc::OnNewLibObject()
 {
 	// save currently-selected stuff to named lib object.
 	CtLevel *NewLevel = NULL;
@@ -7188,8 +7696,10 @@ void CGEditProDoc::OnNewLibObject()
 	{
 		return;
 	}
-
-	NewLevel = m_pLevelMgr->Create (m_pLevelMgr->GetWadPath (&m_CurrentDocVars.m_Level), m_pLevelMgr->GetHeadersDirectory (&m_CurrentDocVars.m_Level));
+// changed QD Actors
+	NewLevel = m_pLevelMgr->Create (m_pLevelMgr->GetWadPath (&m_CurrentDocVars.m_Level), m_pLevelMgr->GetHeadersDirectory (&m_CurrentDocVars.m_Level),
+									m_pLevelMgr->GetActorsDirectory (&m_CurrentDocVars.m_Level), m_pLevelMgr->GetPawnIniPath (&m_CurrentDocVars.m_Level));
+// end change
 	if (NewLevel == NULL)
 	{
 		AfxMessageBox ("Error creating object.");
@@ -7207,6 +7717,10 @@ void CGEditProDoc::OnNewLibObject()
 		Brush *OldBrush = NULL;
 
 		OldBrush = SelBrushList_GetBrush (m_CurrentDocVars.m_pSelBrushes, i);
+// changed QD Actors
+		if(strstr(Brush_GetName(OldBrush),".act")!=NULL)
+			continue;
+// end change
 		NewBrush = Brush_Clone (OldBrush);
 		m_pLevelMgr->AppendBrush (NewLevel, NewBrush);
 
@@ -7249,7 +7763,7 @@ void CGEditProDoc::OnNewLibObject()
 // in a single group and selected so the user can immediately begin to move
 // and adjust the object within the level
 
-//	called by: OnBrushAddtoWorld()		
+//	called by: OnBrushAddtoWorld()
 geBoolean CGEditProDoc::PlaceObject( const char *ObjectName, const geVec3d *location, CGEditProDocVars *pDocVars)
 {
 	char WorkPath[MAX_PATH];
@@ -7274,7 +7788,10 @@ geBoolean CGEditProDoc::ImportFile (const char *PathName, const geVec3d *locatio
 	pPrefs = GetPrefs ();
 	if (pPrefs)
 	{
-		NewLevel = m_pLevelMgr->CreateFromFile (PathName, &ErrMsg, Prefs_GetHeadersList (pPrefs));
+// changed QD Actors
+		NewLevel = m_pLevelMgr->CreateFromFile (PathName, &ErrMsg, Prefs_GetHeadersList (pPrefs),
+												Prefs_GetActorsList (pPrefs), Prefs_GetPawnIni (pPrefs));
+// end change
 		if (NewLevel == NULL)
 		{
 			AfxMessageBox (ErrMsg);
@@ -7381,7 +7898,23 @@ geBoolean CGEditProDoc::ImportFile (const char *PathName, const geVec3d *locatio
 			AddPremadeData.pDoc = this;
 			AddPremadeData.pDocVars = pDocVars;
 			AddPremadeData.NewLevel = NewLevel;
+//changed QD Actors
+			CEntityArray *Entities;
 
+			Entities = m_pLevelMgr->GetEntities (NewLevel);
+
+			for(i=0;i < Entities->GetSize();i++)
+			{
+				Brush *pBrush = (*Entities)[i].GetActorBrush();
+
+				if(pBrush!=NULL)
+				{
+					SelBrushList_Remove(pDocVars->m_pSelBrushes, pBrush);
+					m_pLevelMgr->RemoveBrush(NewLevel, pBrush);
+					(*Entities)[i].DeleteActorBrush();
+				}
+			}
+// end change
 			// add entities
 			m_pLevelMgr->EnumEntities (NewLevel, &AddPremadeData, ::fdocAddPremadeEntity);
 		}
@@ -7428,7 +7961,7 @@ geBoolean CGEditProDoc::ImportFile (const char *PathName, const geVec3d *locatio
 // -----------------------------------------------------------------------------
 // insures all of the Dib ID's in the brush are correct
 // I would like to have put this in the brush.cpp module,  but fixing up the dib ID's requires
-// a function here in the doc and I wanted to avoid coupling brush.cpp to 
+// a function here in the doc and I wanted to avoid coupling brush.cpp to
 // GEditProDoc.cpp
 // returns 1 on success,  0 on failure
 geBoolean CGEditProDoc::FixUpBrushDibIDs(Brush *b)
@@ -7545,10 +8078,10 @@ geBoolean fdocValidateBrush (Brush *pBrush, void *lParam)
 geBoolean CGEditProDoc::ValidateBrushes( void )
 {
 	fdocBrushValidateData bvData;
-	
+
 	bvData.Groups = m_pLevelMgr->GetGroups (&m_CurrentDocVars.m_Level);
 	bvData.AllGood = GE_TRUE;
-		
+
 	m_pLevelMgr->EnumBrushes (&m_CurrentDocVars.m_Level, &bvData, ::fdocValidateBrush);
 
 	return bvData.AllGood ;
@@ -7559,13 +8092,13 @@ void CGEditProDoc::SelectTab( int nTabIndex )
 {
 	if( m_pMainFrame )
 	{
-		m_pMainFrame->SetCommandPanelTab((MAINFRM_COMMANDPANEL_TAB)nTabIndex);	
+		m_pMainFrame->SetCommandPanelTab((MAINFRM_COMMANDPANEL_TAB)nTabIndex);
 	}
 }/* CGEditProDoc::SelectTab */
 
 /* EOF: GEditProDoc.cpp */
 
-void CGEditProDoc::OnFileOpen() 
+void CGEditProDoc::OnFileOpen()
 {
 	static const char	FDTitle[]	="GEditPro File Opener";
 
@@ -7593,12 +8126,12 @@ void CGEditProDoc::OnFileOpen()
 	}
 }
 
-void CGEditProDoc::OnFileImport() 
+void CGEditProDoc::OnFileImport()
 {
 	static const char FDTitle[] = "GEditPro File Importer";
 	CFileDialog dlg(TRUE, "3dt", NULL, OFN_OVERWRITEPROMPT,	"GEditPro Files (*.3DT)|*.3DT||");
 
-	dlg.m_ofn.lpstrTitle = FDTitle;	
+	dlg.m_ofn.lpstrTitle = FDTitle;
 	if (dlg.DoModal () == IDOK)
 	{
 		if (dlg.m_ofn.nFilterIndex == 1)
@@ -7662,8 +8195,8 @@ geBoolean	CGEditProDoc::LoadMapFile(const char *FileName)
 	FILE		*mf;
 
 	geVec3d		FaceVerts[3];
-	int			i, k, bc, sx, sy, rot, contents, surfflags, value;
-	geFloat		scx, scy;
+	int			i, k, bc, sx, sy, contents, surfflags, value; // changed QD
+	geFloat		scx, scy, rot; // changed QD
 	char		*sp = NULL;
 	char		szTex[_MAX_PATH];
 	uint16		dibid;
@@ -7734,7 +8267,7 @@ geBoolean	CGEditProDoc::LoadMapFile(const char *FileName)
 							Face_SetTextureName(f, sp);
 							Face_SetTextureScale(f, scx, scy);
 							Face_SetTextureShift(f, sx, sy);
-							Face_SetTextureRotate(f, (float)rot);
+							Face_SetTextureRotate(f, rot); // changed QD
 						}
 						//look for flags
 						for(bc=fgetc(mf);bc!=EOF && bc <=32 && bc && bc!='\n';bc=fgetc(mf));
@@ -7851,7 +8384,7 @@ geBoolean	CGEditProDoc::LoadMapFile(const char *FileName)
 						sprintf(Value, "%d %d %d",
 							Units_Round(TempVec.X * 255.0f),
 							Units_Round(TempVec.Y * 255.0f),
-							Units_Round(TempVec.Z * 255.0f));					
+							Units_Round(TempVec.Z * 255.0f));
 					}
 					else if(!strnicmp(Value, "info_player", 11))
 					{
@@ -7866,7 +8399,7 @@ geBoolean	CGEditProDoc::LoadMapFile(const char *FileName)
 						geVec3d	TempVec;
 						sscanf((char const *)Value, "%f %f %f", &TempVec.X, &TempVec.Z, &TempVec.Y);
 						TempVec.Z	=-TempVec.Z;
-						sprintf(Value, "%d %d %d", Units_Round(TempVec.X), Units_Round(TempVec.Y), Units_Round(TempVec.Z));					
+						sprintf(Value, "%d %d %d", Units_Round(TempVec.X), Units_Round(TempVec.Y), Units_Round(TempVec.Z));
 					}
 					else if(!strnicmp(Value, "weapon_", 7))
 					{
@@ -7928,7 +8461,7 @@ geBoolean	CGEditProDoc::LoadMapFile(const char *FileName)
 									Face_SetTextureName(f, sp);
 									Face_SetTextureScale(f, scx, scy);
 									Face_SetTextureShift(f, sx, sy);
-									Face_SetTextureRotate(f, (float)rot);
+									Face_SetTextureRotate(f, rot); // changed QD
 
 									//look for flags
 									for(bc=fgetc(mf);bc!=EOF && bc <=32 && bc && bc!='\n';bc=fgetc(mf));
@@ -8038,56 +8571,56 @@ geBoolean	CGEditProDoc::LoadMapFile(const char *FileName)
 	return	TRUE;
 }
 
-void CGEditProDoc::OnViewShowClip() 
+void CGEditProDoc::OnViewShowClip()
 {
-	m_bShowClipBrushes	=!(m_bShowClipBrushes);	
+	m_bShowClipBrushes	=!(m_bShowClipBrushes);
 	//	Be very careful when speccing flags for UpdateAllViews()
 	//	The wrong flags at the wrong time will totally screw things up
 	UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 }
 
-void CGEditProDoc::OnUpdateViewShowClip(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateViewShowClip(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck(m_bShowClipBrushes);
 }
 
-void CGEditProDoc::OnViewShowDetail() 
+void CGEditProDoc::OnViewShowDetail()
 {
-	m_bShowDetailBrushes	=!(m_bShowDetailBrushes);	
+	m_bShowDetailBrushes	=!(m_bShowDetailBrushes);
 	//	Be very careful when speccing flags for UpdateAllViews()
 	//	The wrong flags at the wrong time will totally screw things up
 	UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 }
 
-void CGEditProDoc::OnUpdateViewShowDetail(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateViewShowDetail(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck(m_bShowDetailBrushes);
 }
 
-void CGEditProDoc::OnViewShowHint() 
+void CGEditProDoc::OnViewShowHint()
 {
-	m_bShowHintBrushes	=!(m_bShowHintBrushes);	
+	m_bShowHintBrushes	=!(m_bShowHintBrushes);
 	//	Be very careful when speccing flags for UpdateAllViews()
 	//	The wrong flags at the wrong time will totally screw things up
 	UpdateAllViews(UAV_ALL3DVIEWS, NULL);
 }
 
-void CGEditProDoc::OnUpdateViewShowHint(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateViewShowHint(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck(m_bShowHintBrushes);
 }
 
-void CGEditProDoc::OnToolsBrushAttributes() 
+void CGEditProDoc::OnToolsBrushAttributes()
 {
 	if ((m_iModeTool == ID_GENERALSELECT) && (m_AdjustMode == ADJUST_MODE_BRUSH))
 	{
-		if ((SelBrushList_GetSize (m_CurrentDocVars.m_pSelBrushes) > 0) && 
+		if ((SelBrushList_GetSize (m_CurrentDocVars.m_pSelBrushes) > 0) &&
 		    (m_AdjustMode == ADJUST_MODE_BRUSH) && (m_pBrushAttributes == NULL))
 		{
 //			m_pBrushAttributes = new CBrushAttributesDialog (this); // COMMENTED OUT FOR G3DC
 		}
 		SetModifiedFlag ();
-	}	
+	}
 }
 
 
@@ -8101,36 +8634,36 @@ void CGEditProDoc::ShowBrushAttributesDialog()
 
 
 
-void CGEditProDoc::OnUpdateToolsBrushAttributes(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateToolsBrushAttributes(CCmdUI* pCmdUI)
 {
-	pCmdUI->Enable ((m_iModeTool == ID_GENERALSELECT) && 
-					(m_AdjustMode == ADJUST_MODE_BRUSH) && 
+	pCmdUI->Enable ((m_iModeTool == ID_GENERALSELECT) &&
+					(m_AdjustMode == ADJUST_MODE_BRUSH) &&
 					(SelBrushList_GetSize (m_CurrentDocVars.m_pSelBrushes) > 0));
 }
 
 
 // obsolete old gedit
-void CGEditProDoc::OnToolsFaceAttributes() 
+void CGEditProDoc::OnToolsFaceAttributes()
 {
 	if ((m_iModeTool == ID_GENERALSELECT) && (m_AdjustMode == ADJUST_MODE_FACE))
 	{
 		FaceAttributesDialog ();
 		SetModifiedFlag ();
-	}	
-	
+	}
+
 }
 
 
 //	obsolete old gedit
-void CGEditProDoc::OnUpdateToolsFaceAttributes(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateToolsFaceAttributes(CCmdUI* pCmdUI)
 {
-	pCmdUI->Enable ((m_iModeTool == ID_GENERALSELECT) && 
-					(m_AdjustMode == ADJUST_MODE_FACE) && 
+	pCmdUI->Enable ((m_iModeTool == ID_GENERALSELECT) &&
+					(m_AdjustMode == ADJUST_MODE_FACE) &&
 					(SelFaceList_GetSize (m_CurrentDocVars.m_pSelFaces) > 0));
-	
+
 }
 
-void CGEditProDoc::OnEntityVisibility() 
+void CGEditProDoc::OnEntityVisibility()
 {
 	EntityViewList *pListCopy;
 	EntityViewList *pEntityView;
@@ -8139,7 +8672,7 @@ void CGEditProDoc::OnEntityVisibility()
 
 	// copy existing...
 	pListCopy = EntityViewList_Copy (pEntityView);
-	
+
 	if (pListCopy != NULL)
 	{
 		CEntityVisDlg Dlg;
@@ -8180,12 +8713,12 @@ void CGEditProDoc::OnEntityVisibility()
 	}
 }
 
-void CGEditProDoc::OnToggleRebuildBspMode() 
+void CGEditProDoc::OnToggleRebuildBspMode()
 {
 	CGlobals::g_bRebuildAlways = !CGlobals::g_bRebuildAlways;
 }
 
-void CGEditProDoc::OnUpdateToggleRebuildBspMode(CCmdUI* pCmdUI) 
+void CGEditProDoc::OnUpdateToggleRebuildBspMode(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck(CGlobals::g_bRebuildAlways);
 }
@@ -8195,7 +8728,7 @@ const Prefs *CGEditProDoc::GetPrefs (void)
 	return ((CGEditProApp *)AfxGetApp ())->GetPreferences ();
 }
 
-void CGEditProDoc::OnLeveloptions() 
+void CGEditProDoc::OnLeveloptions()
 {
 	CLevelOptions  Dlg;
 
@@ -8244,12 +8777,12 @@ void CGEditProDoc::OnLeveloptions()
 			}
 		}
 	}
-	
+
 	if (Dlg.DoModal () == IDOK)
 	{
 		{
 			//	gather grid and texel setting data	//	post 0.57
-			pGridInfo->GridType = Dlg.MetricOrTexelGrid;	// Main Visible Grid mode 
+			pGridInfo->GridType = Dlg.MetricOrTexelGrid;	// Main Visible Grid mode
 			// must add here 'cause metric grid is disabled
 			Dlg.m_GridUnits += 3;
 			switch( Dlg.m_GridUnits ) // SnapGrid RB's 0-2 METRIC 3-5 TEXEL
@@ -8281,7 +8814,7 @@ void CGEditProDoc::OnLeveloptions()
 			//	The wrong flags at the wrong time will totally screw things up
 			UpdateAllViews(UAV_GRID_ONLY, NULL);
 
-			if ((Dlg.m_HeadersChanged) || (Dlg.m_TxlChanged))
+			if ((Dlg.m_HeadersChanged) || (Dlg.m_TxlChanged) || (Dlg.m_ActorsChanged) || (Dlg.m_PawnIniChanged))
 			{
 				if (Dlg.m_HeadersChanged)
 				{
@@ -8289,7 +8822,7 @@ void CGEditProDoc::OnLeveloptions()
 
 					if (ValidateEntities(&m_CurrentDocVars) == FALSE)
 					{
-						ShowConsole();							
+						ShowConsole();
 						AfxMessageBox( IDS_ENTITY_WARNING ) ;
 					}
 				}
@@ -8305,7 +8838,21 @@ void CGEditProDoc::OnLeveloptions()
 						AfxMessageBox (Msg);
 					}
 				}
-				
+// changed QD
+				if (Dlg.m_ActorsChanged)
+				{
+					m_pLevelMgr->SetActorsDir(&m_CurrentDocVars.m_Level, Dlg.m_ActorsDir);
+					UpdateEntityActors();
+					UpdateAllViews(UAV_ALL3DVIEWS | REBUILD_QUICK, NULL);
+				}
+				if (Dlg.m_PawnIniChanged)
+				{
+					m_pLevelMgr->SetPawnIniPath (&m_CurrentDocVars.m_Level, Dlg.m_PawnIni);
+					UpdateEntityActors();
+					UpdateAllViews(UAV_ALL3DVIEWS | REBUILD_QUICK, NULL);
+				}
+// end change
+
 				//	set these new level options and resources into all members
 				//	of DocVars in the update manager's list
 				m_pUpdateMgr->UpdateLevelInfoInAll(&m_CurrentDocVars.m_Level);
@@ -8313,7 +8860,7 @@ void CGEditProDoc::OnLeveloptions()
 				// update textures tab
 				m_iCurTextureSelection = 0;
 
-				m_pMainFrame->UpdateTextures();						
+				m_pMainFrame->UpdateTextures();
 
 				// update all brush faces
 				BrushList_EnumLeafBrushes (m_pLevelMgr->GetBrushes (&m_CurrentDocVars.m_Level), this, ::fdocUpdateBrushFaceTextures);
@@ -8329,7 +8876,7 @@ void CGEditProDoc::OnLeveloptions()
 						if( Render_GetViewType( pView->VCam ) & (VIEWSOLID|VIEWTEXTURE|VIEWWIRE) )
 						{
 							Render_SetWadSizes (pView->VCam, m_pLevelMgr->GetWadSizeInfos (&m_CurrentDocVars.m_Level));
-							break ;	
+							break ;
 						}
 					}
 				}
@@ -8344,7 +8891,7 @@ void CGEditProDoc::OnLeveloptions()
 			}
 		}
 	}
-	m_pMainFrame->UpdateMainControls();		
+	m_pMainFrame->UpdateMainControls();
 }
 
 
@@ -8397,7 +8944,11 @@ bool	CGEditProDoc::DocVarsUndo()
 	ResetAllSelections();
 	UpdateSelected();	//	calls UpdateMainControls()
 	UpdateEntityOrigins();
-	UpdateAllViews(UAV_ALLVIEWS /*| REBUILD_QUICK*/, NULL, TRUE);
+// changed QD
+	UpdateEntityActors();
+	UpdateAllViews(UAV_ALL3DVIEWS | REBUILD_QUICK, NULL, TRUE);
+// end change
+//	UpdateAllViews(UAV_ALLVIEWS /*| REBUILD_QUICK*/, NULL, TRUE);
 
 	if (pMainFrame)
 	{
@@ -8414,7 +8965,11 @@ bool	CGEditProDoc::DocVarsRedo()
 	ResetAllSelections();
 	UpdateSelected();	//	calls UpdateMainControls()
 	UpdateEntityOrigins();
-	UpdateAllViews(UAV_ALLVIEWS /*| REBUILD_QUICK*/, NULL, TRUE);
+// changed QD
+	UpdateEntityActors();
+	UpdateAllViews(UAV_ALL3DVIEWS | REBUILD_QUICK, NULL, TRUE);
+// end change
+//	UpdateAllViews(UAV_ALLVIEWS /*| REBUILD_QUICK*/, NULL, TRUE);
 	CMainFrame *pMainFrame = NULL;
 	pMainFrame = (CMainFrame*)AfxGetMainWnd();
 	if (pMainFrame)
@@ -8423,7 +8978,7 @@ bool	CGEditProDoc::DocVarsRedo()
 	}
 	return true;
 }
-	
+
 
 CGEditProUpdateMgr	*CGEditProDoc::GetUpdateMgr()
 {
@@ -8445,6 +9000,24 @@ CGEditProDocVars	CGEditProDoc::DocVarsCreateUniqueCopy(CGEditProDocVars theseDoc
 {
 	CEntity	tempEntity;
 	CGEditProDocVars thisFunctionDocVars;
+
+// changed QD Actors
+// don't want to copy ActorBrushes, so remove them from the BrushList
+	CEntityArray *Entities;
+	Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
+
+	for(int i=0;i < Entities->GetSize();i++)
+	{
+		Brush *pBrush = (*Entities)[i].GetActorBrush();
+
+		if(pBrush!=NULL)
+		{
+			SelBrushList_Remove(m_CurrentDocVars.m_pSelBrushes, pBrush);
+			m_pLevelMgr->RemoveBrush(&m_CurrentDocVars.m_Level, pBrush);
+		}
+	}
+// end change
+
 	thisFunctionDocVars = theseDocVars;
 	thisFunctionDocVars.m_pTempSelBrushes = SelBrushList_Clone(theseDocVars.m_pTempSelBrushes);
 	thisFunctionDocVars.m_pSelFaces = SelFaceList_Clone(m_CurrentDocVars.m_pSelFaces);
@@ -8452,14 +9025,49 @@ CGEditProDocVars	CGEditProDoc::DocVarsCreateUniqueCopy(CGEditProDocVars theseDoc
 	thisFunctionDocVars.m_Level.m_pBrushes = BrushList_Clone(theseDocVars.m_Level.m_pBrushes);
 	thisFunctionDocVars.m_Level.m_ModelInfo.Models = ModelList_Clone(theseDocVars.m_Level.m_ModelInfo.Models);
 	thisFunctionDocVars.m_Level.m_pEntityDefs = EntityTable_Clone (theseDocVars.m_Level.m_pEntityDefs);
+// this also clones the ActorBrushes
 	thisFunctionDocVars.m_Level.m_pEntities = tempEntity.CloneEntityArray(theseDocVars.m_Level.m_pEntities);
 	thisFunctionDocVars.m_Level.m_pGroups = Group_CloneList(theseDocVars.m_Level.m_pGroups);
-		
-	CString strTempHeaderDir = m_pLevelMgr->CloneHeadersDirectory(&theseDocVars.m_Level);
-	thisFunctionDocVars.m_Level.m_pHeadersDir = Util_Strdup (strTempHeaderDir.GetBuffer(strTempHeaderDir.GetLength()));	
-	CString strTempWadPath = m_pLevelMgr->CloneWadPath(&theseDocVars.m_Level);
-	thisFunctionDocVars.m_Level.m_pWadPath = Util_Strdup (strTempWadPath.GetBuffer(strTempWadPath.GetLength()));	
 
+	CString strTempHeaderDir = m_pLevelMgr->CloneHeadersDirectory(&theseDocVars.m_Level);
+	thisFunctionDocVars.m_Level.m_pHeadersDir = Util_Strdup (strTempHeaderDir.GetBuffer(strTempHeaderDir.GetLength()));
+	CString strTempWadPath = m_pLevelMgr->CloneWadPath(&theseDocVars.m_Level);
+	thisFunctionDocVars.m_Level.m_pWadPath = Util_Strdup (strTempWadPath.GetBuffer(strTempWadPath.GetLength()));
+// changed QD Actors
+	CString strTempActorsDir = m_pLevelMgr->CloneActorsDir(&theseDocVars.m_Level);
+	thisFunctionDocVars.m_Level.m_pActorsDir = Util_Strdup (strTempActorsDir.GetBuffer(strTempActorsDir.GetLength()));
+	CString strTempPawnIni = m_pLevelMgr->ClonePawnIniPath(&theseDocVars.m_Level);
+	thisFunctionDocVars.m_Level.m_pPawnIniPath = Util_Strdup (strTempPawnIni.GetBuffer(strTempPawnIni.GetLength()));
+
+// append the cloned ActorBrushes to the new DocVars
+	Entities = m_pLevelMgr->GetEntities (&thisFunctionDocVars.m_Level);
+	for(i=0;i < Entities->GetSize();i++)
+	{
+		Brush *pBrush = (*Entities)[i].GetActorBrush();
+
+		if(pBrush!=NULL)
+		{
+			m_pLevelMgr->AppendBrush(&thisFunctionDocVars.m_Level, pBrush);
+
+			if((*Entities)[i].IsSelected())
+				SelBrushList_Add(thisFunctionDocVars.m_pSelBrushes, pBrush);
+
+			if(!m_bShowActors)
+				Brush_SetVisible(pBrush, GE_FALSE);
+		}
+	}
+
+// add the original ActorBrushes to the CurrentDocVars again
+	Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
+	for(i=0;i < Entities->GetSize();i++)
+	{
+		Brush *pBrush = (*Entities)[i].GetActorBrush();
+
+		if(pBrush!=NULL)
+			m_pLevelMgr->AppendBrush(&m_CurrentDocVars.m_Level, pBrush);
+
+	}
+// end change
 	return thisFunctionDocVars;
 }
 
@@ -8488,3 +9096,91 @@ bool	CGEditProDoc::DocVarsUpdate(CGEditProDocVars DocVars)
 }
 
 
+// changed QD Actors
+void CGEditProDoc::OnViewShowActors()
+{
+	m_bShowActors	=!(m_bShowActors);
+	m_pLevelMgr->SetShowActors(&m_CurrentDocVars.m_Level, m_bShowActors);
+	CEntityArray *Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
+	int i;
+
+	if(!m_bShowActors)
+	{
+		for(i=0;i < Entities->GetSize();i++)
+		{
+			Brush *pBrush = (*Entities)[i].GetActorBrush();
+			if(pBrush!=NULL)
+			{
+				Brush_SetVisible(pBrush, GE_FALSE);
+			}
+		}
+	}
+	else
+	{
+		for(i=0;i < Entities->GetSize();i++)
+		{
+			Brush *pBrush = (*Entities)[i].GetActorBrush();
+			if(pBrush!=NULL)
+			{
+				Brush_SetVisible(pBrush, GE_TRUE);
+			}
+		}
+	}
+	UpdateAllViews(UAV_ALL3DVIEWS | REBUILD_QUICK, NULL);
+}
+
+void CGEditProDoc::OnUpdateViewShowActors(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(m_bShowActors);
+}
+
+
+void CGEditProDoc::UpdateEntityActors()
+{
+	int	i;
+	CEntityArray *Entities;
+
+	Entities = m_pLevelMgr->GetEntities (&m_CurrentDocVars.m_Level);
+
+	for(i=0;i < Entities->GetSize();i++)
+	{
+
+		char ActorFile[256], ActorDir[256], PawnIni[256];
+		strcpy(PawnIni, m_pLevelMgr->GetPawnIniPath(&m_CurrentDocVars.m_Level));
+		if((*Entities)[i].HasActor(ActorFile, PawnIni))
+		{
+			Brush *pBrush = (*Entities)[i].GetActorBrush();
+
+			if(pBrush)
+			{
+				SelBrushList_Remove(m_CurrentDocVars.m_pSelBrushes, pBrush);
+				m_pLevelMgr->RemoveBrush(&m_CurrentDocVars.m_Level, pBrush);
+				(*Entities)[i].DeleteActorBrush();
+			}
+
+			strcpy(ActorDir, m_pLevelMgr->GetActorsDirectory(&m_CurrentDocVars.m_Level));
+
+			pBrush=(*Entities)[i].CreateActorBrush(ActorFile, ActorDir, PawnIni);
+			if(pBrush)
+			{
+				m_pLevelMgr->AppendBrush(&m_CurrentDocVars.m_Level,pBrush);
+				if((*Entities)[i].IsSelected())
+					SelBrushList_Add(m_CurrentDocVars.m_pSelBrushes, pBrush);
+				if(!m_bShowActors)
+					Brush_SetVisible(pBrush, GE_FALSE);
+			}
+		}
+		else
+		{
+			Brush *pBrush = (*Entities)[i].GetActorBrush();
+			if(pBrush!=NULL)
+			{
+				SelBrushList_Remove(m_CurrentDocVars.m_pSelBrushes, pBrush);
+				m_pLevelMgr->RemoveBrush(&m_CurrentDocVars.m_Level, pBrush);
+				(*Entities)[i].DeleteActorBrush();
+			}
+		}
+	}
+
+}
+// end change

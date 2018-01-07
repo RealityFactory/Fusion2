@@ -1,7 +1,7 @@
 /****************************************************************************************/
-/*  Globals.h                                                                         */
+/*  Globals.h                                                                           */
 /*                                                                                      */
-/*  Author:       Tom Morris									                        */
+/*  Author:       Tom Morris                                                            */
 /*	Description:  Global vars, defines and globally-useful functions                    */
 /*                                                                                      */
 /*  The contents of this file are subject to the Genesis3D Public License               */
@@ -15,11 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*	Genesis3D Version 1.1 released November 15, 1999                            */
-/*	GEditPro 
-/*  Copyright (C) 1999 Eclipse, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 Eclipse, Inc. All Rights Reserved                                */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 
 
@@ -86,7 +85,7 @@ const	COLORREF	REFLINE = LTBLUE;
 #define SIDE_VIEW_ROW		1
 #define SIDE_VIEW_COL		1
 
-#define RAD(a) ((a)*0.0174524064372835128194189785163162f)	
+#define RAD(a) ((a)*0.0174524064372835128194189785163162f)
 
 
 #define BRUSH_MIN			1
@@ -94,7 +93,8 @@ const	COLORREF	REFLINE = LTBLUE;
 #define WALL_THICK_MIN		1
 #define WALL_THICK_MAX		32
 #define ARCH_THICK_MIN		1
-#define ARCH_THICK_MAX		500
+// changed QD 11/03
+#define ARCH_THICK_MAX		4000
 #define ARCH_ANGLE_MIN		0
 #define	ARCH_ANGLE_MAX		360
 

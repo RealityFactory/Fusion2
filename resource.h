@@ -245,6 +245,7 @@
 #define IDC_RESET_SHEAR                 944
 #define IDC_ZSIZE                       948
 #define IDC_THICKNESS                   952
+#define IDC_RADIUS2                     953
 #define IDC_PICTURE                     956
 #define IDC_VERTSTRIPES                 960
 #define IDC_YSIZE2                      964
@@ -288,6 +289,8 @@
 #define IDC_LIST1                       1116
 #define IDC_COLOURBUTTON                1120
 #define IDC_CHECK1                      1124
+#define IDC_STEPS                       1124
+#define IDC_GROUPFILE                   1124
 #define IDC_MAKE_RAMP                   1128
 #define IDC_BRUSHLIST                   1132
 #define IDC_SKYRIGHT                    1136
@@ -304,6 +307,7 @@
 #define IDC_ZSIZETOP                    1180
 #define IDC_HEIGHT                      1184
 #define IDC_WIDTH                       1188
+#define IDC_SIDES                       1189
 #define IDC_LENGTH                      1192
 #define IDC_NUMSLITS                    1196
 #define IDC_NUMBEROFSTAIRS              1200
@@ -534,6 +538,8 @@
 #define IDC_DRAWSCALE                   2100
 #define IDC_BOOLLIST                    2104
 #define IDC_EDITTXL                     2108
+#define IDC_EDITPAWNINI                 2109
+#define IDC_EDITACTORSDIR               2110
 #define IDC_CONTENTSLIST                2112
 #define IDC_EDITHEADERSDIR              2116
 #define IDC_MIPMAPBIAS                  2120
@@ -547,6 +553,7 @@
 #define IDC_EDITSCALE                   2152
 #define IDC_TRANSPARENT                 2156
 #define IDC_BROWSETXL                   2160
+#define IDC_BROWSEPAWNINI               2161
 #define IDC_BUTTON1                     2164
 #define IDC_OBJACTOR_BTN                2168
 #define IDC_TEMPLATE_APPLY              2172
@@ -597,10 +604,15 @@
 #define IDC_COMBO1                      2348
 #define IDC_CBALLSAME                   2352
 #define IDC_RADIO1                      2356
+#define IDC_CCW                         2356
+#define IDC_EXPORTALL                   2356
 #define IDC_RADIO_640                   2360
 #define IDC_RADIO2                      2364
+#define IDC_CW                          2364
+#define IDC_EXPORTSELECTED              2364
 #define IDC_RADIO_800                   2368
 #define IDC_RADIO3                      2372
+#define IDC_RECTANGULAR                 2372
 #define IDC_RADIO_1024                  2376
 #define IDC_LIST2                       2380
 #define IDC_PLUGIN1_WAV1                2384
@@ -841,21 +853,29 @@
 #define IDR_WAVE_WOOSH                  4014
 #define IDR_WAVE_                       4015
 #define IDR_WAVE_QUICKBEEP              4015
+#define IDD_EXPORT3DSDIALOG             4020
 #define ID_BUTTON5005                   5005
 #define ID_BUTTON5008                   5008
 #define ID_BUTTON5009                   5009
+#define ID_VIEW_SHOW_ACTORS             5011
+#define ID_FILE_EXPORT3DT               5012
+#define ID_FILE_EXPORT3DS               5013
 #define IDC_SPIN2                       6001
 #define IDC_SPIN_UNDOS                  6001
 #define IDC_EDIT_UNDOS                  6002
 #define IDC_BUTTON6                     6003
+#define IDC_ROUND                       6004
+#define IDC_MASSIVE                     6005
+#define IDC_CHECK2                      6006
+#define IDC_EXPORTLIGHTS                6006
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        4020
-#define _APS_NEXT_COMMAND_VALUE         5011
-#define _APS_NEXT_CONTROL_VALUE         6004
+#define _APS_NEXT_RESOURCE_VALUE        4021
+#define _APS_NEXT_COMMAND_VALUE         5014
+#define _APS_NEXT_CONTROL_VALUE         6007
 #define _APS_NEXT_SYMED_VALUE           7001
 #endif
 #endif

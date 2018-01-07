@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #ifndef __TypeIO_H
 #define __TypeIO_H
@@ -28,8 +28,8 @@
 #endif
 
 #include <stdio.h>
-#include "include/basetype.h"
-#include "include/XForm3d.h"
+#include "basetype.h"
+#include "XForm3d.h"
 
 // writing
 
@@ -115,6 +115,32 @@ geBoolean TypeIO_WriteXForm3dText
 	  FILE *f,
 	  geXForm3d const *pXfm
 	);
+
+// changed QD 12/03
+geBoolean TypeIO_WriteUshort
+	(
+	  FILE *f,
+	  unsigned short i
+	);
+
+geBoolean TypeIO_WriteUshortText
+	(
+	  FILE *f,
+	  unsigned short i
+	);
+
+geBoolean TypeIO_WriteUChar
+	(
+	  FILE *f,
+	  unsigned char c
+	);
+
+geBoolean TypeIO_WriteUCharText
+	(
+	  FILE *f,
+	  unsigned char c
+	);
+// end change
 
 // reading
 geBoolean TypeIO_ReadBlock

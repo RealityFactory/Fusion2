@@ -15,7 +15,7 @@
 #include "Parse3dt.h"
 #include "EntTypeName.h"
 #include <assert.h>
-#include "include/ram.h"
+#include "ram.h"
 #include "units.h"
 #include "util.h"
 #include "FilePath.h"
@@ -23,14 +23,10 @@
 
 
 
-
-
 #define LEVEL_VERSION_MAJOR	1
-
-#define LEVEL_VERSION_MINOR 32			// Version 1.32 11/04/99 - Brian - Face Info save out Base Vec for Tex Lock
-
-
-
+//#define LEVEL_VERSION_MINOR 32			// Version 1.32 11/04/99 - Brian - Face Info save out Base Vec for Tex Lock
+//#define LEVEL_VERSION_MINOR 33			// Version 1.33 08/15/03 - QD - Added ActorsDirectory, PawnIniPath; TexRotation is saved as float
+#define LEVEL_VERSION_MINOR 34				// Version 1.34 11/09/03 - QD - changed Arch template
 
 
 struct SkyFaceTexture
@@ -88,11 +84,6 @@ typedef struct
 //typedef struct tag_Level Level;
 
 
-
-
-
-
-
 // CtLevel command target
 
 class CtLevel : public CObject
@@ -105,6 +96,11 @@ public:
 	CEntityArray *m_pEntities;
     char *m_pWadPath;
 	char *m_pHeadersDir;
+// changed QD Actors
+	char *m_pActorsDir;
+	geBoolean m_ShowActors;
+	char *m_pPawnIniPath;
+// end change
 	EntTypeNameList	*m_pEntTypeNames;
 	GroupListType *m_pGroups;
 	SizeInfo	*m_pWadSizeInfos;
@@ -177,6 +173,11 @@ public:
 		m_pWadFile = s.m_pWadFile;
 		m_pWadPath = s.m_pWadPath;
 		m_pWadSizeInfos = s.m_pWadSizeInfos;
+// changed QD Actors
+		m_pActorsDir = s.m_pActorsDir;
+		m_pPawnIniPath = s.m_pPawnIniPath;
+		m_ShowActors = s.m_ShowActors;
+// end change
 		
 		for (int i = 0; i < 6; i++)
 		{
@@ -235,6 +236,11 @@ public:
 		m_pWadFile = s.m_pWadFile;
 		m_pWadPath = s.m_pWadPath;
 		m_pWadSizeInfos = s.m_pWadSizeInfos;
+// changed QD Actors
+		m_pActorsDir = s.m_pActorsDir;
+		m_pPawnIniPath = s.m_pPawnIniPath;
+		m_ShowActors = s.m_ShowActors;
+// end change
 	
 		for (int i = 0; i < 6; i++)
 		{

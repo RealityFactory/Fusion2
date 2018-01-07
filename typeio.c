@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "typeio.h"
 #include <string.h>
@@ -228,6 +228,48 @@ geBoolean TypeIO_WriteXForm3dText
 		TypeIO_WriteVec3dText (f, &pXfm->Translation)
 	);
 }
+
+// changed QD 12/03
+geBoolean TypeIO_WriteUshort
+	(
+	  FILE *f,
+	  unsigned short i
+	)
+{
+	return TypeIO_WriteBlock (f, &i, sizeof (i));
+}
+
+geBoolean TypeIO_WriteUshortText
+	(
+	  FILE *f,
+	  unsigned short i
+	)
+{
+	if(!f) return GE_FALSE;
+
+	return (fprintf (f, "%u ", i) != 0);
+}
+
+geBoolean TypeIO_WriteUChar
+	(
+	  FILE *f,
+	  unsigned char c
+	)
+{
+	return TypeIO_WriteBlock (f, &c, sizeof (c));
+}
+
+geBoolean TypeIO_WriteUCharText
+	(
+	  FILE *f,
+	  unsigned char c
+	)
+{
+	if(!f) return GE_FALSE;
+
+	return (fprintf (f, "%c ", c) != 0);
+}
+// end change
 
 // *********************************************************
 // ********************* INPUT ROUTINES ********************

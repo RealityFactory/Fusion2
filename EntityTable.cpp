@@ -27,12 +27,12 @@
 
 #include <stdio.h>
 #include "cparser.h"
-#include "include/ram.h"
+#include "ram.h"
 #include "util.h"
 #include "FilePath.h"
-#include "include/bitmap.h"
+#include "bitmap.h"
 #include "array.h"
-#include "include/vfile.h"
+#include "vfile.h"
 
 typedef struct
 {

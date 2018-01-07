@@ -27,7 +27,7 @@
 #include "array.h"
 
 
-#include "include/ram.h"
+#include "ram.h"
 #include <assert.h>
 #include "Globals.h"
 

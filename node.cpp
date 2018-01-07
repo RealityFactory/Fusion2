@@ -1,5 +1,5 @@
 /****************************************************************************************/
-/*  node.c                                                                              */
+/*  node.cpp                                                                            */
 /*                                                                                      */
 /*  Author:       Ken Baird                                                             */
 /*  Description:  Bsp code for rendered view                                            */
@@ -15,19 +15,19 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "node.h"
-#include "include/basetype.h"
-#include "include/Vec3d.h"
+#include "basetype.h"
+#include "Vec3d.h"
 #include <assert.h>
 #include "brush.h"
 #include "facelist.h"
 #include "face.h"
-#include "include/ram.h"
+#include "ram.h"
 
 
 //TODO:  uncut feature for case
@@ -47,7 +47,7 @@ typedef struct NodeTag
 {
 	struct NodeTag	*Front, *Back;
 	Face			*Face;
-	const Face		*OGFace;
+	const FaceTag		*OGFace;
 	int				Flags;
 } Node;
 
@@ -59,7 +59,7 @@ static Node	*Node_Create(const Face *f)
 
 	assert(f);
 
-	n	=geRam_Allocate(sizeof(Node));
+	n	= (Node *)geRam_Allocate(sizeof(Node));
 	if(n)
 	{
 		n->Face	=Face_Clone(f);

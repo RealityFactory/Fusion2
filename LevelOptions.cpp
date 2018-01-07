@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "stdafx.h"
 #include "GEditPro.h"
@@ -46,6 +46,11 @@ CLevelOptions::CLevelOptions(CWnd* pParent /*=NULL*/)
 	m_HeadersDir = _T("");
 	m_HeadersDir.GetBufferSetLength(MAX_PATH*2);	//	post 0.58
 	m_tempHeadersDir.GetBufferSetLength(MAX_PATH*2);	//	post 0.58
+// changed QD Actors
+	m_PawnIni = _T("");
+	m_PawnIniChanged = false;
+	m_ActorsDir = _T("");
+// end change
 	m_ScaleWorld = 1.0f;
 	m_CurrentScale = 0.0f;
 	m_SnapDegrees = 0.0;
@@ -64,6 +69,10 @@ void CLevelOptions::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_DRAWSCALE, m_DrawScale);
 	DDX_Text(pDX, IDC_LIGHTMAPSCALE, m_LightmapScale);
 	DDX_Text(pDX, IDC_EDITTXL, m_TextureLib);
+// changed QD Actors
+	DDX_Text(pDX, IDC_EDITPAWNINI, m_PawnIni);
+	DDX_Text(pDX, IDC_EDITACTORSDIR, m_ActorsDir);
+// end change
 	DDX_Control(pDX, IDC_PATH_LIST, m_ListBoxEx);
 	DDX_Text(pDX, IDC_SCALE_WORLD, m_ScaleWorld);
 	DDX_Text(pDX, IDC_CURRENT_SCALE, m_CurrentScale);
@@ -80,6 +89,11 @@ BEGIN_MESSAGE_MAP(CLevelOptions, CDialog)
 	ON_BN_CLICKED(IDC_BROWSETXL, OnBrowsetxl)
 	ON_EN_CHANGE(IDC_EDITTXL, OnChangeEdittxl)
 	ON_EN_CHANGE(IDC_EDITHEADERSDIR, OnChangeEditheadersdir)
+// changed QD Actors
+	ON_EN_CHANGE(IDC_EDITPAWNINI, OnChangeEditpawnini)
+	ON_EN_CHANGE(IDC_EDITACTORSDIR, OnChangeEditactorsdir)
+	ON_BN_CLICKED(IDC_BROWSEPAWNINI, OnBrowsepawnini)
+// end change
 	ON_EN_KILLFOCUS(IDC_DRAWSCALE, OnKillfocusDrawscale)
 	ON_EN_KILLFOCUS(IDC_LIGHTMAPSCALE, OnKillfocusLightmapscale)
 	ON_EN_KILLFOCUS(IDC_SCALE_WORLD, OnKillfocusScaleWorld)
@@ -126,6 +140,10 @@ BOOL CLevelOptions::OnInitDialog()
 	m_TextureLib = m_pDoc->m_pLevelMgr->GetWadPath (m_pDoc->GetLevel());
 						//	get the headers dir info
 	m_HeadersDir = m_pDoc->m_pLevelMgr->GetHeadersDirectory (m_pDoc->GetLevel());
+// changed QD
+	m_PawnIni = m_pDoc->m_pLevelMgr->GetPawnIniPath (m_pDoc->GetLevel());
+	m_ActorsDir = m_pDoc->m_pLevelMgr->GetActorsDirectory (m_pDoc->GetLevel());
+// end change
 	m_CurrentScale	= m_pDoc->GetWorldScaleFactor();
 
 	int nfirst = 0;		//	set the start for string copying
@@ -289,6 +307,33 @@ void CLevelOptions::OnOK()
 	UpdateData(FALSE);
 	CDialog::OnOK();
 }
+
+// changed QD Actors
+void CLevelOptions::OnChangeEditpawnini()
+{
+	UpdateData (TRUE);
+	m_PawnIniChanged = true;
+}
+
+void CLevelOptions::OnChangeEditactorsdir()
+{
+	UpdateData (TRUE);
+	m_ActorsChanged = true;
+}
+
+void CLevelOptions::OnBrowsepawnini()
+{
+	CFileDialog FileDlg (TRUE, "ini", m_PawnIni, OFN_FILEMUSTEXIST, "Ini Files (*.ini)|*.ini||");
+	FileDlg.m_ofn.lpstrTitle	="Open";
+
+	if (FileDlg.DoModal () == IDOK)
+	{
+		m_PawnIniChanged = true;
+		m_PawnIni = FileDlg.GetPathName ();
+		UpdateData (FALSE);
+	}
+}
+// end change
 
 // post 0.57 - added handling of level-wide draw scale specs
 void CLevelOptions::OnKillfocusDrawscale() 

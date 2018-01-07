@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "stdafx.h"
 #include "Globals.h"
@@ -63,7 +63,7 @@ void CCreateStaircaseDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_WIDTH, m_Width);
 	DDX_Check(pDX, IDC_TCUT, m_TCut);
 	DDX_Text(pDX, IDC_NUMBEROFSTAIRS, m_NumberOfStairs);
-	DDV_MinMaxInt(pDX, m_NumberOfStairs, 1, 64);
+//	DDV_MinMaxInt(pDX, m_NumberOfStairs, 1, 64);
 	DDX_Check(pDX, IDC_MAKE_RAMP, m_MakeRamp);
 	DDX_Check(pDX, IDC_CUSTOMIZE_STAIRS, m_customizeStairs);
 	//}}AFX_DATA_MAP
@@ -115,8 +115,8 @@ void CCreateStaircaseDialog::ShowDialog(geBoolean ConvertToMetric, BrushTemplate
 
 	m_customTemplate = false;
 
-			//	toggle switch so we render our brush and NOT the Entitiy template box	
-	pDoc->m_bTempEnt = FALSE; 
+			//	toggle switch so we render our brush and NOT the Entitiy template box
+	pDoc->m_bTempEnt = FALSE;
 
 	this->GetDlgItem(IDC_HEIGHT)->EnableWindow(FALSE);
 	this->GetDlgItem(IDC_WIDTH)->EnableWindow(FALSE);
@@ -139,7 +139,7 @@ void CCreateStaircaseDialog::ShowDialog(geBoolean ConvertToMetric, BrushTemplate
 	{
 		if (pDoc->m_pCurBrush)
 		{
-			pStairs = m_pDoc->m_pCurBrush;	
+			pStairs = m_pDoc->m_pCurBrush;
 		}
 	}
 
@@ -150,7 +150,7 @@ void CCreateStaircaseDialog::ShowDialog(geBoolean ConvertToMetric, BrushTemplate
 		//	check to see if there is a previous stairs brush from the last visit
 		if (pDoc->m_pRecentStairs)	//	post 0.55
 		{			//	reset name 'cause sometimes it gets changed
-			Brush_SetName((Brush*)pDoc->m_pRecentStairs, "Stairs");				
+			Brush_SetName((Brush*)pDoc->m_pRecentStairs, "Stairs");
 			pDoc->m_pCurBrush = (Brush*)pDoc->m_pRecentStairs;
 			pDoc->m_pBTemplate = Brush_Clone(pDoc->m_pCurBrush);	//	post 0.58
 			Brush_SetName(pDoc->m_pBTemplate, "Stairs");	// post 0.58
@@ -162,21 +162,21 @@ void CCreateStaircaseDialog::ShowDialog(geBoolean ConvertToMetric, BrushTemplate
 		if (!pDoc->m_pRecentStairs)
 		{
 			pStairs = BrushTemplate_CreateStaircase(m_pStairTemplate);
-			
+
 			if (pStairs != NULL)
 			{
 				pDoc->CreateNewTemplateBrush ((Brush*)pStairs);
 				pDoc->m_pRecentStairs = Brush_Clone(pStairs);
-				Brush_SetName(pDoc->m_pCurBrush, "Stairs");				
+				Brush_SetName(pDoc->m_pCurBrush, "Stairs");
 				pDoc->m_pBTemplate = Brush_Clone(pDoc->m_pCurBrush);	//	post 0.58
 				Brush_SetName(pDoc->m_pBTemplate, "Stairs");	// post 0.58
-			}	
+			}
 		}	//post 0.55
-	}		
+	}
 
 	SetWindowPos(NULL,5,10,0,0,SWP_NOZORDER|SWP_NOSIZE);
 	this->ShowWindow(SW_SHOW);
-	
+
 	//	set this now so we can come back later
 	pDoc->m_currentTemplateName = "Stairs";
 
@@ -203,8 +203,8 @@ bool	CCreateStaircaseDialog::UpdateCreateStaircaseDlg(CGEditProDoc *pDoc)
 			Brush_SetName(m_pDoc->m_pBTemplate, "Stairs");	// post 0.58
 		}
 	}
-	//	post 0.55	
-	
+	//	post 0.55
+
 	BrushTemplate_Staircase *pStairTemplate = pDoc->m_pLevelMgr->GetStaircaseTemplate (pDoc->GetLevel());
 	m_pStairTemplate = pStairTemplate;
 
@@ -290,7 +290,7 @@ void CCreateStaircaseDialog::OnDefaults()
 
 /* EOF: CreateStaircaseDialog */
 
-void CCreateStaircaseDialog::OnOK() 
+void CCreateStaircaseDialog::OnOK()
 {
 	UpdateData(TRUE);
 	if(m_ConvertToMetric)
@@ -328,23 +328,23 @@ void CCreateStaircaseDialog::OnOK()
 	}
 }
 
-void CCreateStaircaseDialog::OnAddStairs() 
+void CCreateStaircaseDialog::OnAddStairs()
 {
-	OnOK();	
-	m_pDoc->AddBrushToWorld();	
-	m_pDoc->m_pMainFrame->UpdateMainControls();	
+	OnOK();
+	m_pDoc->AddBrushToWorld();
+	m_pDoc->m_pMainFrame->UpdateMainControls();
 }
 
-void CCreateStaircaseDialog::OnCustomizeStairs() 
+void CCreateStaircaseDialog::OnCustomizeStairs()
 {
 	static bool toggle;
 	toggle = !m_customTemplate;
 	m_customTemplate = toggle;
 
-	m_pDoc->m_pMainFrame->UpdateMainControls();	
+	m_pDoc->m_pMainFrame->UpdateMainControls();
 }
 
-void CCreateStaircaseDialog::OnKillfocusHeight() 
+void CCreateStaircaseDialog::OnKillfocusHeight()
 {
 	float	lastValue = m_Height;
 
@@ -356,7 +356,7 @@ void CCreateStaircaseDialog::OnKillfocusHeight()
 
 	UpdateData(TRUE);
 
-	if ((m_Height >= BRUSH_MIN) && (m_Height <= BRUSH_MAX)) 
+	if ((m_Height >= BRUSH_MIN) && (m_Height <= BRUSH_MAX))
 	{
 		OnOK();
 	}
@@ -368,7 +368,7 @@ void CCreateStaircaseDialog::OnKillfocusHeight()
 	}
 }
 
-void CCreateStaircaseDialog::OnKillfocusWidth() 
+void CCreateStaircaseDialog::OnKillfocusWidth()
 {
 	float	lastValue = m_Width;
 
@@ -380,7 +380,7 @@ void CCreateStaircaseDialog::OnKillfocusWidth()
 
 	UpdateData(TRUE);
 
-	if ((m_Width >= BRUSH_MIN) && (m_Width <= BRUSH_MAX)) 
+	if ((m_Width >= BRUSH_MIN) && (m_Width <= BRUSH_MAX))
 	{
 		OnOK();
 	}
@@ -389,10 +389,10 @@ void CCreateStaircaseDialog::OnKillfocusWidth()
 		m_Width = lastValue;
 		UpdateData(FALSE);
 		AfxMessageBox(m_minMaxErrorString);
-	}	
+	}
 }
 
-void CCreateStaircaseDialog::OnKillfocusLength() 
+void CCreateStaircaseDialog::OnKillfocusLength()
 {
 	float	lastValue = m_Length;
 
@@ -404,7 +404,7 @@ void CCreateStaircaseDialog::OnKillfocusLength()
 
 	UpdateData(TRUE);
 
-	if ((m_Length >= BRUSH_MIN) && (m_Length <= BRUSH_MAX)) 
+	if ((m_Length >= BRUSH_MIN) && (m_Length <= BRUSH_MAX))
 	{
 		OnOK();
 	}
@@ -416,7 +416,7 @@ void CCreateStaircaseDialog::OnKillfocusLength()
 	}
 }
 
-void CCreateStaircaseDialog::OnKillfocusNumberofstairs() 
+void CCreateStaircaseDialog::OnKillfocusNumberofstairs()
 {
 	int	lastValue = m_NumberOfStairs;
 
@@ -428,7 +428,7 @@ void CCreateStaircaseDialog::OnKillfocusNumberofstairs()
 
 	UpdateData(TRUE);
 
-	if (m_NumberOfStairs >= 2) 
+	if (m_NumberOfStairs >= 2 && m_NumberOfStairs <= 64)
 	{
 		OnOK();
 	}
@@ -436,22 +436,22 @@ void CCreateStaircaseDialog::OnKillfocusNumberofstairs()
 	{
 		m_NumberOfStairs = lastValue;
 		UpdateData(FALSE);
-		AfxMessageBox("Value must be >= 2");
-	}		
+		AfxMessageBox("Value must be between 2 and 64");
+	}
 }
 
-void CCreateStaircaseDialog::OnTcut() 
+void CCreateStaircaseDialog::OnTcut()
 {
-	OnOK();		
+	OnOK();
 }
 
-void CCreateStaircaseDialog::OnMakeRamp() 
+void CCreateStaircaseDialog::OnMakeRamp()
 {
-	OnOK();	
+	OnOK();
 }
 
 
-void CCreateStaircaseDialog::OnDestroy() 
+void CCreateStaircaseDialog::OnDestroy()
 {
 
 	CDialog::OnDestroy();
@@ -464,11 +464,11 @@ void CCreateStaircaseDialog::OnCancel()
 	return;
 }
 
-BOOL CCreateStaircaseDialog::OnInitDialog() 
+BOOL CCreateStaircaseDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	
-	this->GetDlgItem(IDC_CUSTOMIZE_STAIRS)->SetFocus();	
+
+	this->GetDlgItem(IDC_CUSTOMIZE_STAIRS)->SetFocus();
 	return FALSE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }

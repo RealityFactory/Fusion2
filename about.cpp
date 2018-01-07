@@ -24,7 +24,7 @@
 #include "Globals.h"
  
 #include "about.h"
-#include "include/Ram.h"
+#include "Ram.h"
 
 CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 {

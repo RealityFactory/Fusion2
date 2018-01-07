@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #ifndef LEVEL_H
 #define LEVEL_H
@@ -37,14 +37,11 @@
 #include "Parse3dt.h"
 #include "EntTypeName.h"
 #include <assert.h>
-#include "include/ram.h"
+#include "ram.h"
 #include "units.h"
 #include "util.h"
 #include "FilePath.h"
 #define NUM_VIEWS (4)
-
-
-
 
 
 #define LEVEL_VERSION_MAJOR	1
@@ -63,11 +60,9 @@
 //#define LEVEL_VERSION_MINOR 28		// Version 1.28 10/27/98 - Ken - Sky texture scale
 //#define LEVEL_VERSION_MINOR 29		// Version 1.29 12/09/98 - Jim - Added sheet brushes
 //#define LEVEL_VERSION_MINOR 30		// Version 1.30 12/22/98 - Jim - Added face transparent flag
-//#define LEVEL_VERSION_MINOR 31			// Version 1.31 01/05/99 - jim - Added headers directory
-#define LEVEL_VERSION_MINOR 32			// Version 1.32 11/04/99 - Brian - Face Info save out Base Vec for Tex Lock
-
-
-
+//#define LEVEL_VERSION_MINOR 31		// Version 1.31 01/05/99 - jim - Added headers directory
+//#define LEVEL_VERSION_MINOR 32		// Version 1.32 11/04/99 - Brian - Face Info save out Base Vec for Tex Lock
+#define LEVEL_VERSION_MINOR 33			// Version 1.33 08/15/03 - QD - Added ActorsDirectory, PawnIniPath; TexRotation is saved as float
 
 
 struct SkyFaceTexture
@@ -125,8 +120,11 @@ typedef struct
 typedef struct tag_Level Level;
 
 
-Level *Level_Create (const char *DefaultWad, const char *HeadersDir);
-Level *Level_CreateFromFile (const char *FileName, const char **ErrMsg, const char *DefaultHeadersDir);
+// changed QD Actors
+Level *Level_Create (const char *DefaultWad, const char *HeadersDir, const char *ActorsDir, const char *PawnIni);
+Level *Level_CreateFromFile (const char *FileName, const char **ErrMsg, const char *DefaultHeadersDir,
+							const char *DefaultActorsDir, const char *DefaultPawnIni);
+// end change
 void Level_Destroy (Level **ppLevel);
 
 geBoolean Level_WriteToFile (Level *pLevel, const char *Filename);
@@ -209,8 +207,16 @@ geBoolean Level_LoadEntityDefs (Level *pLevel, const char *HeadersDir);
 const char *Level_GetHeadersDirectory (const Level *pLevel);
 const EntityTable *Level_GetEntityDefs (const Level *pLevel);
 
+// changed QD Actors
+const char *Level_GetActorsDirectory (const Level *pLevel);
+void Level_SetActorsDir(Level *pLevel, const char *NewActorsDir);
 
+const char *Level_GetPawnIniPath (const Level *pLevel);
+void Level_SetPawnIniPath (Level *pLevel, const char *PawnIni);
 
+void Level_SetShowActors(Level *pLevel, geBoolean Show);
+geBoolean Level_GetShowActors(const Level *pLevel);
+// end change
 
 
 // exposed here for g3dc
@@ -220,6 +226,11 @@ struct tag_Level
 	CEntityArray *Entities;
     char *WadPath;
 	char *HeadersDir;
+	// changed QD Actors
+	char *ActorsDir;
+	geBoolean ShowActors;
+	char *PawnIniPath;
+	// end change
 	EntTypeNameList	*EntTypeNames;
 	GroupListType *Groups;
 	SizeInfo	*WadSizeInfos;

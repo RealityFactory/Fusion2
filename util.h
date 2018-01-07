@@ -23,7 +23,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "include/basetype.h"
+#include "basetype.h"
 #ifdef __cplusplus
 	extern "C" {
 #endif

@@ -1,5 +1,5 @@
 /****************************************************************************************/
-/*  GEditPro.cpp                                                                          */
+/*  GEditPro.cpp                                                                        */
 /*                                                                                      */
 /*  Author:       Jim Mischel, Ken Baird, Jeff Lomax, John Moore, Bruce Cooner          */
 /*  Description:  Top level mfc stuff here                                              */
@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 
 #include "stdafx.h"
@@ -170,6 +170,14 @@ void CGEditProApp::ResolvePreferencesPaths (void)
 	
 	::FilePath_ResolveRelativePath (Prefs_GetProjectDir (pPrefs), Work);
 	::Prefs_SetProjectDir (pResolvedPrefs, Work);
+
+// changed QD Actors
+	::FilePath_ResolveRelativePathList (Prefs_GetActorsList (pPrefs), Work);
+	::Prefs_SetActorsList (pResolvedPrefs, Work);
+
+	::FilePath_ResolveRelativePathList (Prefs_GetPawnIni (pPrefs), Work);
+	::Prefs_SetPawnIni (pResolvedPrefs, Work);
+// end change
 }
 
 BOOL CGEditProApp::InitInstance()

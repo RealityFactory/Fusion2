@@ -15,17 +15,17 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #ifndef _FACE_H_
 #define _FACE_H_
 
 
-#include "include/Vec3d.h"
-#include "include/xform3d.h"
+#include "Vec3d.h"
+#include "xform3d.h"
 #include "box3d.h"
 #include <stdio.h>
 #include "Parse3dt.h"
@@ -72,6 +72,9 @@ geFloat					Face_GetTextureRotate(const Face *f);
 const TexInfo_Vectors	*Face_GetTextureVecs(const Face *f);
 int						Face_GetTextureDibId(const Face *f);
 char const				*Face_GetTextureName(const Face *f);
+// changed QD 12/03
+void					Face_GetTextureSize(const Face *f, int *ptxSize, int *ptySize);
+// end change
 geFloat					Face_GetMipMapBias(const Face *f);
 geFloat					Face_GetTranslucency(const Face *f);
 geFloat					Face_GetReflectivity(const Face *f);
@@ -142,6 +145,9 @@ void	Face_MostlyOnSide(const Face *f, const Plane *p, geFloat *max, int *side);
 void	Face_WriteToMap(const Face *f, FILE *wf);
 void	Face_WriteToQuakeMap(const Face *f, FILE *wf);
 geBoolean Face_Write(const Face *f, FILE *wf);
+// changed QD 11/03
+geBoolean Face_ExportTo3dtv1_32(const Face *f, FILE *wf);
+// end change
 Face	*Face_CreateFromFile(Parse3dt *Parser, int VersionMajor, int VersionMinor, const char **Expected);
 
 #ifdef __cplusplus

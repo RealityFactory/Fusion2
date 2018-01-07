@@ -26,7 +26,7 @@
 #include "units.h"
 #include "facelist.h"
 #include <math.h>
-#include "include/ram.h"
+#include "ram.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

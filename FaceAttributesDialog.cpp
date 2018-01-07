@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for tDesigner3d ver. 0.7, Nov. 2, 2002                       */
 /****************************************************************************************/
 #include "stdafx.h"
 #include "Globals.h"
@@ -32,8 +32,12 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+/* 10/31/2002 Wendell Buckner
+    Raise texture limits to 16384 x 16384.
 #define MIN_TEX_OFF	-256
-#define MAX_TEX_OFF	256
+#define MAX_TEX_OFF	256 */
+#define MIN_TEX_OFF	-16384
+#define MAX_TEX_OFF	 16384
 #define MIN_TEX_SCL	-20
 #define MAX_TEX_SCL	20
 #define MIN_TEX_ANG	-359
@@ -118,7 +122,7 @@ static void FillComboBox (CComboBox &Combo, const ComboBoxItem Items[], int nIte
 
 
 
-//CFaceAttributesDialog::CFaceAttributesDialog(CGEditProDoc* ptEditDoc, CWnd* pParent) // old gedit
+//CFaceAttributesDialog::CFaceAttributesDialog(CtDesignerDoc* ptEditDoc, CWnd* pParent) // old gedit
 CFaceAttributesDialog::CFaceAttributesDialog(CWnd* pParent  /*=NULL*/)	// new g3dc
 	: CDialog(CFaceAttributesDialog::IDD, pParent)
 {
@@ -144,6 +148,8 @@ CFaceAttributesDialog::CFaceAttributesDialog(CWnd* pParent  /*=NULL*/)	// new g3
 	m_Transparent = FALSE;
 	//}}AFX_DATA_INIT
 
+	m_iOldTexYOffset = 0;
+	m_iOldTexXOffset = 0;
 
 	CDialog::Create(IDD,pParent);
 
@@ -176,16 +182,25 @@ void CFaceAttributesDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CBANGLE, m_ComboAngle);
 	DDX_Text(pDX, IDC_EDITYSCALE, m_TextureYScale);
 	DDX_Text(pDX, IDC_EDITXSCALE, m_TextureXScale);
+	DDV_MinMaxFloat(pDX, m_TextureXScale, -20.0f, 20.0f);
+	DDV_MinMaxFloat(pDX, m_TextureYScale, -20.0f, 20.0f);
 	DDX_Text(pDX, IDC_EDITYOFFSET, m_TextureYOffset);
 	DDX_Text(pDX, IDC_EDITXOFFSET, m_TextureXOffset);
+// changed QD
+	DDV_MinMaxInt(pDX, m_TextureXOffset, -16384.0f, 16384.0f);
+	DDV_MinMaxInt(pDX, m_TextureYOffset, -16384.0f, 16384.0f);
+// end change
 	DDX_Text(pDX, IDC_EDITANGLE, m_TextureAngle);
-	DDV_MinMaxDouble(pDX, m_TextureAngle, -359.0, 359.0);
+	DDV_MinMaxFloat(pDX, m_TextureAngle, -359.0, 359.0);
 	DDX_Check(pDX, IDC_FACEFULLBRIGHT, m_FullBright);
 	DDX_Check(pDX, IDC_FACELIGHT, m_Light);
 	DDX_Check(pDX, IDC_FACEMIRROR, m_Mirror);
 	DDX_Check(pDX, IDC_FACESKY, m_Sky);
 	DDX_Text(pDX, IDC_EDITXLIGHTSCALE, m_LightXScale);
 	DDX_Text(pDX, IDC_EDITYLIGHTSCALE, m_LightYScale);
+	DDV_MinMaxFloat(pDX, m_LightXScale, -20.0f, 20.0f);
+	DDV_MinMaxFloat(pDX, m_LightYScale, -20.0f, 20.0f);
+
 	DDX_Text(pDX, IDC_FACELIGHTINTENSITY, m_LightIntensity);
 	DDV_MinMaxInt(pDX, m_LightIntensity, 0, 999999);
 	DDX_Check(pDX, IDC_FACEFLAT, m_Flat);
@@ -290,8 +305,7 @@ bool CFaceAttributesDialog::UpdateFaceAttributes(CGEditProDoc *pDoc, Face *pFace
 			cv->SetFocus() ;
 	}
 
-
-		UpdateData (FALSE);
+	UpdateData (FALSE);
 
 	}
 
@@ -303,7 +317,6 @@ void CFaceAttributesDialog::ShowDialog()
 {
 	SetWindowPos(NULL,5,10,0,0,SWP_NOZORDER|SWP_NOSIZE);
 	this->ShowWindow(SW_SHOW);
-
 }
 
 
@@ -417,6 +430,9 @@ void CFaceAttributesDialog::OnResetAll()
 	m_Translucency = 255.0f;
 
 	UpdateData(FALSE);
+
+	m_iOldTexYOffset = 0;
+	m_iOldTexXOffset = 0;
 
 	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::AssignFaceValues, this);
 
@@ -572,42 +588,33 @@ void CFaceAttributesDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScro
 //	And this is here to update the views as changes are made.
 void CFaceAttributesDialog::AssignCurrentToViews()
 {
-	if (m_pDoc == NULL)
+	if (!m_pDoc)
 		m_pDoc = CGlobals::GetActiveDocument();
 
-	// update child faces on all selected brushes
-	int NumSelBrushes;
-
-	NumSelBrushes = SelBrushList_GetSize (m_pDoc->DocVarsGetPointer()->m_pSelBrushes);
-	for (int i = 0; i < NumSelBrushes; ++i)
+	if (m_pDoc)
 	{
-		Brush *pBrush = SelBrushList_GetBrush (m_pDoc->DocVarsGetPointer()->m_pSelBrushes, i);
-		Brush_UpdateChildFaces (pBrush);
+		// update child faces on all selected brushes
+		int NumSelBrushes = 0;
+
+		NumSelBrushes = SelBrushList_GetSize (m_pDoc->DocVarsGetPointer()->m_pSelBrushes);
+		for (int i = 0; i < NumSelBrushes; ++i)
+		{
+			Brush *pBrush = NULL;
+			pBrush = SelBrushList_GetBrush (m_pDoc->DocVarsGetPointer()->m_pSelBrushes, i);
+			if (pBrush)
+				Brush_UpdateChildFaces (pBrush);
+		}
+
+		//	Be very careful when speccing flags for UpdateAllViews()
+		//	The wrong flags at the wrong time will totally screw things up
+		m_pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);	//	best current one
 	}
-
-	//	new g3dc
-	//	NOTE Must Deselect all brushes when going from face adjustment mode
-	//	to brush adjustment mode, or these changes won't show up.
-	//	See CGEditProDoc::OnToolsBrushAdjustmentmode()
-
-	//	Be very careful when speccing flags for UpdateAllViews()
-	//	The wrong flags at the wrong time will totally screw things up
-//	m_pDoc->UpdateAllViews(UAV_RENDER_ONLY, NULL);  // oringinal gedit
-	m_pDoc->UpdateAllViews(UAV_ALL3DVIEWS, NULL);	//	best current one
-
-
-
-//	m_pDoc->UpdateAllViews(UAV_ALL3DVIEWS | REBUILD_QUICK, NULL);  // experiment g3dc
-
-
-//	m_pDoc->m_pMainFrame->UpdateMainControls();
-
 }
 
 /*
 Problem updating textured view
 See the following functions
-CGEditProDoc::UpdateFaceAttributes, RebuildTrees, UpdateAllViews, OnGbspnowater()
+CtDesignerDoc::UpdateFaceAttributes, RebuildTrees, UpdateAllViews, OnGbspnowater()
 
 
 
@@ -760,11 +767,11 @@ static void OnIntKillFocus (CEdit &Edit, int *val, int DefaultVal, const char *D
 	}
 }
 
-static BOOL OnFloatEditChange (CEdit &Edit, float *val, float DefaultVal)
+static BOOL OnFloatEditChange(CEdit &Edit, float *val, float DefaultVal)
 {
 	CString Text;
 
-	Edit.GetWindowText (Text);
+	Edit.GetWindowText(Text);
 	if (Text == "")
 	{
 		*val = DefaultVal;
@@ -828,23 +835,30 @@ static geBoolean ChangeXOffset (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusXOffset()
 {
-	if (m_pDoc == NULL)
+	if (!m_pDoc)
 		m_pDoc = CGlobals::GetActiveDocument();
 
-	BOOL bTrans = FALSE;
-	int lastValue = m_TextureXOffset;
-	int currentValue = GetDlgItemInt(IDC_EDITXOFFSET, &bTrans);
-	if (bTrans == FALSE)
+	if (m_pDoc)
 	{
-		this->SetDlgItemInt(IDC_EDITXOFFSET, lastValue);
-		return;
-	}
+		UpdateData (TRUE);
+// changed QD
+		if (m_TextureXOffset > 16384.0f)
+		{
+			m_TextureXOffset = 16384.0f;
+			UpdateData(FALSE);
+		}
+		if (m_TextureXOffset < -16384.0f)
+		{
+			m_TextureXOffset = -16384.0f;
+			UpdateData(FALSE);
+		}
+// end change
+		SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeXOffset, &m_TextureXOffset);
 
-	UpdateData (TRUE);
-	OnIntKillFocus (m_EditXOffset, &m_TextureXOffset, 0, "0");
-	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeXOffset, &m_TextureXOffset);
-	AssignCurrentToViews ();
+		AssignCurrentToViews ();
+	}
 }
+
 
 static geBoolean ChangeYOffset (Face *pFace, void *lParam)
 {
@@ -858,22 +872,28 @@ static geBoolean ChangeYOffset (Face *pFace, void *lParam)
 
 void CFaceAttributesDialog::OnKillfocusYOffset()
 {
-	if (m_pDoc == NULL)
+	if (!m_pDoc)
 		m_pDoc = CGlobals::GetActiveDocument();
 
-	BOOL bTrans = FALSE;
-	int lastValue = m_TextureYOffset;
-	int currentValue = GetDlgItemInt(IDC_EDITYOFFSET, &bTrans);
-	if (bTrans == FALSE)
+	if (m_pDoc)
 	{
-		SetDlgItemInt(IDC_EDITYOFFSET, lastValue);
-		return;
-	}
+		UpdateData (TRUE);
+// changed QD
+		if (m_TextureYOffset > 16384.0f)
+		{
+			m_TextureYOffset = 16384.0f;
+			UpdateData(FALSE);
+		}
+		if (m_TextureYOffset < -16384.0f)
+		{
+			m_TextureYOffset = -16384.0f;
+			UpdateData(FALSE);
+		}
+// end change
+		SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeYOffset, &m_TextureYOffset);
 
-	UpdateData (TRUE);
-	OnIntKillFocus (m_EditYOffset, &m_TextureYOffset, 0, "0");
-	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeYOffset, &m_TextureYOffset);
-	AssignCurrentToViews ();
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeTextureXScale (Face *pFace, void *lParam)
@@ -889,22 +909,28 @@ static geBoolean ChangeTextureXScale (Face *pFace, void *lParam)
 void CFaceAttributesDialog::OnKillfocusXScale()
 {
 	CString testString;							//	post 0.5 release
-	if (m_pDoc == NULL)
+	if (!m_pDoc)
 		m_pDoc = CGlobals::GetActiveDocument();
 
-//	int	lastValue = m_TextureXScale;			//	post 0.5 release
-//	if (GetDlgItemInt(IDC_EDITXSCALE) == NULL)	//	post 0.5 release
-	float lastValue = m_TextureXScale;			// post 0.5 release
-	if (GetDlgItemText(IDC_EDITXSCALE, testString) == NULL)// post 0.5 release
+	if (m_pDoc)
 	{
-		this->SetDlgItemInt(IDC_EDITXSCALE, (int)lastValue);	//	post 0.5 release
-		return;
-	}
+		UpdateData (TRUE);
 
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditXScale, &m_TextureXScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeTextureXScale, &m_TextureXScale);
-	AssignCurrentToViews ();
+		if (m_TextureXScale > 20.0f)
+		{
+			m_TextureXScale = 20.0f;
+			UpdateData(FALSE);
+		}
+		if (m_TextureXScale < -20.0f)
+		{
+			m_TextureXScale = -20.0f;
+			UpdateData(FALSE);
+		}
+
+		SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeTextureXScale, &m_TextureXScale);
+
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeTextureYScale (Face *pFace, void *lParam)
@@ -923,19 +949,24 @@ void CFaceAttributesDialog::OnKillfocusYScale()
 	if (m_pDoc == NULL)
 		m_pDoc = CGlobals::GetActiveDocument();
 
-//	int	lastValue = m_TextureYScale;			//	post 0.5 release
-//	if (GetDlgItemInt(IDC_EDITYSCALE) == NULL)	//	post 0.5 release
-	float	lastValue = m_TextureYScale;		//	post 0.5 release
-	if (GetDlgItemText(IDC_EDITYSCALE, testString) == NULL)	//	post 0.5 release
+	if (m_pDoc)
 	{
-		this->SetDlgItemInt(IDC_EDITYSCALE, (int)lastValue);	//	post 0.5 release
-		return;
-	}
+		UpdateData (TRUE);
 
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditYScale, &m_TextureYScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeTextureYScale, &m_TextureYScale);
-	AssignCurrentToViews ();
+		if (m_TextureYScale > 20.0f)
+		{
+			m_TextureYScale = 20.0f;
+			UpdateData(FALSE);
+		}
+		if (m_TextureYScale < -20.0f)
+		{
+			m_TextureYScale = -20.0f;
+			UpdateData(FALSE);
+		}
+
+		SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeTextureYScale, &m_TextureYScale);
+		AssignCurrentToViews ();
+	}
 }
 
 static geBoolean ChangeLightXScale (Face *pFace, void *lParam)
@@ -953,17 +984,24 @@ void CFaceAttributesDialog::OnKillfocusEditxlightscale()
 	if (m_pDoc == NULL)
 		m_pDoc = CGlobals::GetActiveDocument();
 
-	int	lastValue = m_LightXScale;
-	if (GetDlgItemInt(IDC_EDITXLIGHTSCALE) == NULL)
+	if (m_pDoc)
 	{
-		this->SetDlgItemInt(IDC_EDITXLIGHTSCALE, lastValue);
-		return;
-	}
+		UpdateData (TRUE);
 
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditLightXScale, &m_LightXScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeLightXScale, &m_LightXScale);
-	AssignCurrentToViews ();
+		if (m_LightXScale > 20.0f)
+		{
+			m_LightXScale = 20.0f;
+			UpdateData(FALSE);
+		}
+		if (m_LightXScale < -20.0f)
+		{
+			m_LightXScale = -20.0f;
+			UpdateData(FALSE);
+		}
+
+		SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeLightXScale, &m_LightXScale);
+		AssignCurrentToViews ();
+	}
 }
 
 
@@ -982,18 +1020,23 @@ void CFaceAttributesDialog::OnKillfocusEditylightscale()
 	if (m_pDoc == NULL)
 		m_pDoc = CGlobals::GetActiveDocument();
 
-	int	lastValue = m_LightYScale;
-	if (GetDlgItemInt(IDC_EDITYLIGHTSCALE) == NULL)
+	if (m_pDoc)
 	{
-		this->SetDlgItemInt(IDC_EDITYLIGHTSCALE, lastValue);
-		return;
+		UpdateData (TRUE);
+
+		if (m_LightYScale > 20.0f)
+		{
+			m_LightYScale = 20.0f;
+			UpdateData(FALSE);
+		}
+		if (m_LightYScale < -20.0f)
+		{
+			m_LightYScale = -20.0f;
+			UpdateData(FALSE);
+		}
+		SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeLightYScale, &m_LightYScale);
+		AssignCurrentToViews ();
 	}
-
-
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditLightYScale, &m_LightYScale, 1.0f, "1.0");
-	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ChangeLightYScale, &m_LightYScale);
-	AssignCurrentToViews ();
 }
 
 static geBoolean ChangeTextureAngle (Face *pFace, void *lParam)
@@ -1009,18 +1052,23 @@ void CFaceAttributesDialog::OnKillfocusAngle()
 	if (m_pDoc == NULL)
 		m_pDoc = CGlobals::GetActiveDocument();
 
-	int	lastValue = m_TextureAngle;
-	if (GetDlgItemInt(IDC_EDITANGLE) == NULL)
+	if (m_pDoc)
 	{
-		this->SetDlgItemInt(IDC_EDITANGLE, lastValue);
-		return;
+		UpdateData (TRUE);
+
+		if (m_TextureAngle > 359.0f)
+		{
+			m_TextureAngle = 359.0f;
+			UpdateData(FALSE);
+		}
+		if (m_TextureAngle < -359.0f)
+		{
+			m_TextureAngle = -359.0f;
+			UpdateData(FALSE);
+		}
+		SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::ChangeTextureAngle, &m_TextureAngle);
+		AssignCurrentToViews ();
 	}
-
-
-	UpdateData (TRUE);
-	OnFloatKillFocus (m_EditAngle, &m_TextureAngle, 0, "0");
-	SelFaceList_Enum (m_pDoc->DocVarsGetPointer()->m_pSelFaces, ::ChangeTextureAngle, &m_TextureAngle);
-	AssignCurrentToViews ();
 }
 
 static geBoolean ChangeLightIntensity (Face *pFace, void *lParam)

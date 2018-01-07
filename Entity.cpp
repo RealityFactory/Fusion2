@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "stdafx.h"
 #include "Entity.h"
@@ -28,6 +28,14 @@
 #include "units.h"
 #include "util.h"
 #include "Globals.h"
+// changed QD Actors
+#include "actor.h"
+#include "body.h"
+#include "body._h"
+#include "vfile.h"
+#include "facelist.h"
+#include "xform3d.h"
+// end change
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -47,6 +55,11 @@ void CEntity::Move(geVec3d const *v)
 		return;
 
 	geVec3d_Add (&mOrigin, v, &mOrigin);
+// changed QD Actors
+// update actor geometry position
+	if(mActorBrush!=NULL)
+		Brush_Move(mActorBrush, v);
+// end change
 }
 
 
@@ -63,7 +76,6 @@ void CEntity::Rotate(geXForm3d const *pXfmRotate, geVec3d const *pCenter)
 		geXForm3d_Rotate (pXfmRotate, &NewPos, &NewPos);
 //		geVec3d_Add (&NewPos, pCenter, &NewPos);
 		geVec3d_Add (&NewPos, pCenter, &mOrigin);
-
 	}
 }
 
@@ -123,6 +135,9 @@ CEntity::CEntity()
 
 	// start off with no group
 	mGroup = 0;
+// changed QD Actors
+	mActorBrush = NULL;
+// end change
 }
 
 #if _MFC_VER<=0x0600 // only MFC60 and below
@@ -132,6 +147,13 @@ CEntity::CEntity(CEntity& Entity)
 	mFlags = Entity.mFlags;
 	mGroup = Entity.mGroup;
 	mOrigin = Entity.mOrigin;
+// changed QD Actors
+//	if(mActorBrush!=NULL)
+//		Brush_Destroy(&mActorBrush);
+	mActorBrush=NULL;
+	if(Entity.GetActorBrush()!=NULL)
+		mActorBrush = Brush_Clone(Entity.GetActorBrush());
+// end change
 
 	// copy the key/value entries
 	CString Key, Value;
@@ -149,6 +171,10 @@ CEntity::~CEntity ()
 {
 	mKeyArray.RemoveAll ();
 	mValueArray.RemoveAll ();
+// changed QD Actors
+	if(mActorBrush!=NULL)
+		Brush_Destroy(&mActorBrush);
+// end change
 }
 
 geBoolean CEntity::IsCamera( void ) const
@@ -156,6 +182,414 @@ geBoolean CEntity::IsCamera( void ) const
 	return GetClassname().Compare( "Camera" ) == 0 ;
 }
 
+// changed QD Actors
+// get the file name of the actor, if entity has an actor
+BOOL CEntity::HasActor(char *ActorFile, char *PawnIni)
+{
+	int i, NumKeys;
+
+	NumKeys = this->mKeyArray.GetSize();
+
+	if(!strcmp(GetClassname(),"Pawn"))
+	{
+		CString Type;
+		if(!GetKeyValue("PawnType",Type))
+			return FALSE;
+
+		geVFile *IniFile = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_DOS, PawnIni, NULL, GE_VFILE_OPEN_READONLY);
+
+		if(IniFile)
+		{
+			CString readinfo;
+			CString keyname, valuename, value;
+
+			char szInputLine[132];
+
+			while(geVFile_GetS(IniFile, szInputLine, 132)==GE_TRUE)
+			{
+				if(strlen(szInputLine) <= 1)
+					readinfo = "";
+				else
+					readinfo = szInputLine;
+
+				readinfo.TrimRight();
+
+				if (readinfo != "")
+				{
+					if (readinfo[0] == '[' && readinfo[readinfo.GetLength()-1] == ']') //if a section heading
+					{
+						keyname = readinfo;
+						keyname.TrimLeft('[');
+						keyname.TrimRight(']');
+
+						if(!strcmp(keyname,Type))
+						{
+							while(geVFile_GetS(IniFile, szInputLine, 132)==GE_TRUE)
+							{
+								if(strlen(szInputLine) <= 1)
+									readinfo = "";
+								else
+									readinfo = szInputLine;
+
+								readinfo.TrimRight();
+
+								if (readinfo != "")
+								{
+									if (readinfo[0] == '[' && readinfo[readinfo.GetLength()-1] == ']')
+									{
+										geVFile_Close(IniFile);
+										return FALSE;
+									}
+
+									if(readinfo[0] != ';')
+									{
+										if(readinfo.Find("=")!=-1)
+										{
+											valuename = readinfo.Left(readinfo.Find("="));
+											value = readinfo.Right(readinfo.GetLength()-valuename.GetLength()-1);
+										}
+										else
+											continue;
+
+										valuename.TrimLeft();
+										valuename.TrimRight();
+										value.TrimLeft();
+										value.TrimRight();
+										if(value=="")
+											continue;
+
+										if(!strcmp(valuename, "actorname"))
+										{
+											strcpy(ActorFile, value);
+											geVFile_Close(IniFile);
+											return TRUE;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+//			AfxMessageBox("Can't open pawn.ini", MB_ICONEXCLAMATION | MB_OK);
+			return FALSE;
+		}
+		geVFile_Close(IniFile);
+	}
+	else
+	{
+		for(i=0;i<NumKeys;i++)
+		{
+			CString Value;
+
+			Value = mValueArray[i];
+
+			if(strstr(Value,".act")!=NULL)
+			{
+				strcpy(ActorFile, Value);
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+Brush *CEntity::CreateActorBrush(char *ActorFile, char *ActorDir, char *PawnIni)
+{
+	char filename[255];
+	geVFile *ActFile;
+	geActor_Def *mActorDef;
+	geActor *Actor;
+	CString ActorRotStr;
+	geVec3d ActorRotation;
+	geXForm3d thePosition;
+	geFloat Scale;
+	CString ActorScale;
+
+	// if there's an old brush, destroy it
+	if(mActorBrush!=NULL)
+		Brush_Destroy(&mActorBrush);
+
+	// build filename
+	strcpy(filename, ActorDir);
+	strcat(filename, "\\");
+	strcat(filename, ActorFile);
+
+	ActFile = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_DOS, filename, NULL, GE_VFILE_OPEN_READONLY);
+	if(ActFile)
+	{
+		mActorDef = geActor_DefCreateFromFile(ActFile);
+		if(!mActorDef)
+		{
+			geVFile_Close(ActFile);
+			AfxMessageBox("Failed to create ActorDef", MB_ICONEXCLAMATION | MB_OK);
+			return NULL;
+		}
+	}
+	else
+	{
+//		AfxMessageBox("Can't open actor file", MB_ICONEXCLAMATION | MB_OK);
+		return NULL;
+	}
+	geVFile_Close(ActFile);
+	Actor = geActor_Create(mActorDef);
+
+	geVec3d_Clear(&ActorRotation);	// Initialize
+	Scale=1.0f;
+	geXForm3d_SetIdentity(&thePosition);
+
+// reading pawn.ini (actorrotation, actorscale)
+	if(!strcmp(GetClassname(),"Pawn"))
+	{
+		CString Type;
+		GetKeyValue("PawnType",Type);
+
+		geVFile *IniFile = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_DOS, PawnIni, NULL, GE_VFILE_OPEN_READONLY);
+
+		if(IniFile)
+		{
+			CString readinfo;
+			CString keyname, valuename, value;
+
+			char szInputLine[132];
+
+			while(geVFile_GetS(IniFile, szInputLine, 132)==GE_TRUE)
+			{
+				if(strlen(szInputLine) <= 1)
+					readinfo = "";
+				else
+					readinfo = szInputLine;
+
+				readinfo.TrimRight();
+
+				if (readinfo != "")
+				{
+					if (readinfo[0] == '[' && readinfo[readinfo.GetLength()-1] == ']') //if a section heading
+					{
+						keyname = readinfo;
+						keyname.TrimLeft('[');
+						keyname.TrimRight(']');
+
+						if(!strcmp(keyname,Type))
+						{
+							while(geVFile_GetS(IniFile, szInputLine, 132)==GE_TRUE)
+							{
+								if(strlen(szInputLine) <= 1)
+									readinfo = "";
+								else
+									readinfo = szInputLine;
+
+								readinfo.TrimRight();
+
+								if (readinfo != "")
+								{
+									if (readinfo[0] == '[' && readinfo[readinfo.GetLength()-1] == ']')
+										goto DoneRead;
+
+									if(readinfo[0] != ';')
+									{
+										if(readinfo.Find("=")!=-1)
+										{
+											valuename = readinfo.Left(readinfo.Find("="));
+											value = readinfo.Right(readinfo.GetLength()-valuename.GetLength()-1);
+										}
+										else
+											continue;
+
+										valuename.TrimLeft();
+										valuename.TrimRight();
+										value.TrimLeft();
+										value.TrimRight();
+										if(value=="")
+											continue;
+
+										if(!strcmp(valuename, "actorrotation"))
+											sscanf(value, "%f %f %f", &ActorRotation.X, &ActorRotation.Y, &ActorRotation.Z);
+										else if(!strcmp(valuename, "actorscale"))
+											sscanf(value, "%f", &Scale);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			AfxMessageBox("Can't open pawn.ini", MB_ICONEXCLAMATION | MB_OK);
+		}
+
+DoneRead:
+		geVFile_Close(IniFile);
+		if(GetKeyValue ("Angle", ActorRotStr))
+		{
+			geVec3d Angle;
+			sscanf(ActorRotStr, "%f %f %f", &Angle.X, &Angle.Y, &Angle.Z);
+
+			geVec3d_Scale(&Angle,0.0174532925199433f,&Angle);
+
+			geXForm3d_RotateZ(&thePosition, Angle.Z);
+			geXForm3d_RotateX(&thePosition, Angle.X);
+			geXForm3d_RotateY(&thePosition, Angle.Y);
+		}
+
+	}
+// it's not a Pawn get rotation and scale from the entity key values
+	else
+	{
+
+// get rotation of the actor
+		if(GetKeyValue ("ActorRotation", ActorRotStr))
+			sscanf(ActorRotStr, "%f %f %f", &ActorRotation.X, &ActorRotation.Y, &ActorRotation.Z);
+// get scaling of the actor
+		if(GetKeyValue("Scale", ActorScale))
+			sscanf(ActorScale, "%f", &Scale);
+		else if(GetKeyValue("ScaleFactor", ActorScale))
+			sscanf(ActorScale, "%f", &Scale);
+		else if(GetKeyValue("ActorScaleFactor", ActorScale))
+		{
+			geFloat PScale;
+			sscanf(ActorScale, "%f", &Scale);
+			GetKeyValue("PlayerScaleFactor", ActorScale);
+			sscanf(ActorScale, "%f", &PScale);
+			Scale*=PScale;
+		}
+	}
+// rotate the Actor
+	geVec3d_Scale(&ActorRotation,0.0174532925199433f,&ActorRotation);
+
+	geXForm3d_RotateZ(&thePosition, ActorRotation.Z);
+	geXForm3d_RotateX(&thePosition, ActorRotation.X);
+	geXForm3d_RotateY(&thePosition, ActorRotation.Y);
+
+	geActor_ClearPose(Actor, &thePosition);
+
+// get the body data
+	geBody *B = geActor_GetBody(mActorDef);
+
+	if(!B)
+	{
+		if(mActorDef!=NULL)
+			geActor_DefDestroy(&mActorDef);
+
+		if(Actor!=NULL)
+			geActor_Destroy(&Actor);
+
+		return NULL;
+	}
+
+	FaceList *fl;
+	Face	*f;
+	{
+		int i,NumFaces=0;
+		geBody_Index Index;
+		geBody_Index BoneIndex;
+		char BoneName[255];
+		geXForm3d Transform;
+		const char *BName;
+
+		NumFaces = B->SkinFaces[0].FaceCount;
+
+// create the facelist for the brush
+		fl=FaceList_Create(NumFaces);
+		if(!fl)
+		{
+			char szError[256];
+			sprintf(szError,"Error creating FaceList: '%s'", ActorFile);
+			AfxMessageBox(szError, MB_ICONEXCLAMATION | MB_OK);
+
+			if(mActorDef!=NULL)
+				geActor_DefDestroy(&mActorDef);
+			if(Actor!=NULL)
+				geActor_Destroy(&Actor);
+
+			return NULL;
+		}
+
+		for(i=0;i<NumFaces;i++)
+		{
+			geVec3d FaceVerts[3];
+
+			for(int j=0;j<3;j++)
+			{
+				// have to reverse vertex order for some reason
+				Index = B->SkinFaces[0].FaceArray[i].VtxIndex[j];
+				geVec3d_Copy(&(B->XSkinVertexArray[Index].XPoint),&(FaceVerts[2-j]));
+
+				// transform vertex point by bone transformation
+				BoneIndex = B->XSkinVertexArray[Index].BoneIndex;
+				BName = geStrBlock_GetString(B->BoneNames, BoneIndex);
+				strcpy(BoneName,BName);
+				geActor_GetBoneTransform(Actor, BoneName, &Transform);
+				geXForm3d_Transform(&Transform,&(FaceVerts[2-j]),&(FaceVerts[2-j]));
+
+				geVec3d_Scale(&FaceVerts[2-j], Scale, &FaceVerts[2-j]);
+			}
+
+// create faces  and add them to the facelist
+			f=Face_Create(3,FaceVerts,0);
+
+			if(f)
+				FaceList_AddFace(fl,f);
+			else
+			{
+				// hack: if original face has no normal create a valid face instead
+				geVec3d_Set(&(FaceVerts[0]), 10000.0f, 10000.0f, 10000.0f);
+				geVec3d_Set(&(FaceVerts[1]), 10001.0f, 10000.0f, 10000.0f);
+				geVec3d_Set(&(FaceVerts[2]), 10000.0f, 10001.0f, 10000.0f);
+
+				f=Face_Create(3,FaceVerts,0);
+
+				if(f)
+					FaceList_AddFace(fl,f);
+			}
+		}
+	}
+
+	mActorBrush = Brush_Create(BRUSH_LEAF, fl, NULL);
+	if(!mActorBrush)
+	{
+		char szError[256];
+		sprintf(szError,"Error creating brush: '%s'", ActorFile);
+		AfxMessageBox(szError, MB_ICONEXCLAMATION | MB_OK);
+
+		FaceList_Destroy(&fl);
+
+		if(mActorDef!=NULL)
+			geActor_DefDestroy(&mActorDef);
+
+		if(Actor!=NULL)
+			geActor_Destroy(&Actor);
+
+		return NULL;
+	}
+
+	Brush_SetName(mActorBrush, ActorFile);
+
+	if(mActorDef!=NULL)
+		geActor_DefDestroy(&mActorDef);
+
+	if(Actor!=NULL)
+		geActor_Destroy(&Actor);
+
+// move the brush to the right position
+	Brush_Move(mActorBrush,&mOrigin);
+
+	return mActorBrush;
+}
+
+void CEntity::DeleteActorBrush()
+{
+	if(mActorBrush!=NULL)
+	{
+		Brush_Destroy(&mActorBrush);
+		mActorBrush=NULL;
+	}
+}
+// end change
 
 // sets selected state of entity
 void CEntity::Select()
@@ -199,10 +633,19 @@ CString CEntity::GetName
 
 CEntity& CEntity::operator=( CEntity& Entity )
 {
+	if(&Entity == this)
+		return *this;
 	EntityStyle = Entity.EntityStyle;
 	mFlags = Entity.mFlags;
 	mGroup = Entity.mGroup;
 	mOrigin = Entity.mOrigin;
+// changed QD Actors
+	if(mActorBrush!=NULL)
+		Brush_Destroy(&mActorBrush);
+	mActorBrush=NULL;
+	if(Entity.GetActorBrush()!=NULL)
+		mActorBrush =Brush_Clone(Entity.GetActorBrush());
+// end change
 
 	mKeyArray.RemoveAll();
 	mValueArray.RemoveAll();
@@ -264,7 +707,7 @@ CEntityArray	*CEntity::CloneEntityArray(CEntityArray *pEntityArray)
 
 //		if (bIsSelected)
 //				pEntityArray->GetAt(iArray).DeSelect();
-	}	
+	}
 
 	return pTempEntityArray;
 }
@@ -378,9 +821,22 @@ void CEntity::UpdateOrigin (const EntityTable *pEntityDefs)
 	// get our x y z
 	int x, y, z;
 	sscanf(OriginStr, "%d %d %d", &x, &y, &z);
+// changed QD Actors
+	geVec3d BrushPos;
+	geVec3d_Copy(&mOrigin, &BrushPos);
+// end change
 
 	// assign them 
 	geVec3d_Set (&mOrigin, (geFloat)x, (geFloat)y, (geFloat)z);
+// changed QD Actors
+// update actor geometry position
+	if(mActorBrush!=NULL)
+	{
+		geVec3d MoveVec;
+		geVec3d_Subtract(&mOrigin, &BrushPos, &MoveVec);
+		Brush_Move(mActorBrush,&MoveVec);
+	}
+// end change
 }
 
 BOOL CEntity::GetOriginFieldName 
@@ -408,6 +864,10 @@ BOOL CEntity::SetOrigin
 	)
 {
 	CString OriginFieldName;
+// changed QD Actors 12/03
+	geVec3d BrushPos;
+	geVec3d_Copy(&mOrigin, &BrushPos);
+// end change
 
 	geVec3d_Set (&mOrigin, x, y, z);
 
@@ -420,6 +880,16 @@ BOOL CEntity::SetOrigin
 		// update the origin string
 		SetKeyValue (OriginFieldName, NewOriginString);
 	}
+
+// changed QD Actors 12/03
+// update actor geometry position
+	if(mActorBrush!=NULL)
+	{
+		geVec3d MoveVec;
+		geVec3d_Subtract(&mOrigin, &BrushPos, &MoveVec);
+		Brush_Move(mActorBrush,&MoveVec);
+	}
+// end change
 
 	return TRUE;
 }
@@ -663,6 +1133,10 @@ static float SnapToGrid
 void CEntity::DoneMove(double GridSize, const EntityTable *pEntityDefs)
 {
 	float x, y, z;
+// changed QD Actors
+	geVec3d BrushPos;
+	geVec3d_Copy(&mOrigin, &BrushPos);
+// end change
 
 	// Snap to the grid
 	x = SnapToGrid (mOrigin.X, GridSize);
@@ -670,6 +1144,15 @@ void CEntity::DoneMove(double GridSize, const EntityTable *pEntityDefs)
 	z = SnapToGrid (mOrigin.Z, GridSize);
 
 	SetOrigin (x, y, z, pEntityDefs);
+// changed QD Actors
+// update actor geometry position
+	if(mActorBrush!=NULL)
+	{
+		geVec3d MoveVec;
+		geVec3d_Subtract(&mOrigin, &BrushPos, &MoveVec);
+		Brush_Move(mActorBrush,&MoveVec);
+	}
+// end change
 }
 
 // update our origin
@@ -741,6 +1224,381 @@ geBoolean CEntity::SaveToFile( FILE *file )
 	return GE_TRUE;
 }
 
+// changed QD 12/03
+#define CHUNK_COLORRGB				0x0011
+
+#define CHUNK_OBJBLOCK				0x4000
+#define CHUNK_LIGHT					0x4600	// Light
+#define CHUNK_SPOTLIGHT				0x4610	// Spotlight
+#define CHUNK_SPOT_RAYTRACE			0x4627	// Spot raytrace
+#define CHUNK_LIGHTSHADOWED			0x4630	// Light shadowed
+#define CHUNK_SPOT_SHADOWMAP		0x4641	// Spot shadow map //float bias float filter ushort size
+//#define CHUNK_SPOT_SHOWCONE		0x4650	// Spot show cone
+//#define CHUNK_SPOT_ISRECTANGULAR	0x4651	// Spot is rectangular
+//#define CHUNK_SPOT_OVERSHOOT		0x4652	// Spot overshoot
+//#define CHUNK_SPOT_MAP			0x4653	// Spot map (projector)
+#define CHUNK_SPOT_ROLL				0x4656	// Spot roll
+//#define CHUNK_SPOT_ASPECT			0x4657
+#define CHUNK_SPOT_RAYTRACEBIAS     0x4658	// Spot ray trace bias
+
+//#define CHUNK_LIGHTOFF			0x4620	// Light off
+#define CHUNK_ATTENUATIONON			0x4625	// Attenuation on
+#define CHUNK_RANGESTART			0x4659	// Range start
+#define CHUNK_RANGEEND				0x465A	// Range end
+#define CHUNK_MULTIPLIER			0x465B	// Multiplier
+//#define CHUNK_EXCLUDE				0x4654
+
+// Keyframe chunks
+#define CHUNK_KF_OMNILIGHT		0xB005
+#define CHUNK_KF_LIGHTTARGET	0xB006
+#define CHUNK_KF_SPOTLIGHT		0xB007
+#define CHUNK_KF_NODE_ID 		0xB030
+#define CHUNK_KF_NODE_HDR		0xB010
+#define CHUNK_KF_POSTRACK		0xB020
+#define CHUNK_KF_COLORTRACK		0xB025
+#define CHUNK_KF_HOTSPOTTRACK	0xB027
+#define CHUNK_KF_FALLOFFTRACK	0xB028
+#define CHUNK_KF_ROLLTRACK		0xB024
+
+#define SIZE_CHUNKID		sizeof(unsigned short)
+#define SIZE_CHUNKLENGTH	sizeof(long)
+#define SIZE_USHORT			sizeof(unsigned short)
+#define SIZE_FLOAT			sizeof(float)
+
+// saves a light entity out to a 3ds
+geBoolean CEntity::ExportTo3ds(FILE *file, int EntityCount)
+{
+	int size_name, size_color, size_spotlight, size_light, size_objblock;
+	if(!file) return GE_FALSE;
+
+	if(strcmp(GetClassname(),"light")&&strcmp(GetClassname(),"spotlight"))
+		return GE_TRUE;
+
+	// calculate the size of the different chunks
+	size_name		= 8; //AAAAxxx\0
+	size_color		= 9;
+	size_spotlight  = SIZE_CHUNKID+SIZE_CHUNKLENGTH+5*SIZE_FLOAT+10+16+10+6;
+	size_light		= SIZE_CHUNKID+SIZE_CHUNKLENGTH+3*SIZE_FLOAT+size_color+30+6;
+	if(!strcmp(GetClassname(),"spotlight"))
+		size_light+=size_spotlight;
+
+	size_objblock	= SIZE_CHUNKID+SIZE_CHUNKLENGTH+size_name+size_light;
+
+	// write the objblock
+	TypeIO_WriteUshort(file,CHUNK_OBJBLOCK);
+	TypeIO_WriteInt(file,size_objblock);
+	// give each object a unique name AAAAxxx\0
+	if(!strcmp(GetClassname(),"light"))
+	{
+		TypeIO_WriteUChar(file,'O');
+		TypeIO_WriteUChar(file,'m');
+		TypeIO_WriteUChar(file,'n');
+		TypeIO_WriteUChar(file,'i');
+	}
+	else if(!strcmp(GetClassname(),"spotlight"))
+	{
+		TypeIO_WriteUChar(file,'S');
+		TypeIO_WriteUChar(file,'p');
+		TypeIO_WriteUChar(file,'o');
+		TypeIO_WriteUChar(file,'t');
+	}
+
+	TypeIO_WriteUChar(file,(unsigned char)(48+(EntityCount-EntityCount%100)/100));
+	TypeIO_WriteUChar(file,(unsigned char)(48+((EntityCount-EntityCount%10)/10)%10));
+	TypeIO_WriteUChar(file,(unsigned char)(48+EntityCount%10));
+	TypeIO_WriteUChar(file,'\0');
+	// end name of this object
+
+	// this object is a light
+	TypeIO_WriteUshort(file,CHUNK_LIGHT);
+	TypeIO_WriteInt(file,size_light);
+	TypeIO_WriteFloat(file, mOrigin.X);
+	TypeIO_WriteFloat(file, mOrigin.Y);
+	TypeIO_WriteFloat(file, mOrigin.Z);
+
+	{
+		CString ColorStr;
+		int r, g, b;
+		r=g=b=128;
+		if(GetKeyValue ("color", ColorStr))
+			sscanf(ColorStr, "%d %d %d", &r, &g, &b);
+
+		TypeIO_WriteUshort(file, CHUNK_COLORRGB);
+		TypeIO_WriteInt(file,6+3);
+		TypeIO_WriteUChar(file, (unsigned char)r);
+		TypeIO_WriteUChar(file, (unsigned char)g);
+		TypeIO_WriteUChar(file, (unsigned char)b);
+	}
+
+	{
+		CString RangeStr;
+		int range;
+		range=200;
+		if(GetKeyValue ("light", RangeStr))
+			sscanf(RangeStr, "%d", &range);
+
+		TypeIO_WriteUshort(file, CHUNK_RANGEEND);
+		TypeIO_WriteInt(file,10);
+		TypeIO_WriteFloat(file, (geFloat)range);
+	}
+
+	TypeIO_WriteUshort(file, CHUNK_RANGESTART);
+	TypeIO_WriteInt(file,10);
+	TypeIO_WriteFloat(file, 100.0f);
+
+	TypeIO_WriteUshort(file, CHUNK_MULTIPLIER);
+	TypeIO_WriteInt(file,10);
+	TypeIO_WriteFloat(file, 1.0f);
+
+	if(!strcmp(GetClassname(),"spotlight"))
+	{
+		CString DirStr, AngleStr;
+		geVec3d Direction, Angles, target;
+		geXForm3d Rotation;
+		int Hotspot;
+
+		TypeIO_WriteUshort(file, CHUNK_SPOTLIGHT);
+		TypeIO_WriteInt(file, size_spotlight);
+
+		Direction.X=1.0f;
+		Direction.Y=0.0f;
+		Direction.Z=0.0f;
+
+
+		if(GetKeyValue ("angles", DirStr))
+			sscanf(DirStr, "%f %f %f", &Angles.X, &Angles.Y, &Angles.Z);
+
+		geVec3d_Scale(&Angles, GE_PI/180.0f, &Angles);
+
+		geXForm3d_SetIdentity(&Rotation);
+		geXForm3d_SetEulerAngles(&Rotation, &Angles);
+		geXForm3d_Transform(&Rotation, &Direction, &Direction);
+		geVec3d_Normalize(&Direction);
+		geVec3d_Copy(&mOrigin, &target);
+		geVec3d_AddScaled(&target, &Direction, 200.0f, &target);
+
+		TypeIO_WriteFloat(file, target.X);
+		TypeIO_WriteFloat(file, target.Y);
+		TypeIO_WriteFloat(file, target.Z);
+
+		Hotspot = 60;
+		if(GetKeyValue ("arc", AngleStr))
+			sscanf(AngleStr, "%i", &Hotspot);
+
+		TypeIO_WriteFloat(file, (geFloat)Hotspot);
+		TypeIO_WriteFloat(file, (geFloat)(Hotspot+5.0f));
+
+		TypeIO_WriteUshort(file, CHUNK_SPOT_ROLL);
+		TypeIO_WriteInt(file, 10);
+		TypeIO_WriteFloat(file, 0.0f);
+
+		TypeIO_WriteUshort(file, CHUNK_LIGHTSHADOWED);
+		TypeIO_WriteInt(file,6);
+
+		TypeIO_WriteUshort(file, CHUNK_SPOT_SHADOWMAP);
+		TypeIO_WriteInt(file, 16);
+		TypeIO_WriteFloat(file, 1.0f);
+		TypeIO_WriteFloat(file, 5.0f);
+		TypeIO_WriteUshort(file, 512);
+
+		TypeIO_WriteUshort(file, CHUNK_SPOT_RAYTRACEBIAS);
+		TypeIO_WriteInt(file, 10);
+		TypeIO_WriteFloat(file, 0.0f);
+	}
+
+	TypeIO_WriteUshort(file, CHUNK_ATTENUATIONON);
+	TypeIO_WriteInt(file,6);
+
+	return GE_TRUE;
+}
+
+// lights need keyframes or they will be placed at the origin by default
+geBoolean CEntity::ExportKFTo3ds(FILE *file, int LCount, int SLCount)
+{
+	int i, EntityCount;
+	if(!file) return GE_FALSE;
+
+	if(strcmp(GetClassname(),"light")&&strcmp(GetClassname(),"spotlight"))
+		return GE_TRUE;
+
+	EntityCount = LCount+2*SLCount;
+
+	if(!strcmp(GetClassname(),"light"))
+	{
+		TypeIO_WriteUshort(file,CHUNK_KF_OMNILIGHT);
+		TypeIO_WriteInt(file, 110);
+	}
+	else
+	{
+		TypeIO_WriteUshort(file,CHUNK_KF_SPOTLIGHT);
+		TypeIO_WriteInt(file, 200);
+	}
+
+	TypeIO_WriteUshort(file,CHUNK_KF_NODE_ID);
+	TypeIO_WriteInt(file, 8);
+	TypeIO_WriteUshort(file, (unsigned short)EntityCount);
+
+	TypeIO_WriteUshort(file,CHUNK_KF_NODE_HDR);
+	TypeIO_WriteInt(file, 20);
+	// unique name AAAAxxx\0
+	if(!strcmp(GetClassname(),"light"))
+	{
+		TypeIO_WriteUChar(file,'O');
+		TypeIO_WriteUChar(file,'m');
+		TypeIO_WriteUChar(file,'n');
+		TypeIO_WriteUChar(file,'i');
+		TypeIO_WriteUChar(file,(unsigned char)(48+(LCount-LCount%100)/100));
+		TypeIO_WriteUChar(file,(unsigned char)(48+((LCount-LCount%10)/10)%10));
+		TypeIO_WriteUChar(file,(unsigned char)(48+LCount%10));
+		TypeIO_WriteUChar(file,'\0');
+	}
+	else if(!strcmp(GetClassname(),"spotlight"))
+	{
+		TypeIO_WriteUChar(file,'S');
+		TypeIO_WriteUChar(file,'p');
+		TypeIO_WriteUChar(file,'o');
+		TypeIO_WriteUChar(file,'t');
+		TypeIO_WriteUChar(file,(unsigned char)(48+((SLCount)-(SLCount)%100)/100));
+		TypeIO_WriteUChar(file,(unsigned char)(48+(((SLCount)-(SLCount)%10)/10)%10));
+		TypeIO_WriteUChar(file,(unsigned char)(48+(SLCount)%10));
+		TypeIO_WriteUChar(file,'\0');
+	}
+	// end name of this object
+	TypeIO_WriteUshort(file, 16384);
+	TypeIO_WriteUshort(file, 0);
+	TypeIO_WriteUshort(file, 65535);
+
+	// position
+	{
+		TypeIO_WriteUshort(file,CHUNK_KF_POSTRACK);
+		TypeIO_WriteInt(file,38);
+		for(i=0;i<5;i++)
+			TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,1);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteInt(file, 0);
+		TypeIO_WriteFloat(file, mOrigin.X);
+		TypeIO_WriteFloat(file, mOrigin.Y);
+		TypeIO_WriteFloat(file, mOrigin.Z);
+	}
+	// color
+	{
+		CString ColorStr;
+		int r, g, b;
+		r=g=b=128;
+		if(GetKeyValue ("color", ColorStr))
+			sscanf(ColorStr, "%d %d %d", &r, &g, &b);
+
+		TypeIO_WriteUshort(file,CHUNK_KF_COLORTRACK);
+		TypeIO_WriteInt(file,38);
+		for(i=0;i<5;i++)
+			TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,1);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteInt(file, 0);
+		TypeIO_WriteFloat(file, (geFloat)r/255.0f);
+		TypeIO_WriteFloat(file, (geFloat)g/255.0f);
+		TypeIO_WriteFloat(file, (geFloat)b/255.0f);
+	}
+
+	if(!strcmp(GetClassname(),"spotlight"))
+	{
+		CString DirStr, AngleStr;
+		geVec3d Direction, Angles, target;
+		geXForm3d Rotation;
+		int Hotspot;
+
+		Hotspot =60;
+		if(GetKeyValue ("arc", AngleStr))
+			sscanf(AngleStr, "%i", &Hotspot);
+
+		TypeIO_WriteUshort(file,CHUNK_KF_HOTSPOTTRACK);
+		TypeIO_WriteInt(file,30);
+		for(i=0;i<5;i++)
+			TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,1);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteInt(file, 0);
+		TypeIO_WriteFloat(file, (geFloat)Hotspot);
+
+		TypeIO_WriteUshort(file,CHUNK_KF_FALLOFFTRACK);
+		TypeIO_WriteInt(file,30);
+		for(i=0;i<5;i++)
+			TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,1);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteInt(file, 0);
+		TypeIO_WriteFloat(file, (geFloat)Hotspot+5.0f);
+
+		TypeIO_WriteUshort(file,CHUNK_KF_ROLLTRACK);
+		TypeIO_WriteInt(file,30);
+		for(i=0;i<5;i++)
+			TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,1);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteInt(file, 0);
+		TypeIO_WriteFloat(file, 0.0f);
+
+		Direction.X=1.0f;
+		Direction.Y=0.0f;
+		Direction.Z=0.0f;
+
+		if(GetKeyValue ("angles", DirStr))
+			sscanf(DirStr, "%f %f %f", &Angles.X, &Angles.Y, &Angles.Z);
+
+		geVec3d_Scale(&Angles, GE_PI/180.0f, &Angles);
+
+		geXForm3d_SetIdentity(&Rotation);
+		geXForm3d_SetEulerAngles(&Rotation, &Angles);
+		geXForm3d_Transform(&Rotation, &Direction, &Direction);
+		geVec3d_Normalize(&Direction);
+		geVec3d_Copy(&mOrigin, &target);
+		geVec3d_AddScaled(&target, &Direction, 200.0f, &target);
+
+		TypeIO_WriteUshort(file,CHUNK_KF_LIGHTTARGET);
+		TypeIO_WriteInt(file, 72);
+
+		TypeIO_WriteUshort(file,CHUNK_KF_NODE_ID);
+		TypeIO_WriteInt(file, 8);
+		TypeIO_WriteUshort(file, (unsigned short)(EntityCount+1));
+
+		TypeIO_WriteUshort(file,CHUNK_KF_NODE_HDR);
+		TypeIO_WriteInt(file, 20);
+
+		// unique name AAAAxxx\0
+		TypeIO_WriteUChar(file,'S');
+		TypeIO_WriteUChar(file,'p');
+		TypeIO_WriteUChar(file,'o');
+		TypeIO_WriteUChar(file,'t');
+		TypeIO_WriteUChar(file,(unsigned char)(48+(SLCount-SLCount%100)/100));
+		TypeIO_WriteUChar(file,(unsigned char)(48+((SLCount-SLCount%10)/10)%10));
+		TypeIO_WriteUChar(file,(unsigned char)(48+SLCount%10));
+		TypeIO_WriteUChar(file,'\0');
+		TypeIO_WriteUshort(file, 16384);
+		TypeIO_WriteUshort(file, 0);
+		TypeIO_WriteUshort(file, 65535);
+
+		TypeIO_WriteUshort(file,CHUNK_KF_POSTRACK);
+		TypeIO_WriteInt(file,38);
+		for(i=0;i<5;i++)
+			TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,1);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteUshort(file,0);
+		TypeIO_WriteInt(file, 0);
+		TypeIO_WriteFloat(file, target.X);
+		TypeIO_WriteFloat(file, target.Y);
+		TypeIO_WriteFloat(file, target.Z);
+	}
+
+	return GE_TRUE;
+}
+// end change
 
 static char *StripNewline
 	(
@@ -1061,7 +1919,7 @@ int CEntity::GetNumValidKeyValuePairs
 			{
 				++NumValidKeys;
 			}
-		}		
+		}
 	}
 	return NumValidKeys;
 }
@@ -1108,7 +1966,7 @@ void CEntity::WriteToMap
 			Success = IsValidKey (Key, pModels, pEnts, pEntityDefs);
 		
 			if (Success)
-			{						
+			{
 				char ValueString [100];  // string to store value
 				TopType KeyType;
 
@@ -1151,18 +2009,18 @@ void CEntity::WriteToMap
 
 int EntityList_Enum
 	(
-		CEntityArray&       EntityArray,
+		CEntityArray&		EntityArray,
 		void *				lParam,
 		EntityList_CB		CallBack
 	)
 {
 	geBoolean bResult = GE_TRUE ;	// TRUE means entire list was processed
-	int	i ;
+	int i ;
 
 	for( i=0; i< EntityArray.GetSize(); i++ )
 	{
 		if( (bResult = CallBack( EntityArray[i], lParam )) == GE_FALSE )
-			break ;		
+			break ;
 	}
 
 	return bResult ;

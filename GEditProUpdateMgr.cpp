@@ -183,10 +183,14 @@ bool	CGEditProUpdateMgr::UpdateLevelInfoInAll(CtLevel *pLevel)
 		tempDocVars.m_Level.m_pWadSizeInfos = pLevel->m_pWadSizeInfos;
 		tempDocVars.m_Level.m_pEntityDefs = pLevel->m_pEntityDefs;
 		tempDocVars.m_Level.m_pHeadersDir = pLevel->m_pHeadersDir;
+// changed QD
+		tempDocVars.m_Level.m_pActorsDir = pLevel->m_pActorsDir;
+		tempDocVars.m_Level.m_pPawnIniPath = pLevel->m_pPawnIniPath;
+// end change
 		m_lDocVarsList.SetAt(POS, tempDocVars);
 		m_lDocVarsList.GetNext(POS);
 	}
-		
+
 	return true;
 }
 

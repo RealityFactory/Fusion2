@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #if !defined(AFX_LEVELOPTIONS_H__BD140A61_2534_11D2_B69D_004005424FA9__INCLUDED_)
 #define AFX_LEVELOPTIONS_H__BD140A61_2534_11D2_B69D_004005424FA9__INCLUDED_
@@ -71,6 +71,12 @@ public:
 	bool	m_TxlChanged;
 	CString	m_HeadersDir;
 	bool	m_HeadersChanged;
+// changed QD Actors
+	CString	m_PawnIni;
+	bool	m_PawnIniChanged;
+	CString	m_ActorsDir;
+	bool	m_ActorsChanged;
+// end change
 	CPathListBoxEx	m_ListBoxEx;
 	float	m_ScaleWorld;	//	post 0.57
 	float	m_CurrentScale;	//	post 0.57
@@ -103,6 +109,11 @@ protected:
 	afx_msg void OnBrowsetxl();
 	afx_msg void OnChangeEdittxl();
 	afx_msg void OnChangeEditheadersdir();
+// changed QD Actors
+	afx_msg void OnChangeEditpawnini();
+	afx_msg void OnChangeEditactorsdir();
+	afx_msg void OnBrowsepawnini();
+// end change
 	virtual BOOL OnInitDialog();
 	virtual void OnOK();
 	afx_msg void OnKillfocusDrawscale();

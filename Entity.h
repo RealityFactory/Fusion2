@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #ifndef ENTITY_H_
 #define ENTITY_H_
@@ -30,13 +30,13 @@
 #include "parse3dt.h"
 
 enum EntityStyles { ENTITY_S_ORIGIN, ENTITY_S_BRUSH };
-			
+
 enum
 {
 	ENTITY_SELECTED = 0x0001,
 	ENTITY_ACTIVE   = 0x0002,
-	ENTITY_HIDDEN	= 0x0004,
-	ENTITY_LOCKED	= 0x0008
+	ENTITY_HIDDEN   = 0x0004,
+	ENTITY_LOCKED   = 0x0008
 };
 
 class CEntity;
@@ -46,7 +46,7 @@ typedef CArray<CEntity, CEntity&> CEntityArray;
 
 
 typedef geBoolean (*EntityList_CB)( CEntity& Entity, void *lParam) ;
-	
+
 class CEntity
 {
 // Construction
@@ -69,15 +69,21 @@ public:
 	BOOL GetKeyValuePair (int Index, CString &Key, CString &Value) const;
 
 	void UpdateOrigin(const EntityTable *pEntityDefs);
-   CEntity &operator=( CEntity &Entity );  // Right side is the argument.
+	CEntity &operator=( CEntity &Entity );  // Right side is the argument.
 	CString GetName (void) const;
 	CString GetClassname (void) const;
 	CEntity();
 #if _MFC_VER<=0x0600 // only MFC60 and below
-   CEntity(CEntity& Entity);
+	CEntity(CEntity& Entity);
 #endif
-   ~CEntity ();
+	~CEntity ();
 	geBoolean IsCamera( void ) const;
+// changed QD Actors
+	BOOL HasActor(char *ActorFile, char *PawnIni);
+	Brush *CreateActorBrush(char *ActorFile, char *ActorDir, char *PawnIni);
+	Brush *GetActorBrush(){return mActorBrush;}
+	void DeleteActorBrush();
+// end change
 
 	BOOL SetOrigin (geFloat x, geFloat y, geFloat z, const EntityTable *pEntityDefs);
 	BOOL GetOriginString (CString &Origin, const EntityTable *pEntityDefs) const;
@@ -110,6 +116,12 @@ public:
 	// writes the entity out to the map file
 	void WriteToMap (FILE *file, ModelList const *pModels, CEntityArray const *pEnts, const EntityTable *pEntityDefs) const;
 
+// changed QD 12/03
+	// saves a light entity out to a 3ds
+	geBoolean ExportTo3ds(FILE *file, int EntityCount);
+	geBoolean ExportKFTo3ds(FILE *file, int LCount, int SLCount);
+// end change
+
 	// whether this is a brush type
 	// entity or an origin type entity
 	EntityStyles EntityStyle;
@@ -127,6 +139,10 @@ public:
 	const geBitmap *GetBitmapPtr (const EntityTable *pEntityDefs) const;
 
 private:
+	// changed QD Actors
+	Brush *mActorBrush;
+	// end change
+
 	// which group this entity belongs to.
 	int mGroup;
 
@@ -145,15 +161,15 @@ private:
 
 int EntityList_Enum
 	(
-		CEntityArray&       EntityArray,
+		CEntityArray&		EntityArray,
 		void *				lParam,
 		EntityList_CB		CallBack
 	) ;
 
 CEntity * EntityList_FindByClassName
 	(
-	  CEntityArray  *	pEnts,
-	  const char	*	pName
+		CEntityArray	*	pEnts,
+		const char		*	pName
 	) ;
 
 

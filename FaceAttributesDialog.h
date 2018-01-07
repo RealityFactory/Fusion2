@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for tDesigner3d ver. 0.7, Nov. 2, 2002                       */
 /****************************************************************************************/
 #ifndef FACEATTRIBUTESDIALOG_H
 #define FACEATTRIBUTESDIALOG_H
@@ -33,14 +33,10 @@ class CGEditProDoc;
 class CFaceAttributesDialog : public CDialog
 {
 public:
-//	CFaceAttributesDialog(CGEditProDoc* ptEditDoc, CWnd* pParent = NULL); // old gedit
 	CFaceAttributesDialog(CWnd* pParent = NULL);	//	new g3dc
-
-	
 	void ShowDialog();
 	bool UpdateFaceAttributes(CGEditProDoc *pDoc, Face *pFace);
 	void SetupDialog();
-//	void UpdatePolygonFocus (CGEditProDoc *pDoc);
 	void UpdatePolygonFocus (Face *pFace);
 	void AssignCurrentToViews();
 	void OnResetAll();
@@ -142,6 +138,9 @@ protected:
 	virtual void OnOK ();
 private:
 	CGEditProDoc		*m_pDoc;
+
+	int		m_iOldTexYOffset,
+			m_iOldTexXOffset;
 
 	Face	*pFace;
 	void	OnFacelight( void );

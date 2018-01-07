@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "stdafx.h"
 #include "Globals.h"
@@ -47,6 +47,15 @@ CCreateArchDialog::CCreateArchDialog(CWnd* pParent /*=NULL*/)
 	m_EndAngle	=180.0f;
 	m_StartAngle=0.0f;
 	m_TCut = FALSE;
+// changed QD 11/03
+	m_Sides		=3;
+	m_CW		=0;
+	m_Shape		=0;
+	m_Radius2	=64;
+	m_Height	=0;
+	m_Massive = FALSE;
+	m_Steps = FALSE;
+// end change
 	//}}AFX_DATA_INIT
 
 	m_minMaxErrorString.Format("Value must be between %d and %d",
@@ -78,6 +87,15 @@ void CCreateArchDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_ENDANGLE, m_EndAngle);
 	DDX_Text(pDX, IDC_STARTANGLE, m_StartAngle);
 	DDX_Check(pDX, IDC_TCUT, m_TCut);
+// changed QD 11/03
+	DDX_Text(pDX, IDC_SIDES, m_Sides);
+	DDX_Radio(pDX, IDC_CCW, m_CW);
+	DDX_Radio(pDX, IDC_RECTANGULAR, m_Shape);
+	DDX_Text(pDX, IDC_RADIUS2, m_Radius2);
+	DDX_Text(pDX, IDC_HEIGHT, m_Height);
+	DDX_Check(pDX, IDC_MASSIVE, m_Massive);
+	DDX_Check(pDX, IDC_STEPS, m_Steps);
+// end change
 	//}}AFX_DATA_MAP
 }
 
@@ -97,6 +115,17 @@ BEGIN_MESSAGE_MAP(CCreateArchDialog, CDialog)
 	ON_EN_KILLFOCUS(IDC_WALLSIZE, OnKillfocusWallsize)
 	ON_EN_KILLFOCUS(IDC_NUMSLITS, OnKillfocusNumslits)
 	ON_BN_CLICKED(IDC_CUSTOM_ARCH_BTN, OnCustomArchBtn)
+// changed QD 11/03
+	ON_EN_KILLFOCUS(IDC_SIDES, OnKillfocusSides)
+	ON_EN_KILLFOCUS(IDC_RADIUS2, OnKillfocusRadius2)
+	ON_EN_KILLFOCUS(IDC_HEIGHT, OnKillfocusHeight)
+	ON_BN_CLICKED(IDC_CCW, OnCCW)
+	ON_BN_CLICKED(IDC_CW, OnCW)
+	ON_BN_CLICKED(IDC_RECTANGULAR, OnRectangular)
+	ON_BN_CLICKED(IDC_ROUND, OnRound)
+	ON_BN_CLICKED(IDC_MASSIVE, OnMassive)
+	ON_BN_CLICKED(IDC_STEPS, OnSteps)
+// end change
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -128,6 +157,17 @@ void	CCreateArchDialog::ShowDialog(geBoolean ConvertToMetric, BrushTemplate_Arch
 	this->GetDlgItem(IDC_HOLLOW)->EnableWindow(FALSE);
 	this->GetDlgItem(IDC_RING)->EnableWindow(FALSE);
 	this->GetDlgItem(IDC_TCUT)->EnableWindow(FALSE);
+// changed QD 11/03
+	this->GetDlgItem(IDC_HEIGHT)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_CCW)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_CW)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_RECTANGULAR)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_ROUND)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_RADIUS2)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_SIDES)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_STEPS)->EnableWindow(FALSE);
+	this->GetDlgItem(IDC_MASSIVE)->EnableWindow(FALSE);
+// end change
 	this->GetDlgItem(ID_DEFAULTS)->EnableWindow(FALSE);
 
 	if(m_ConvertToMetric)
@@ -223,6 +263,17 @@ bool CCreateArchDialog::UpdateCreateArchDlg(CGEditProDoc *pDoc)
 		this->GetDlgItem(IDC_HOLLOW)->EnableWindow(FALSE);
 		this->GetDlgItem(IDC_RING)->EnableWindow(FALSE);
 		this->GetDlgItem(IDC_TCUT)->EnableWindow(FALSE);
+// changed QD 11/03
+		this->GetDlgItem(IDC_HEIGHT)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_CCW)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_CW)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_RECTANGULAR)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_ROUND)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_RADIUS2)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_SIDES)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_STEPS)->EnableWindow(FALSE);
+		this->GetDlgItem(IDC_MASSIVE)->EnableWindow(FALSE);
+// end change
 		this->GetDlgItem(ID_DEFAULTS)->EnableWindow(FALSE);
 
 		m_addArchBTN.EnableWindow(TRUE);
@@ -241,6 +292,17 @@ bool CCreateArchDialog::UpdateCreateArchDlg(CGEditProDoc *pDoc)
 		this->GetDlgItem(IDC_HOLLOW)->EnableWindow(TRUE);
 		this->GetDlgItem(IDC_RING)->EnableWindow(TRUE);
 		this->GetDlgItem(IDC_TCUT)->EnableWindow(TRUE);
+// changed QD 11/03
+		this->GetDlgItem(IDC_HEIGHT)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_CCW)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_CW)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_RECTANGULAR)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_ROUND)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_RADIUS2)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_SIDES)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_STEPS)->EnableWindow(TRUE);
+		this->GetDlgItem(IDC_MASSIVE)->EnableWindow(TRUE);
+// end change
 		this->GetDlgItem(ID_DEFAULTS)->EnableWindow(TRUE);
 
 		m_addArchBTN.EnableWindow(FALSE);
@@ -257,6 +319,15 @@ bool CCreateArchDialog::UpdateCreateArchDlg(CGEditProDoc *pDoc)
 	m_EndAngle	= pArchTemplate->EndAngle;
 	m_StartAngle = pArchTemplate->StartAngle;
 	m_TCut		= pArchTemplate->TCut;
+// changed QD 11/03
+	m_Sides		= pArchTemplate->Sides;
+	m_CW		= pArchTemplate->CW;
+	m_Shape		= pArchTemplate->Shape;
+	m_Radius2	= pArchTemplate->Radius2;
+	m_Height	= pArchTemplate->Height;
+	m_Massive	= pArchTemplate->Massive;
+	m_Steps		= pArchTemplate->Steps;
+// end change
 
 	UpdateData(TRUE);
 
@@ -280,6 +351,9 @@ void	CCreateArchDialog::dlgFieldsToTexels(void)
 	m_Width		=Units_CentimetersToEngine(m_Width);
 	m_Radius	=Units_CentimetersToEngine(m_Radius);
 	m_WallSize	=Units_CentimetersToEngine(m_WallSize);
+// changed QD 11/03
+	m_Radius2	=Units_CentimetersToEngine(m_Radius2);
+	m_Height	=Units_CentimetersToEngine(m_Height);
 }
 
 void	CCreateArchDialog::dlgFieldsToCentimeters(void)
@@ -288,6 +362,9 @@ void	CCreateArchDialog::dlgFieldsToCentimeters(void)
 	m_Width		=Units_FRound(Units_EngineToCentimeters(m_Width));
 	m_Radius	=Units_FRound(Units_EngineToCentimeters(m_Radius));
 	m_WallSize	=Units_FRound(Units_EngineToCentimeters(m_WallSize));
+// changed QD 11/03
+	m_Radius2	=Units_FRound(Units_EngineToCentimeters(m_Radius2));
+	m_Height	=Units_FRound(Units_EngineToCentimeters(m_Height));
 }
 
 
@@ -301,6 +378,15 @@ void CCreateArchDialog::OnDefaults()
 	m_Radius = 200;
 	m_WallSize = 16;
 	m_Style = 1;
+// changed QD 11/03
+	m_Sides = 3;
+	m_CW = 0;
+	m_Shape = 0;
+	m_Radius2 = 64;
+	m_Height = 0;
+	m_Massive = FALSE;
+	m_Steps = FALSE;
+// end change
 	UpdateData( FALSE );
 	OnOK();
 }
@@ -319,6 +405,39 @@ void CCreateArchDialog::OnRing()
 {
 	OnOK();
 }
+
+// changed QD 11/03
+void CCreateArchDialog::OnCCW()
+{
+	OnOK();
+}
+
+void CCreateArchDialog::OnCW()
+{
+	OnOK();
+}
+
+void CCreateArchDialog::OnRectangular()
+{
+	OnOK();
+}
+
+void CCreateArchDialog::OnRound()
+{
+	OnOK();
+}
+
+void CCreateArchDialog::OnMassive()
+{
+	OnOK();
+}
+
+void CCreateArchDialog::OnSteps()
+{
+	OnOK();
+}
+// end change
+
 /* EOF: CreateArchDialog */
 
 void CCreateArchDialog::OnOK() 
@@ -349,6 +468,15 @@ void CCreateArchDialog::OnOK()
 	m_pArchTemplate->EndAngle	= m_EndAngle;
 	m_pArchTemplate->StartAngle	= m_StartAngle;
 	m_pArchTemplate->TCut		= m_TCut;
+// changed QD 11/03
+	m_pArchTemplate->Sides		= m_Sides;
+	m_pArchTemplate->CW			= m_CW;
+	m_pArchTemplate->Shape		= m_Shape;
+	m_pArchTemplate->Radius2	= m_Radius2;
+	m_pArchTemplate->Height		= m_Height;
+	m_pArchTemplate->Massive	= m_Massive;
+	m_pArchTemplate->Steps		= m_Steps;
+// end change
 
 	pArch = BrushTemplate_CreateArch (m_pArchTemplate);
 
@@ -375,11 +503,12 @@ void CCreateArchDialog::OnKillfocusStartangle()
 {
 	float	lastValue = m_StartAngle;
 
-		if (GetDlgItemInt(IDC_STARTANGLE) == NULL)
-	{
-		this->SetDlgItemInt(IDC_STARTANGLE, lastValue);
-		return;
-	}
+// changed QD 11/03
+//	if (GetDlgItemInt(IDC_STARTANGLE) == NULL)
+//	{
+//		this->SetDlgItemInt(IDC_STARTANGLE, lastValue);
+//		return;
+//	}
 
 	UpdateData(TRUE);
 	
@@ -397,11 +526,12 @@ void CCreateArchDialog::OnKillfocusEndangle()
 {
 	float	lastValue = m_EndAngle;
 
-		if (GetDlgItemInt(IDC_ENDANGLE) == NULL)
-	{
-		this->SetDlgItemInt(IDC_ENDANGLE, lastValue);
-		return;
-	}
+// changed QD 11/03
+//	if (GetDlgItemInt(IDC_ENDANGLE) == NULL)
+//	{
+//		this->SetDlgItemInt(IDC_ENDANGLE, lastValue);
+//		return;
+//	}
 
 	UpdateData(TRUE);
 
@@ -419,7 +549,7 @@ void CCreateArchDialog::OnKillfocusThickness()
 {
 	float	lastValue = m_Thickness;
 
-		if (GetDlgItemInt(IDC_THICKNESS) == NULL)
+	if (GetDlgItemInt(IDC_THICKNESS) == NULL)
 	{
 		this->SetDlgItemInt(IDC_THICKNESS, lastValue);
 		return;
@@ -441,7 +571,7 @@ void CCreateArchDialog::OnKillfocusWidth()
 {
 	float	lastValue = m_Width;
 
-		if (GetDlgItemInt(IDC_WIDTH) == NULL)
+	if (GetDlgItemInt(IDC_WIDTH) == NULL)
 	{
 		this->SetDlgItemInt(IDC_WIDTH, lastValue);
 		return;
@@ -464,15 +594,16 @@ void CCreateArchDialog::OnKillfocusRadius()
 {
 	float	lastValue = m_Radius;
 
-		if (GetDlgItemInt(IDC_RADIUS) == NULL)
-	{
-		this->SetDlgItemInt(IDC_RADIUS, lastValue);
-		return;
-	}
+//changed QD 11/03
+//	if (GetDlgItemInt(IDC_RADIUS) == NULL)
+//	{
+//		this->SetDlgItemInt(IDC_RADIUS, lastValue);
+//		return;
+//	}
 
 	UpdateData(TRUE);
-
-	if ((m_Radius >= BRUSH_MIN) && (m_Radius <= BRUSH_MAX)) 
+// changed QD 11/03
+	if ((m_Radius >= 0) && (m_Radius <= BRUSH_MAX))
 		OnOK();
 	else
 	{
@@ -528,6 +659,68 @@ void CCreateArchDialog::OnKillfocusNumslits()
 		AfxMessageBox("Value must be >= 3 and <= 64");
 	}
 }
+
+// changed QD 11/03
+void CCreateArchDialog::OnKillfocusSides()
+{
+	int	lastValue = m_Sides;
+
+	if (GetDlgItemInt(IDC_SIDES) == NULL)
+	{
+		this->SetDlgItemInt(IDC_SIDES, lastValue);
+		return;
+	}
+
+	UpdateData(TRUE);
+
+	if ((m_Sides >= 3) && (m_Sides <= 64))
+		OnOK();
+	else
+	{
+		m_Sides = lastValue;
+		UpdateData(FALSE);
+		AfxMessageBox("Value must be >= 3 and <= 64");
+	}
+}
+
+void CCreateArchDialog::OnKillfocusRadius2()
+{
+	int	lastValue = m_Radius2;
+
+	if (GetDlgItemInt(IDC_RADIUS2) == NULL)
+	{
+		this->SetDlgItemInt(IDC_RADIUS2, lastValue);
+		return;
+	}
+
+	UpdateData(TRUE);
+
+	if ((m_Radius2 >= BRUSH_MIN) && (m_Radius2 <= BRUSH_MAX))
+		OnOK();
+	else
+	{
+		m_Radius2 = lastValue;
+		UpdateData(FALSE);
+		AfxMessageBox("Value must be >= 1 and <= 4000");
+	}
+}
+
+void CCreateArchDialog::OnKillfocusHeight()
+{
+	int	lastValue = m_Height;
+
+	UpdateData(TRUE);
+
+	if ((m_Height >= 0) && (m_Height <= BRUSH_MAX))
+		OnOK();
+	else
+	{
+		m_Height = lastValue;
+		UpdateData(FALSE);
+		AfxMessageBox("Value must be >= 0 and <= 4000");
+	}
+}
+// end change
 
 void CCreateArchDialog::OnCustomArchBtn() 
 {

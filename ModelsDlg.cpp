@@ -29,7 +29,7 @@
 
 #include "KeyEditDlg.h"
 #include <assert.h>
-#include "include/ram.h"
+#include "ram.h"
 #include "util.h"
 
 

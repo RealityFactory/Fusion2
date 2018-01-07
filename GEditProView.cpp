@@ -28,7 +28,7 @@
 #include "units.h"
 #include "face.h"
 #include "node.h"
-#include "include/ram.h"
+#include "ram.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

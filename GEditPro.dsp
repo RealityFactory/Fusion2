@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 winmm.lib dxguid.lib dinput.lib dinput8.lib strmiids.lib shlwapi.lib genesis.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt.lib" /out:"RFEditPro.exe" /libpath:"./lib"
+# ADD LINK32 winmm.lib dxguid.lib dinput.lib dinput8.lib strmiids.lib shlwapi.lib genesis.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt.lib" /out:"RFEditPro.exe"
 
 !ELSEIF  "$(CFG)" == "GEditPro - Win32 Debug"
 
@@ -79,7 +79,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 winmm.lib dxguid.lib dinput.lib dinput8.lib strmiids.lib shlwapi.lib genesisd.lib /nologo /subsystem:windows /debug /machine:I386 /out:"RFEditPro_Dbg.exe" /pdbtype:sept /libpath:"./lib"
+# ADD LINK32 winmm.lib dxguid.lib dinput.lib dinput8.lib strmiids.lib shlwapi.lib genesisd.lib /nologo /subsystem:windows /debug /machine:I386 /out:"RFEditPro_Dbg.exe" /pdbtype:sept
 
 !ENDIF 
 
@@ -312,6 +312,14 @@ SOURCE=.\EntityVisDlg.cpp
 # Begin Source File
 
 SOURCE=.\EntityVisDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Export3dsDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Export3dsDialog.h
 # End Source File
 # Begin Source File
 
@@ -984,7 +992,7 @@ SOURCE=.\brush.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\BrushTemplate.c
+SOURCE=.\BrushTemplate.cpp
 # End Source File
 # Begin Source File
 
@@ -1040,7 +1048,7 @@ SOURCE=.\face.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\FaceList.c
+SOURCE=.\FaceList.cpp
 # End Source File
 # Begin Source File
 
@@ -1094,7 +1102,7 @@ SOURCE=.\list.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\model.c
+SOURCE=.\model.cpp
 # End Source File
 # Begin Source File
 
@@ -1106,7 +1114,7 @@ SOURCE=.\Mydef.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\node.c
+SOURCE=.\node.cpp
 # End Source File
 # Begin Source File
 

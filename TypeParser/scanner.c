@@ -21,7 +21,7 @@
 /****************************************************************************************/
 #include "scanner.h"
 #include <assert.h>
-#include "../include/ram.h"
+#include "ram.h"
 #include <memory.h>
 #include <stdio.h>
 #include "../util.h"

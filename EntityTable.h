@@ -23,10 +23,10 @@
 #ifndef ENTITYTABLE_H
 #define ENTITYTABLE_H
 
-#include "include/basetype.h"
+#include "basetype.h"
 #include "iden.h"
 #include "type.h"
-#include "include/bitmap.h"
+#include "bitmap.h"
 
 extern const char EntityNameKey[];
 

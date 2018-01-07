@@ -16,15 +16,20 @@
 #include "Parse3dt.h"
 #include "EntTypeName.h"
 #include <assert.h>
-#include "include/ram.h"
+#include "ram.h"
 #include "units.h"
 #include "util.h"
 #include "FilePath.h"
+// changed QD 12/03
+#include "typeio.h"
+// end change
 #define NUM_VIEWS (4)
 
 
 #define LEVEL_VERSION_MAJOR	1
-#define LEVEL_VERSION_MINOR 32			// Version 1.32 11/04/99 - Brian - Face Info save out Base Vec for Tex Lock
+//#define LEVEL_VERSION_MINOR 32				// Version 1.32 11/04/99 - Brian - Face Info save out Base Vec for Tex Lock
+//#define LEVEL_VERSION_MINOR 33				// Version 1.33 08/15/03 - QD - Added ActorsDirectory, PawnIniPath; TexRotation is saved as float
+#define LEVEL_VERSION_MINOR 34					// Version 1.34 11/09/03 - QD - changed Arch template
 
 
 typedef geBoolean (*BrushList_CB)( Brush *pBrush, void * pVoid ) ;
@@ -71,14 +76,21 @@ geBoolean WriteOneView(const ViewStateInfo *pViewInfo, const char *ViewName, FIL
 
 
 
+// changed QD Actors
+CtLevel		*Create (const char *DefaultWad, const char *HeadersDir, const char *ActorsDir, const char *PawnIni);
 
-CtLevel		*Create (const char *DefaultWad, const char *HeadersDir);
+CtLevel		*CreateFromFile (const char *FileName, const char **ErrMsg, const char *DefaultHeadersDir,
+							 const char *DefaultActorsDir, const char *DefaultPawnIni);
+// end change
 
-CtLevel		*CreateFromFile (const char *FileName, const char **ErrMsg, const char *DefaultHeadersDir);
 void		Destroy(CtLevel **ppLevel);
 
 geBoolean WriteToFile (CtLevel *pLevel, const char *Filename);
-
+// changed QD 11/03
+geBoolean ExportTo3dtv1_32(CtLevel *pLevel, const char *Filename);
+// changed QD 12/03
+geBoolean ExportTo3ds(CtLevel *pLevel, const char *Filename, BrushList *BList, int ExpSelected, geBoolean ExpLights, int GroupID);
+// end change
 
 CEntityArray *GetEntities (CtLevel *pLevel);
 BrushList *GetBrushes (CtLevel *pLevel);
@@ -162,12 +174,22 @@ geBoolean LoadEntityDefs (CtLevel *pLevel, const char *HeadersDir);
 const char *GetHeadersDirectory (const CtLevel *pLevel);
 CString CloneHeadersDirectory(const CtLevel *pLevel);
 const EntityTable *GetEntityDefs (const CtLevel *pLevel);
+// changed QD Actors
+const char *GetActorsDirectory (const CtLevel *pLevel);
+void SetActorsDir(CtLevel *pLevel, const char *NewActorsDir);
+CString CloneActorsDir(const CtLevel *pLevel);
 
+const char *GetPawnIniPath (const CtLevel *pLevel);
+void SetPawnIniPath (CtLevel *pLevel, const char *PawnIni);
+CString ClonePawnIniPath(const CtLevel *pLevel);
 
+void SetShowActors(CtLevel *pLevel, geBoolean Show);
+geBoolean GetShowActors(const CtLevel *pLevel);
 
-
-
-
+private:
+geBoolean LoadEntities(CtLevel *pLevel, Parse3dt *Parser, int VersionMajor,
+						int VersionMinor, const char **Expected);
+// end change
 
 };
 

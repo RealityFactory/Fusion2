@@ -1,5 +1,5 @@
 /****************************************************************************************/
-/*  GEditProDoc.h                                                                         */
+/*  GEditProDoc.h                                                                       */
 /*                                                                                      */
 /*  Author:       Jim Mischel, Ken Baird, Jeff Lomax                                    */
 /*  Description:  Genesis world editor header file                                      */
@@ -16,10 +16,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #ifndef GEDITPRODOC_H
 #define GEDITPRODOC_H
@@ -267,7 +267,9 @@ public:
 	void RenderOrthoView(ViewVars *, CDC *);
 	int AreBrushesSelected();
 	void UpdateEntityOrigins();
-
+// changed QD Actors
+	void UpdateEntityActors();
+// end change
 	void RenderWorld(ViewVars *v, CDC* pDC);
 	void RotateTemplateBrush(geVec3d *);
 	void ShearBrush(geVec3d *);
@@ -418,6 +420,13 @@ protected:
 	afx_msg void OnToolsToggleadjustmode();
 	afx_msg void OnUpdateToolsToggleadjustmode(CCmdUI* pCmdUI);
 	afx_msg void OnLeveloptions();
+// changed QD Actors
+	afx_msg void OnViewShowActors();
+	afx_msg void OnUpdateViewShowActors(CCmdUI* pCmdUI);
+// changed QD 11/03
+	afx_msg void OnFileExport3dtv1_32();
+	afx_msg void OnFileExport3ds();
+// end change
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
@@ -433,9 +442,9 @@ private:
 	char		LastPath[MAX_PATH];  //no cstrings for dialog action gedit
 	geFloat		m_fWorldScaleFactor;	//	post 0.57
 	geFloat		m_fEntityScaleInViewFactor;	//	post 0.57
-
-	geBoolean	m_bShowClipBrushes, m_bShowDetailBrushes, m_bShowHintBrushes;
-
+// changed QD Actors
+	geBoolean	m_bShowClipBrushes, m_bShowDetailBrushes, m_bShowHintBrushes, m_bShowActors;
+// end change
 	Brush*		m_pTempBrush;	//	post 058
 
 	bool		m_bRedoAvailability, m_bUndoAvailability;
@@ -445,6 +454,11 @@ private:
 
 	geBoolean Load( const char *FileName );  // Loads from filename
 	geBoolean Save( const char *FileName );  // saves filename
+// changed QD 11/03
+	geBoolean ExportTo3dtv1_32(const char *FileName);
+// changed QD 12/03
+	geBoolean ExportTo3ds(const char *FileName, int ExpSelected, geBoolean ExpLights, geBoolean ExpFiles);
+// end change
 
 	void UpdateSelectedModel (int MoveRotate, geVec3d const *pVecDelta);
 

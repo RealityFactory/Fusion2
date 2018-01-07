@@ -59,8 +59,9 @@ static void Level_AssignEntityName (CtLevel *pLevel, CEntity *pEnt)
 	pEnt->SetKeyValue ("%name%", NewName);
 }
 
-//geBoolean CtLevelMgr::LoadEntities
-static geBoolean Level_LoadEntities
+// changed QD
+geBoolean CtLevelMgr::LoadEntities
+//static geBoolean Level_LoadEntities
 (
 	  CtLevel *pLevel,
 	  Parse3dt *Parser,
@@ -96,7 +97,24 @@ static geBoolean Level_LoadEntities
 			{
 				Level_AssignEntityName (pLevel, &ent);
 			}
-			pLevel->m_pEntities->Add (ent);
+// changed QD Actors
+// create actordefs when loading a level
+			int j =	pLevel->m_pEntities->Add (ent);
+			char ActorFile[256], ActorDir[256], PawnIni[256];
+			strcpy(PawnIni, GetPawnIniPath(pLevel));
+			if((*(pLevel->m_pEntities))[j].HasActor(ActorFile, PawnIni))
+			{
+				Brush *pBrush;
+				strcpy(ActorDir, GetActorsDirectory(pLevel));
+				pBrush=(*(pLevel->m_pEntities))[j].CreateActorBrush(ActorFile, ActorDir, PawnIni);
+				if(pBrush)
+				{
+					AppendBrush(pLevel,pBrush);
+					if(!pLevel->m_ShowActors)
+						Brush_SetVisible(pBrush, GE_FALSE);
+				}
+			}
+// end change
 		}
 	}
 	return GE_TRUE;
@@ -123,6 +141,79 @@ static geBoolean Level_SaveEntities (CEntityArray *Entities, FILE *f)
 	return GE_TRUE;
 }
 
+// changed QD 12/03
+static geBoolean Level_ExportLightsTo3ds(CEntityArray *Entities, FILE *f, int ExpSelected,
+										 int GroupID, int *LCount, int *SLCount)
+{
+	int i, LightCount, SLightCount;
+	int NumEntities;
+
+	if(!Entities) return GE_FALSE;
+	if(!f) return GE_FALSE;
+
+	NumEntities = Entities->GetSize ();
+	//if (fprintf(f, "Class CEntList\nEntCount %d\n", NumEntities) < 0) return GE_FALSE;
+	//if (fprintf(f, "CurEnt 0\n") < 0) return GE_FALSE;
+
+	LightCount = SLightCount = 0;
+	for(i=0;i < NumEntities;i++)
+	{
+		if ((*Entities)[i].IsSelected()||!ExpSelected)
+		{
+			if(GroupID==-1||GroupID==(*Entities)[i].GetGroupId())
+			{
+				if(!strcmp((*Entities)[i].GetClassname(),"light"))
+				{
+					if (!(*Entities)[i].ExportTo3ds (f, LightCount)) return GE_FALSE;
+					LightCount++;
+				}
+				else if(!strcmp((*Entities)[i].GetClassname(),"spotlight"))
+				{
+					if (!(*Entities)[i].ExportTo3ds (f, SLightCount)) return GE_FALSE;
+					SLightCount++;
+				}
+			}
+		}
+		//if (fprintf(f, "End CEntity\n") < 0) return GE_FALSE;
+	}
+	*LCount = LightCount;
+	*SLCount = SLightCount;
+	return GE_TRUE;
+}
+
+static geBoolean Level_ExportLightsKFTo3ds(CEntityArray *Entities, FILE *f, int ExpSelected, int GroupID)
+{
+	int i, LightCount, SLightCount;
+	int NumEntities;
+
+	if(!Entities) return GE_FALSE;
+	if(!f) return GE_FALSE;
+
+	NumEntities = Entities->GetSize ();
+
+	LightCount = SLightCount = 0;
+	for(i=0;i < NumEntities;i++)
+	{
+		if ((*Entities)[i].IsSelected()||!ExpSelected)
+		{
+			if(GroupID==-1||GroupID==(*Entities)[i].GetGroupId())
+			{
+				if(!strcmp((*Entities)[i].GetClassname(),"light"))
+				{
+					if (!(*Entities)[i].ExportKFTo3ds (f, LightCount, SLightCount)) return GE_FALSE;
+					LightCount++;
+				}
+				else if(!strcmp((*Entities)[i].GetClassname(),"spotlight"))
+				{
+					if (!(*Entities)[i].ExportKFTo3ds (f, LightCount, SLightCount)) return GE_FALSE;
+					SLightCount++;
+				}
+			}
+		}
+	}
+	return GE_TRUE;
+}
+// end change
 
 //void CtLevelMgr::UnloadEntityDefs (CtLevel *pLevel)
 static void Level_UnloadEntityDefs (CtLevel *pLevel)
@@ -296,8 +387,9 @@ CreateError :
 */
 
 
-
-CtLevel *CtLevelMgr::Create (const char *pWadName, const char *HeadersDir)
+// changed QD
+CtLevel *CtLevelMgr::Create (const char *pWadName, const char *HeadersDir, const char *ActorsDir, const char *PawnIni)
+// end change
 {
 	CtLevel *pLevel = NULL;
 	pLevel = new CtLevel;
@@ -308,6 +400,7 @@ CtLevel *CtLevelMgr::Create (const char *pWadName, const char *HeadersDir)
 		if (pLevel->m_pBrushes == NULL) goto CreateError;
 
 //		pLevel->m_pEntities = new (CEntityArray);
+//		is done in CtLevel constructor
 		if (pLevel->m_pEntities == NULL) {AfxMessageBox("Entities array pointer is NULL");goto CreateError;}
 
 		pLevel->m_pEntities->SetSize(0,20);
@@ -340,6 +433,11 @@ CtLevel *CtLevelMgr::Create (const char *pWadName, const char *HeadersDir)
 		{
 			goto CreateError;
 		}
+
+// changed QD Actors
+		pLevel->m_pActorsDir = Util_Strdup (ActorsDir);
+		pLevel->m_pPawnIniPath = Util_Strdup (PawnIni);
+// end change
 
 		pLevel->m_pWadPath = Util_Strdup (pWadName);
 		pLevel->m_pWadFile = NULL;
@@ -537,6 +635,17 @@ void CtLevelMgr::Destroy (CtLevel **ppLevel)
 
 		pLevel = *ppLevel;
 
+// changed QD Actors
+// remove ActorBrushes from BrushList
+// these brushes will be deleted  by delete pLevel->Entities
+		int i;
+		for (i = 0; i < pLevel->m_pEntities->GetSize (); ++i)
+		{
+			Brush *b =(*(pLevel->m_pEntities))[i].GetActorBrush();
+			if(b!=NULL)
+				RemoveBrush(pLevel, b);
+		}
+// end change
 		if (pLevel)
 		{
 
@@ -552,6 +661,16 @@ void CtLevelMgr::Destroy (CtLevel **ppLevel)
 			{
 				geRam_Free (pLevel->m_pWadPath);
 			}
+// changed QD Actors
+			if (pLevel->m_pActorsDir!= NULL)
+			{
+				geRam_Free (pLevel->m_pActorsDir);
+			}
+			if (pLevel->m_pPawnIniPath != NULL)
+			{
+				geRam_Free (pLevel->m_pPawnIniPath);
+			}
+// end change
 			if (pLevel->m_pEntTypeNames != NULL)
 			{
 				EntTypeNameList_Destroy (&pLevel->m_pEntTypeNames);
@@ -656,6 +775,11 @@ geBoolean FaceFixupCallback (Brush *pBrush, void *lParam)
 
 		f	=Brush_GetFace(pBrush, i);
 		Face_SetTextureDibId(f, levelMgr.GetDibId(pLevel, Face_GetTextureName(f)));
+// changed QD 12/03
+		const WadFileEntry *pbmp = levelMgr.GetWadBitmap(pLevel, Face_GetTextureName(f));
+		if(pbmp)
+			Face_SetTextureSize (f, pbmp->Width, pbmp->Height);
+// end change
 	}
 	return GE_TRUE;
 }
@@ -863,8 +987,9 @@ static geBoolean Level_LoadBrushTemplates
 	return GE_TRUE;
 }
 
-
-CtLevel *CtLevelMgr::CreateFromFile (const char *FileName, const char **ErrMsg, const char *DefaultHeadersDir)
+// changed QD Actors
+CtLevel *CtLevelMgr::CreateFromFile (const char *FileName, const char **ErrMsg, const char *DefaultHeadersDir,
+									 const char *DefaultActorsDir, const char *DefaultPawnIni)
 {
 	int NumModels;
 	int VersionMajor, VersionMinor;
@@ -877,6 +1002,10 @@ CtLevel *CtLevelMgr::CreateFromFile (const char *FileName, const char **ErrMsg, 
 	CtLevel *pLevel = NULL;
 	char WadPath[MAX_PATH];
 	char HeadersDir[MAX_PATH];
+// changed QD Actors
+	char ActorsDir[MAX_PATH];
+	char PawnIniPath[MAX_PATH];
+// end change
 
 	CGEditProDoc *pDoc = CGlobals::GetActiveDocument();
 
@@ -985,8 +1114,29 @@ CtLevel *CtLevelMgr::CreateFromFile (const char *FileName, const char **ErrMsg, 
 			}
 		}
 	}		//	end post 0.55
-	
-	pLevel = Create (WadPath, HeadersDir);
+
+// changed QD Actors
+	// actors directory
+	if ((VersionMajor <= 1) && (VersionMinor < 33))
+	{
+		strcpy (ActorsDir, DefaultActorsDir);
+	}
+	else
+	{
+		if (!Parse3dt_GetLiteral (Parser, (Expected = "ActorsDir"), ActorsDir)) goto DoneLoad;
+	}
+	// PawnIni
+	if ((VersionMajor <= 1) && (VersionMinor < 33))
+	{
+		strcpy (PawnIniPath, DefaultPawnIni);
+	}
+	else
+	{
+		if (!Parse3dt_GetLiteral (Parser, (Expected = "PawnIni"), PawnIniPath)) goto DoneLoad;
+	}
+
+	pLevel = Create (WadPath, HeadersDir, ActorsDir, PawnIniPath);
+// end change
 	if (pLevel == NULL)
 	{
 		*ErrMsg = "Error creating level.";
@@ -1033,9 +1183,9 @@ CtLevel *CtLevelMgr::CreateFromFile (const char *FileName, const char **ErrMsg, 
 	{
 		Level_BrushListToTexels (pLevel);
 	}
-
-	if (!Level_LoadEntities (pLevel, Parser, VersionMajor, VersionMinor, &Expected)) goto DoneLoad;
-
+// changed QD
+	if (!LoadEntities (pLevel, Parser, VersionMajor, VersionMinor, &Expected)) goto DoneLoad;
+// end change
 	if ((VersionMajor > 1) || ((VersionMajor == 1) && (VersionMinor >= 2)))
 	{
 		if (!ModelList_Read (pLevel->m_ModelInfo.Models, NumModels, Parser, VersionMajor, VersionMinor, &Expected))
@@ -1261,6 +1411,24 @@ static geBoolean Level_WriteBrushTemplates
 	return GE_TRUE;
 }
 
+// changed QD 11/03
+static geBoolean Level_ExportBrushTemplatesTo3dtv1_32
+	(
+	  const CtLevel *pLevel,
+	  FILE *f
+	)
+{
+	if (BrushTemplate_WriteArchTo3dtv1_32 (&pLevel->m_ArchTemplate, f) == GE_FALSE) return GE_FALSE;
+	if (BrushTemplate_WriteBoxTo3dtv1_32 (&pLevel->m_BoxTemplate, f) == GE_FALSE) return GE_FALSE;
+	if (BrushTemplate_WriteConeTo3dtv1_32 (&pLevel->m_ConeTemplate, f) == GE_FALSE) return GE_FALSE;
+	if (BrushTemplate_WriteCylinderTo3dtv1_32 (&pLevel->m_CylinderTemplate, f) == GE_FALSE) return GE_FALSE;
+	if (BrushTemplate_WriteSpheroidTo3dtv1_32 (&pLevel->m_SpheroidTemplate, f) == GE_FALSE) return GE_FALSE;
+	if (BrushTemplate_WriteStaircaseTo3dtv1_32 (&pLevel->m_StaircaseTemplate, f) == GE_FALSE) return GE_FALSE;
+
+	return GE_TRUE;
+}
+// end change
+
 geBoolean CtLevelMgr::WriteToFile (CtLevel *pLevel, const char *Filename)
 {
 	FILE	*ArFile = NULL;
@@ -1286,6 +1454,21 @@ geBoolean CtLevelMgr::WriteToFile (CtLevel *pLevel, const char *Filename)
 
 	Util_QuoteString (pLevel->m_pHeadersDir, QuotedString);
 	if (fprintf (ArFile, "HeadersDir %s\n", QuotedString) < 0) goto WriteDone;
+// changed QD Actors
+	Util_QuoteString (pLevel->m_pActorsDir, QuotedString);
+	if (fprintf (ArFile, "ActorsDir %s\n", QuotedString) < 0) goto WriteDone;
+
+	Util_QuoteString (pLevel->m_pPawnIniPath, QuotedString);
+	if (fprintf (ArFile, "PawnIni %s\n", QuotedString) < 0) goto WriteDone;
+// remove ActorBrushes from List, so they don't get written to the file
+	int i;
+	for (i = 0; i < pLevel->m_pEntities->GetSize (); ++i)
+	{
+		Brush *b =(*(pLevel->m_pEntities))[i].GetActorBrush();
+		if(b!=NULL)
+			RemoveBrush(pLevel, b);
+	}
+// end change
 
 	if (fprintf(ArFile, "NumEntities %d\n", pLevel->m_pEntities->GetSize ()) < 0) goto WriteDone;
 	if (fprintf(ArFile, "NumModels %d\n", ModelList_GetCount (pLevel->m_ModelInfo.Models)) < 0) goto WriteDone;
@@ -1308,6 +1491,92 @@ geBoolean CtLevelMgr::WriteToFile (CtLevel *pLevel, const char *Filename)
 	if (fprintf (ArFile, "DrawScale %f\n", pLevel->m_DrawScale) < 0) goto WriteDone;
 	if (fprintf (ArFile, "LightmapScale %f\n", pLevel->m_LightmapScale) < 0) goto WriteDone;
 
+// changed QD Actors
+// add ActorBrushes to the List again
+	for (i = 0; i < pLevel->m_pEntities->GetSize (); ++i)
+	{
+		Brush *b =(*(pLevel->m_pEntities))[i].GetActorBrush();
+		if(b!=NULL)
+			AppendBrush(pLevel, b);
+	}
+// end change
+	WriteRslt = GE_TRUE;
+
+WriteDone:
+	if (fclose(ArFile) != 0) return GE_FALSE;
+
+	return GE_TRUE ;
+}
+
+// changed QD 11/03
+geBoolean CtLevelMgr::ExportTo3dtv1_32(CtLevel *pLevel, const char *Filename)
+{
+	FILE	*ArFile = NULL;
+	char QuotedString[MAX_PATH];
+	geBoolean WriteRslt;
+
+	assert (pLevel != NULL);
+	assert (Filename != NULL);
+
+	// error checking required!
+	ArFile = fopen(Filename, "wt");
+
+	if (ArFile == NULL)
+	{
+		return GE_FALSE;
+	}
+
+	WriteRslt = GE_FALSE;
+	if (fprintf(ArFile, "3dtVersion %d.%d\n", LEVEL_VERSION_MAJOR, LEVEL_VERSION_MINOR) < 0) goto WriteDone;
+
+	Util_QuoteString (pLevel->m_pWadPath, QuotedString);
+	if (fprintf(ArFile, "TextureLib %s\n", QuotedString) < 0) goto WriteDone;
+
+	Util_QuoteString (pLevel->m_pHeadersDir, QuotedString);
+	if (fprintf (ArFile, "HeadersDir %s\n", QuotedString) < 0) goto WriteDone;
+
+// remove ActorBrushes from List, so they don't get written to the file
+	int i;
+	for (i = 0; i < pLevel->m_pEntities->GetSize (); ++i)
+	{
+		Brush *b =(*(pLevel->m_pEntities))[i].GetActorBrush();
+		if(b!=NULL)
+			RemoveBrush(pLevel, b);
+	}
+
+	if (fprintf(ArFile, "NumEntities %d\n", pLevel->m_pEntities->GetSize ()) < 0) goto WriteDone;
+	if (fprintf(ArFile, "NumModels %d\n", ModelList_GetCount (pLevel->m_ModelInfo.Models)) < 0) goto WriteDone;
+	if (fprintf(ArFile, "NumGroups %d\n", Group_GetCount (pLevel->m_pGroups)) < 0) goto WriteDone;
+	// differs from Level_WriteToFile
+	if (BrushList_ExportTo3dtv1_32 (pLevel->m_pBrushes, ArFile) == GE_FALSE) goto WriteDone;
+	//
+	if (Level_SaveEntities (pLevel->m_pEntities, ArFile) == GE_FALSE) goto WriteDone;
+	if (ModelList_Write (pLevel->m_ModelInfo.Models, ArFile) == GE_FALSE) goto WriteDone;
+	if (Group_WriteList (pLevel->m_pGroups, ArFile) == GE_FALSE) goto WriteDone;
+	if (Level_WriteSky (pLevel->m_SkyFaces, &pLevel->m_SkyRotationAxis, pLevel->m_SkyRotationSpeed, pLevel->m_SkyTextureScale, ArFile) == GE_FALSE) goto WriteDone;
+	if (Level_WriteCompileInfo (&pLevel->m_CompileParams, ArFile) == GE_FALSE) goto WriteDone;
+	if (fprintf (ArFile, "ShowGroups %d\n", pLevel->m_GroupVisSetting) < 0) goto WriteDone;
+	if (EntityViewList_WriteToFile (pLevel->m_pEntityView, ArFile) == GE_FALSE) goto WriteDone;
+	if (Level_WriteGridInfo (&pLevel->m_GridSettings, ArFile) == GE_FALSE) goto WriteDone;
+	if (fprintf (ArFile, "BspRebuild %d\n", pLevel->m_BspRebuildFlag) < 0) goto WriteDone;
+	if (Level_WriteViewInfo (pLevel->m_ViewInfo, ArFile) == GE_FALSE) goto WriteDone;
+	// differs from Level_WriteToFile
+	if (Level_ExportBrushTemplatesTo3dtv1_32 (pLevel, ArFile) == GE_FALSE) goto WriteDone;
+	//
+	if (fprintf (ArFile, "TemplatePos %f %f %f\n", pLevel->m_TemplatePos.X, pLevel->m_TemplatePos.Y, pLevel->m_TemplatePos.Z) < 0) goto WriteDone;
+
+	// level options
+	if (fprintf (ArFile, "DrawScale %f\n", pLevel->m_DrawScale) < 0) goto WriteDone;
+	if (fprintf (ArFile, "LightmapScale %f\n", pLevel->m_LightmapScale) < 0) goto WriteDone;
+
+// add ActorBrushes to the List again
+	for (i = 0; i < pLevel->m_pEntities->GetSize (); ++i)
+	{
+		Brush *b =(*(pLevel->m_pEntities))[i].GetActorBrush();
+		if(b!=NULL)
+			AppendBrush(pLevel, b);
+	}
+// end change
 
 	WriteRslt = GE_TRUE;
 
@@ -1316,6 +1585,301 @@ WriteDone:
 
 	return GE_TRUE ;
 }
+
+
+// changed QD 12/03
+#define CHUNK_MAIN3DS		0x4d4d
+#define CHUNK_VERSION		0x0002
+#define CHUNK_EDIT3DS		0x3d3d
+#define CHUNK_MESH_VERSION	0x3d3e
+// global chunks
+#define CHUNK_COLORRGB		0x0011
+#define CHUNK_PERCENT		0x0030
+#define MASTER_SCALE		0x0100
+/*
+#define CHUNK_OBJBLOCK		0x4000
+#define CHUNK_TRIMESH		0x4100
+#define CHUNK_VERTLIST		0x4110
+#define CHUNK_FACELIST		0x4120
+#define CHUNK_MAPLIST		0x4140
+*/
+// Material block
+#define CHUNK_MATBLOCK		0xAFFF
+#define CHUNK_MATNAME		0xA000
+#define CHUNK_MATAMB		0xA010 // Ambient color
+#define CHUNK_MATDIFF		0xA020 // Diffuse color
+#define CHUNK_MATSPEC		0xA030 // Specular color
+#define CHUNK_MATSHININESS	0xA040
+#define CHUNK_MATSHIN2PCT	0xA041
+#define CHUNK_MATTRANS		0xA050
+#define CHUNK_MATXPFALL		0xA052
+#define CHUNK_MATREFBLUR	0xA053
+#define CHUNK_MATSHADING	0xA100
+#define CHUNK_MATDECAL		0xA084
+#define CHUNK_MATWIRESIZE	0xA087
+#define CHUNK_MAP			0xA200
+#define CHUNK_MAPNAME		0xA300 // name of bitmap
+#define CHUNK_MAPTILING		0xA351
+
+//#define CHUNK_MATAMB		0xA010 // Ambient color
+// Keyframe chunks
+#define CHUNK_KEYFRAME		0xB000
+#define CHUNK_KF_HDR		0xB00a
+#define CHUNK_KF_SEG		0xB008 // start, end
+#define CHUNK_KF_CURTIME	0xB009
+
+geBoolean CtLevelMgr::ExportTo3ds(CtLevel *pLevel, const char *Filename, BrushList *BList,
+							int ExpSelected, geBoolean ExpLights, int GroupID)
+{
+	FILE	*f;
+	geBoolean WriteRslt;
+	int size, i;
+	geBoolean *WrittenTex;
+
+	if(!pLevel) return GE_FALSE;
+	if(!Filename) return GE_FALSE;
+
+	// error checking required!
+	f = fopen(Filename, "wb");
+
+	if (!f)	return GE_FALSE;
+
+	WriteRslt = GE_FALSE;
+
+	// get the number of textures
+	WrittenTex=(geBoolean *)calloc(sizeof(geBoolean), pLevel->m_pWadFile->mBitmapCount);
+	// which textures are used?
+	BrushList_GetUsedTextures(BList, WrittenTex, pLevel->m_pWadFile);
+
+	/*
+	We will squeeze in CHUNK_MAIN3DS, CHUNK_VERSION, CHUNK_EDIT3DS, CHUNK_MESH_VERSION
+	when we know the size of the file, so move the filepointer forward now
+	*/
+
+	fseek(f, 32L, SEEK_SET);
+
+	// write all used materials to the file
+	for(i=0;i<pLevel->m_pWadFile->mBitmapCount;i++)
+	{
+		if(WrittenTex[i])
+		{
+			// 3ds only allows DOS 8.3 file names, so cut the name if necessary
+			char matname[9];
+			int j,k;
+			strncpy (matname, pLevel->m_pWadFile->mBitmaps[i].Name, 9);
+			matname[8] = '\0';
+			for(j=0;matname[j]!='\0';j++);
+
+
+			TypeIO_WriteUshort(f, CHUNK_MATBLOCK);
+			TypeIO_WriteInt(f, 6+6+j+1 +(3*15) + 102 +6 +8 +6+j+5 +8);
+
+			// write material name
+			TypeIO_WriteUshort(f, CHUNK_MATNAME);
+			TypeIO_WriteInt(f,(6+j+1));
+			for(k=0;k<=j;k++)
+				TypeIO_WriteUChar(f, matname[k]);
+
+			// ambient color
+			TypeIO_WriteUshort(f, CHUNK_MATAMB);		//0xA010  Ambient color
+			TypeIO_WriteInt(f,6+6+3);
+
+			TypeIO_WriteUshort(f, CHUNK_COLORRGB);
+			TypeIO_WriteInt(f,6+3);
+			TypeIO_WriteUChar(f, (char)120);
+			TypeIO_WriteUChar(f, (char)120);
+			TypeIO_WriteUChar(f, (char)120);
+
+			// diffuse color
+			TypeIO_WriteUshort(f, CHUNK_MATDIFF);		//0xA020  Diffuse color
+			TypeIO_WriteInt(f,6+6+3);
+
+			TypeIO_WriteUshort(f, CHUNK_COLORRGB);
+			TypeIO_WriteInt(f,6+3);
+			TypeIO_WriteUChar(f, (char)120);
+			TypeIO_WriteUChar(f, (char)120);
+			TypeIO_WriteUChar(f, (char)120);
+
+			// specular color
+			TypeIO_WriteUshort(f, CHUNK_MATSPEC);		//0xA030  Specular color
+			TypeIO_WriteInt(f,6+6+3);
+
+			TypeIO_WriteUshort(f, CHUNK_COLORRGB);
+			TypeIO_WriteInt(f,6+3);
+			TypeIO_WriteUChar(f, (char)120);
+			TypeIO_WriteUChar(f, (char)120);
+			TypeIO_WriteUChar(f, (char)120);
+
+			TypeIO_WriteUshort(f, CHUNK_MATSHININESS);
+			TypeIO_WriteInt(f,14);
+			TypeIO_WriteUshort(f, CHUNK_PERCENT);
+			TypeIO_WriteInt(f,8);
+			TypeIO_WriteUshort(f, 0);
+
+			TypeIO_WriteUshort(f, CHUNK_MATSHIN2PCT);
+			TypeIO_WriteInt(f,14);
+			TypeIO_WriteUshort(f, CHUNK_PERCENT);
+			TypeIO_WriteInt(f,8);
+			TypeIO_WriteUshort(f, 0);
+
+			TypeIO_WriteUshort(f, CHUNK_MATTRANS);
+			TypeIO_WriteInt(f,14);
+			TypeIO_WriteUshort(f, CHUNK_PERCENT);
+			TypeIO_WriteInt(f,8);
+			TypeIO_WriteUshort(f, 0);
+
+			TypeIO_WriteUshort(f, CHUNK_MATXPFALL);
+			TypeIO_WriteInt(f,14);
+			TypeIO_WriteUshort(f, CHUNK_PERCENT);
+			TypeIO_WriteInt(f,8);
+			TypeIO_WriteUshort(f, 0);
+
+			TypeIO_WriteUshort(f, CHUNK_MATREFBLUR);
+			TypeIO_WriteInt(f,14);
+			TypeIO_WriteUshort(f, CHUNK_PERCENT);
+			TypeIO_WriteInt(f,8);
+			TypeIO_WriteUshort(f, 0);
+
+			TypeIO_WriteUshort(f, CHUNK_MATSHADING);
+			TypeIO_WriteInt(f,8);
+			TypeIO_WriteUshort(f, 3);
+
+			TypeIO_WriteUshort(f, CHUNK_MATDECAL);
+			TypeIO_WriteInt(f,14);
+			TypeIO_WriteUshort(f, CHUNK_PERCENT);
+			TypeIO_WriteInt(f,8);
+			TypeIO_WriteUshort(f, 0);
+
+			TypeIO_WriteUshort(f, CHUNK_MATWIRESIZE);
+			TypeIO_WriteInt(f,10);
+			TypeIO_WriteFloat(f, 1.0f);
+
+			// texture map
+			TypeIO_WriteUshort(f, CHUNK_MAP);
+			TypeIO_WriteInt(f,6+8+6+j+5+8);
+
+			TypeIO_WriteUshort(f, CHUNK_PERCENT);
+			TypeIO_WriteInt(f,8);
+			TypeIO_WriteUshort(f, 100);
+
+			// write map name
+			TypeIO_WriteUshort(f, CHUNK_MAPNAME);
+			TypeIO_WriteInt(f, 6+j+5);
+			for(k=0;k<j;k++)
+				TypeIO_WriteUChar(f, matname[k]);
+			TypeIO_WriteUChar(f, '.');
+			if(geBitmap_HasAlpha(pLevel->m_pWadFile->mBitmaps[i].bmp))
+			{
+				TypeIO_WriteUChar(f, 't');
+				TypeIO_WriteUChar(f, 'g');
+				TypeIO_WriteUChar(f, 'a');
+			}
+			else
+			{
+				TypeIO_WriteUChar(f, 'b');
+				TypeIO_WriteUChar(f, 'm');
+				TypeIO_WriteUChar(f, 'p');
+			}
+
+			TypeIO_WriteUChar(f, '\0');
+
+			TypeIO_WriteUshort(f, CHUNK_MAPTILING);
+			TypeIO_WriteInt(f,8);
+			TypeIO_WriteUshort(f, 0);
+		}
+	}
+
+    // write out the master scale
+    TypeIO_WriteUshort(f, MASTER_SCALE);
+	TypeIO_WriteInt(f, 10);
+	TypeIO_WriteFloat(f, 1.0f);
+
+	// export the brushes
+	if (BrushList_ExportTo3ds (BList, f, GE_FALSE) == GE_FALSE) goto WriteDone;
+
+// changed QD 12/03
+	int size_kf;
+	size_kf=0;
+
+	if(ExpLights)
+	{
+		int LCount, SLCount;
+		LCount = SLCount = 0;
+		// export the light entities
+		if (Level_ExportLightsTo3ds(pLevel->m_pEntities, f, ExpSelected, GroupID, &LCount, &SLCount) == GE_FALSE) goto WriteDone;
+		// lights need keyframes or they will be placed at the origin by default
+		// baaah!!!
+
+		if(LCount>0||SLCount>0)
+		{
+			size_kf=6+21+14+10+LCount*110+SLCount*272;
+			TypeIO_WriteUshort(f, CHUNK_KEYFRAME);
+			TypeIO_WriteInt(f, size_kf);
+
+			TypeIO_WriteUshort(f, CHUNK_KF_HDR);
+			TypeIO_WriteInt(f, 21);
+			TypeIO_WriteUshort(f, 5);
+			TypeIO_WriteUChar(f, 'M');
+			TypeIO_WriteUChar(f, 'A');
+			TypeIO_WriteUChar(f, 'X');
+			TypeIO_WriteUChar(f, 'S');
+			TypeIO_WriteUChar(f, 'C');
+			TypeIO_WriteUChar(f, 'E');
+			TypeIO_WriteUChar(f, 'N');
+			TypeIO_WriteUChar(f, 'E');
+			TypeIO_WriteUChar(f, '\0');
+			TypeIO_WriteUChar(f, 'd');
+			TypeIO_WriteUChar(f, '\0');
+			TypeIO_WriteUshort(f, 0);
+
+			TypeIO_WriteUshort(f, CHUNK_KF_SEG);
+			TypeIO_WriteInt(f, 14);
+			TypeIO_WriteInt(f, 0);
+			TypeIO_WriteInt(f, 100);
+
+			TypeIO_WriteUshort(f, CHUNK_KF_CURTIME);
+			TypeIO_WriteInt(f, 10);
+			TypeIO_WriteInt(f, 0);
+
+			if (Level_ExportLightsKFTo3ds(pLevel->m_pEntities, f, ExpSelected, GroupID) == GE_FALSE) goto WriteDone;
+		}
+	}
+// end change
+
+	size = ftell(f);
+	fseek(f, 0L, SEEK_SET );
+
+	TypeIO_WriteUshort(f,CHUNK_MAIN3DS);
+	TypeIO_WriteInt(f, size);
+
+	TypeIO_WriteUshort(f, CHUNK_VERSION);
+	TypeIO_WriteInt(f, 10);
+	TypeIO_WriteInt(f, 3);
+
+	TypeIO_WriteUshort(f,CHUNK_EDIT3DS);
+// changed QD 12/03
+	TypeIO_WriteInt(f, size-16-size_kf);
+// end change
+	TypeIO_WriteUshort(f,CHUNK_MESH_VERSION);
+	TypeIO_WriteInt(f, 10);
+	TypeIO_WriteInt(f, 3);
+
+	WriteRslt = GE_TRUE;
+
+WriteDone:
+
+	free(WrittenTex);
+
+	if (fclose(f) != 0) return GE_FALSE;
+
+// changed QD 12/03
+	if((size-size_kf)<=42)
+		_unlink(Filename);
+// end change
+
+	return WriteRslt;
+}
+// end change
 
 CEntityArray *CtLevelMgr::GetEntities (CtLevel *pLevel)
 {
@@ -1435,7 +1999,25 @@ int CtLevelMgr::AddEntity (CtLevel *pLevel, CEntity &Entity)
 	assert (pLevel != NULL);
 
 	Level_AssignEntityName (pLevel, &Entity);
-	return pLevel->m_pEntities->Add (Entity);
+// changed QD Actors
+	int index = pLevel->m_pEntities->Add (Entity);
+	char ActorFile[256], ActorDir[256], PawnIni[256];
+	strcpy(PawnIni, GetPawnIniPath(pLevel));
+
+	if((*(pLevel->m_pEntities))[index].HasActor(ActorFile, PawnIni))
+	{
+		Brush *pBrush;
+		strcpy(ActorDir, GetActorsDirectory(pLevel));
+		pBrush=(*(pLevel->m_pEntities))[index].CreateActorBrush(ActorFile, ActorDir, PawnIni);
+		if(pBrush)
+		{
+			AppendBrush(pLevel,pBrush);
+			if(!pLevel->m_ShowActors)
+				Brush_SetVisible(pBrush, GE_FALSE);
+		}
+	}
+	return index;// pLevel->m_pEntities->Add (Entity);
+// end change
 }
 
 void CtLevelMgr::AppendBrush (CtLevel *pLevel, Brush *pBrush)
@@ -1646,3 +2228,58 @@ CString CtLevelMgr::CloneHeadersDirectory(const CtLevel *pLevel)
 	return strClone;
 }
 
+// changed QD Actors
+const char *CtLevelMgr::GetActorsDirectory (const CtLevel *pLevel)
+{
+	return pLevel->m_pActorsDir;
+}
+
+void CtLevelMgr::SetActorsDir(CtLevel *pLevel, const char *NewActorsDir)
+{
+	if (pLevel->m_pActorsDir != NULL)
+	{
+		geRam_Free (pLevel->m_pActorsDir);
+	}
+	pLevel->m_pActorsDir = Util_Strdup (NewActorsDir);
+}
+
+CString CtLevelMgr::CloneActorsDir(const CtLevel *pLevel)
+{
+	CString strClone = (CString)pLevel->m_pActorsDir;
+	//char* charTemp = strClone.GetBuffer(strClone.GetLength());
+	return strClone;
+}
+
+const char *CtLevelMgr::GetPawnIniPath (const CtLevel *pLevel)
+{
+	assert (pLevel != NULL);
+
+	return (pLevel->m_pPawnIniPath);
+}
+
+void CtLevelMgr::SetPawnIniPath (CtLevel *pLevel, const char *PawnIni)
+{
+	if (pLevel->m_pPawnIniPath != NULL)
+	{
+		geRam_Free (pLevel->m_pPawnIniPath);
+	}
+	pLevel->m_pPawnIniPath = Util_Strdup (PawnIni);
+}
+
+CString CtLevelMgr::ClonePawnIniPath(const CtLevel *pLevel)
+{
+	CString strClone = (CString)pLevel->m_pPawnIniPath;
+	//char* charTemp = strClone.GetBuffer(strClone.GetLength());
+	return strClone;
+}
+
+void CtLevelMgr::SetShowActors(CtLevel *pLevel, geBoolean Show)
+{
+	pLevel->m_ShowActors=Show;
+}
+
+geBoolean CtLevelMgr::GetShowActors(const CtLevel *pLevel)
+{
+	return pLevel->m_ShowActors;
+}
+// end change

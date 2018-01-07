@@ -36,7 +36,7 @@
 #include	"cparser.h"
 #include	"type.h"
 #include	"symtab.h"
-#include	"../include/ram.h"
+#include	"ram.h"
 #include	"../util.h"
 #include	"../filepath.h"
 

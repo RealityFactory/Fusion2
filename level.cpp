@@ -16,10 +16,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "stdafx.h"
 #include "level.h"
@@ -150,7 +150,25 @@ static geBoolean Level_LoadEntities
 			{
 				Level_AssignEntityName (pLevel, &ent);
 			}
-			pLevel->Entities->Add (ent);
+// changed QD Actors
+// create actordefs when loading a level
+			int j =	pLevel->Entities->Add (ent);
+			char ActorFile[256], ActorDir[256], PawnIni[256];
+			strcpy(PawnIni, Level_GetPawnIniPath(pLevel));
+			if((*(pLevel->Entities))[j].HasActor(ActorFile, PawnIni))
+			{
+				Brush *pBrush;
+				strcpy(ActorDir, Level_GetActorsDirectory(pLevel));
+				pBrush=(*(pLevel->Entities))[j].CreateActorBrush(ActorFile, ActorDir, PawnIni);
+				if(pBrush)
+				{
+					//if(pLevel->ShowActors)
+						Level_AppendBrush(pLevel,pBrush);
+					if(!pLevel->ShowActors)
+						Brush_SetVisible(pBrush, GE_FALSE);
+				}
+			}
+// end change
 		}
 	}
 	return GE_TRUE;
@@ -206,7 +224,9 @@ const EntityTable *Level_GetEntityDefs (const Level *pLevel)
 	return pLevel->pEntityDefs;
 }
 
-Level *Level_Create (const char *pWadName, const char *HeadersDir)
+// changed QD
+Level *Level_Create (const char *pWadName, const char *HeadersDir, const char *ActorsDir, const char *PawnIni)
+// end change
 {
 	Level *pLevel;
 
@@ -247,6 +267,12 @@ Level *Level_Create (const char *pWadName, const char *HeadersDir)
 		{
 			goto CreateError;
 		}
+
+// changed QD Actors
+		pLevel->ActorsDir = Util_Strdup (ActorsDir);
+		pLevel->ShowActors= GE_TRUE;
+		pLevel->PawnIniPath = Util_Strdup (PawnIni);
+// end change
 
 		pLevel->WadPath = Util_Strdup (pWadName);
 		pLevel->WadFile = NULL;
@@ -401,6 +427,18 @@ void Level_Destroy (Level **ppLevel)
 
 	pLevel = *ppLevel;
 
+// changed QD Actors
+// remove ActorBrushes from BrushList
+// these brushes will be deleted  by delete pLevel->Entities
+	int i;
+	for (i = 0; i < pLevel->Entities->GetSize (); ++i)
+	{
+		Brush *b =(*(pLevel->Entities))[i].GetActorBrush();
+		if(b!=NULL)
+			Level_RemoveBrush(pLevel, b);
+	}
+// end change
+
 	if (pLevel->Brushes != NULL)
 	{
 		BrushList_Destroy (&pLevel->Brushes);
@@ -413,6 +451,16 @@ void Level_Destroy (Level **ppLevel)
 	{
 		geRam_Free (pLevel->WadPath);
 	}
+// changed QD Actors
+	if (pLevel->ActorsDir!= NULL)
+	{
+		geRam_Free (pLevel->ActorsDir);
+	}
+	if (pLevel->PawnIniPath != NULL)
+	{
+		geRam_Free (pLevel->PawnIniPath);
+	}
+// end change
 	if (pLevel->EntTypeNames != NULL)
 	{
 		EntTypeNameList_Destroy (&pLevel->EntTypeNames);
@@ -720,7 +768,9 @@ static geBoolean Level_LoadBrushTemplates
 }
 
 
-Level *Level_CreateFromFile (const char *FileName, const char **ErrMsg, const char *DefaultHeadersDir)
+//changed QD Actors
+Level *Level_CreateFromFile (const char *FileName, const char **ErrMsg, const char *DefaultHeadersDir,
+							 const char *DefaultActorsDir, const char *DefaultPawnIni)
 {
 	int NumModels;
 	int VersionMajor, VersionMinor;
@@ -733,6 +783,10 @@ Level *Level_CreateFromFile (const char *FileName, const char **ErrMsg, const ch
 	Level *pLevel = NULL;
 	char WadPath[MAX_PATH];
 	char HeadersDir[MAX_PATH];
+// changed QD Actors
+	char ActorsDir[MAX_PATH];
+	char PawnIniPath[MAX_PATH];
+// end change
 
 	CGEditProDoc *pDoc = CGlobals::GetActiveDocument();
 
@@ -842,7 +896,28 @@ Level *Level_CreateFromFile (const char *FileName, const char **ErrMsg, const ch
 		}
 	}		//	end post 0.55
 	
-	pLevel = Level_Create (WadPath, HeadersDir);
+// changed QD Actors
+	// actors directory
+	if ((VersionMajor <= 1) && (VersionMinor < 33))
+	{
+		strcpy (ActorsDir, DefaultActorsDir);
+	}
+	else
+	{
+		if (!Parse3dt_GetLiteral (Parser, (Expected = "ActorsDir"), ActorsDir)) goto DoneLoad;
+	}
+	// PawnIni
+	if ((VersionMajor <= 1) && (VersionMinor < 33))
+	{
+		strcpy (PawnIniPath, DefaultPawnIni);
+	}
+	else
+	{
+		if (!Parse3dt_GetLiteral (Parser, (Expected = "PawnIni"), PawnIniPath)) goto DoneLoad;
+	}
+
+	pLevel = Level_Create (WadPath, HeadersDir, ActorsDir, PawnIniPath);
+// end change
 	if (pLevel == NULL)
 	{
 		*ErrMsg = "Error creating level.";
@@ -1136,7 +1211,21 @@ geBoolean Level_WriteToFile (Level *pLevel, const char *Filename)
 
 	Util_QuoteString (pLevel->HeadersDir, QuotedString);
 	if (fprintf (ArFile, "HeadersDir %s\n", QuotedString) < 0) goto WriteDone;
+// changed QD Actors
+	Util_QuoteString (pLevel->ActorsDir, QuotedString);
+	if (fprintf (ArFile, "ActorsDir %s\n", QuotedString) < 0) goto WriteDone;
 
+	Util_QuoteString (pLevel->PawnIniPath, QuotedString);
+	if (fprintf (ArFile, "PawnIni %s\n", QuotedString) < 0) goto WriteDone;
+// remove ActorBrushes from List, so they don't get written to the file
+	int i;
+	for (i = 0; i < pLevel->Entities->GetSize (); ++i)
+	{
+		Brush *b =(*(pLevel->Entities))[i].GetActorBrush();
+		if(b!=NULL)
+			Level_RemoveBrush(pLevel, b);
+	}
+// end change
 	if (fprintf(ArFile, "NumEntities %d\n", pLevel->Entities->GetSize ()) < 0) goto WriteDone;
 	if (fprintf(ArFile, "NumModels %d\n", ModelList_GetCount (pLevel->ModelInfo.Models)) < 0) goto WriteDone;
 	if (fprintf(ArFile, "NumGroups %d\n", Group_GetCount (pLevel->Groups)) < 0) goto WriteDone;
@@ -1158,7 +1247,15 @@ geBoolean Level_WriteToFile (Level *pLevel, const char *Filename)
 	if (fprintf (ArFile, "DrawScale %f\n", pLevel->DrawScale) < 0) goto WriteDone;
 	if (fprintf (ArFile, "LightmapScale %f\n", pLevel->LightmapScale) < 0) goto WriteDone;
 
-
+// changed QD Actors
+// add ActorBrushes to the List again
+	for (i = 0; i < pLevel->Entities->GetSize (); ++i)
+	{
+		Brush *b =(*(pLevel->Entities))[i].GetActorBrush();
+		if(b!=NULL)
+			Level_AppendBrush(pLevel, b);
+	}
+// end change
 	WriteRslt = GE_TRUE;
 
 WriteDone:
@@ -1275,7 +1372,26 @@ int Level_AddEntity (Level *pLevel, CEntity &Entity)
 	assert (pLevel != NULL);
 
 	Level_AssignEntityName (pLevel, &Entity);
-	return pLevel->Entities->Add (Entity);
+// changed QD Actors
+	int index = pLevel->Entities->Add (Entity);
+	char ActorFile[256], ActorDir[256], PawnIni[256];
+	strcpy(PawnIni, Level_GetPawnIniPath(pLevel));
+
+	if((*(pLevel->Entities))[index].HasActor(ActorFile, PawnIni))
+	{
+		Brush *pBrush;
+		strcpy(ActorDir, Level_GetActorsDirectory(pLevel));
+		pBrush=(*(pLevel->Entities))[index].CreateActorBrush(ActorFile, ActorDir, PawnIni);
+		if(pBrush)
+		{
+		//	if(pLevel->ShowActors)
+			Level_AppendBrush(pLevel,pBrush);
+			if(!pLevel->ShowActors)
+				Brush_SetVisible(pBrush, GE_FALSE);
+		}
+	}
+	return index;// pLevel->Entities->Add (Entity);
+// end change
 }
 
 void Level_AppendBrush (Level *pLevel, Brush *pBrush)
@@ -1477,3 +1593,46 @@ const char *Level_GetHeadersDirectory (const Level *pLevel)
 {
 	return pLevel->HeadersDir;
 }
+
+// changed QD Actors
+const char *Level_GetActorsDirectory (const Level *pLevel)
+{
+	return pLevel->ActorsDir;
+}
+
+void Level_SetActorsDir(Level *pLevel, const char *NewActorsDir)
+{
+	if (pLevel->ActorsDir != NULL)
+	{
+		geRam_Free (pLevel->ActorsDir);
+	}
+	pLevel->ActorsDir = Util_Strdup (NewActorsDir);
+}
+
+
+const char *Level_GetPawnIniPath (const Level *pLevel)
+{
+	assert (pLevel != NULL);
+
+	return (pLevel->PawnIniPath);
+}
+
+void Level_SetPawnIniPath (Level *pLevel, const char *PawnIni)
+{
+	if (pLevel->PawnIniPath != NULL)
+	{
+		geRam_Free (pLevel->PawnIniPath);
+	}
+	pLevel->PawnIniPath = Util_Strdup (PawnIni);
+}
+
+void Level_SetShowActors(Level *pLevel, geBoolean Show)
+{
+	pLevel->ShowActors=Show;
+}
+
+geBoolean Level_GetShowActors(const Level *pLevel)
+{
+	return pLevel->ShowActors;
+}
+// end change

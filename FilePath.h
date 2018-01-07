@@ -15,16 +15,16 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #ifndef FILEPATH_H
 
 #define FILEPATH_H
 
-#include "include/basetype.h"
+#include "basetype.h"
 
 #ifdef __cplusplus
 	extern "C" {
@@ -61,6 +61,10 @@ geBoolean FilePath_SlashTerminate (const char *pPath, char *pDest);
 // Append pName to pPath and return result in pDest.
 // pDest may be the same as pPath or pName.
 geBoolean FilePath_AppendName (char const *pPath, char const *pName, char *pDest);
+
+// changed QD 12/03
+geBoolean FilePath_ChangeName (char const *pPath, char const *pName, char *pDest);
+// end change
 
 // Search for a Filename in the semicolon-separated paths specified in SearchPath.
 // If found, returns GE_TRUE and the full path name of the file in FoundPath.

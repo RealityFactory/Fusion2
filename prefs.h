@@ -15,15 +15,15 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #ifndef PREFS_H
 #define PREFS_H
 
-#include "include/basetype.h"
+#include "basetype.h"
 
 #ifdef __cplusplus
 	extern "C" {
@@ -59,7 +59,13 @@ geBoolean Prefs_SetPreviewPath (Prefs *pPrefs, const char *NewPath);
 
 const char *Prefs_GetHeadersList (const Prefs *pPrefs);
 geBoolean Prefs_SetHeadersList (Prefs *pPrefs, const char *NewList);
+// changed QD Actors
+const char *Prefs_GetActorsList (const Prefs *pPrefs);
+geBoolean Prefs_SetActorsList (Prefs *pPrefs, const char *NewList);
 
+const char *Prefs_GetPawnIni (const Prefs *pPrefs);
+geBoolean Prefs_SetPawnIni (Prefs *pPrefs, const char *NewPath);
+// end change
 const char *Prefs_GetObjectsDir (const Prefs *pPrefs);
 geBoolean Prefs_SetObjectsDir (Prefs *pPrefs, const char *NewDir);
 

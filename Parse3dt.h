@@ -24,8 +24,8 @@
 #define PARSE3DT_H
 
 #include "scanner.h"
-#include "include/vec3d.h"
-#include "include/xform3d.h"
+#include "vec3d.h"
+#include "xform3d.h"
 
 #ifdef __cplusplus
 	extern "C" {

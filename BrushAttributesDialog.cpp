@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Prepared for GEditPro ver. 0.7, Nov. 2, 2002											*/
+/*  Prepared for GEditPro ver. 0.7, Nov. 2, 2002                                        */
 /****************************************************************************************/
 #include "stdafx.h"
 #include "Globals.h"
@@ -529,7 +529,28 @@ void CBrushAttributesDialog::SetDialogFields (void)
 			
 			// set user contents flags...
 			if(m_ContentsList)			//	post 0.57
+			{
 				m_ContentsList.ResetContent ();
+// changed QD
+				unsigned long UserFlags = Brush_GetUserFlags (pBrush);
+				ContentsTable *ContentsList = EntityTable_GetContentsList(m_pDoc->m_pLevelMgr->GetEntityDefs (m_pDoc->GetLevel()));
+				for (int i = 0; i < ContentsList->nEntries; ++i)
+				{
+					int Index;
+					ContentsTableEntry *pEntry;
+
+					pEntry = &(ContentsList->Entries[i]);
+
+					Index = m_ContentsList.AddString (pEntry->Name);
+					if (Index != LB_ERR)
+					{
+						m_ContentsList.SetItemData (Index, pEntry->Value);
+						m_ContentsList.SetCheck (Index, (UserFlags & pEntry->Value) ? 1 : 0);
+					}
+				}
+				EntityTable_FreeContentsList (&ContentsList);
+			}
+// end change
 
 			EnableTranslucency ();
 			EnableHullsize ();
@@ -558,18 +579,19 @@ void CBrushAttributesDialog::UpdateBrushFocus ()
 }
 
 
-
 void CBrushAttributesDialog::OnKillfocusName() 
 {
 	CString	lastValue = m_Name;
 	CString currentValue;
 
 	GetDlgItemText(IDC_NAME, currentValue);
-	if (currentValue == "")
+	// changed QD
+	if (currentValue == "" || (strstr(currentValue,".act")!=NULL) || (strstr(lastValue,".act")!=NULL))
 	{
 		this->SetDlgItemText(IDC_NAME, lastValue);
 		return;
 	}
+
 }
 
 

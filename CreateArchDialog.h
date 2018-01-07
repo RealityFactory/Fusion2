@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #ifndef CREATEARCHDIALOG_H
 #define	CREATEARCHDIALOG_H
@@ -55,6 +55,15 @@ public:
 	float	m_EndAngle;
 	float	m_StartAngle;
 	BOOL	m_TCut;
+// changed QD 11/03
+	int		m_Sides;
+	int		m_CW;
+	int		m_Shape;
+	geFloat	m_Radius2;
+	geFloat	m_Height;
+	BOOL	m_Massive;
+	BOOL	m_Steps;
+// end change
 	CString	m_minMaxErrorString;
 	CString	m_angleErrorString;
 	CString	m_archThicknessErrorString;
@@ -94,6 +103,17 @@ protected:
 	afx_msg void OnKillfocusRadius();
 	afx_msg void OnKillfocusWallsize();
 	afx_msg void OnKillfocusNumslits();
+// changed QD 11/03
+	afx_msg void OnKillfocusSides();
+	afx_msg void OnKillfocusRadius2();
+	afx_msg void OnKillfocusHeight();
+	afx_msg void OnCCW();
+	afx_msg void OnCW();
+	afx_msg void OnRectangular();
+	afx_msg void OnRound();
+	afx_msg void OnMassive();
+	afx_msg void OnSteps();
+// end change
 	afx_msg void OnCustomArchBtn();
 	virtual BOOL OnInitDialog();
 	//}}AFX_MSG

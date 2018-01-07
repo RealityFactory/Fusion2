@@ -23,8 +23,8 @@
 #ifndef GROUP_H
 #define GROUP_H
 
-#include "include/basetype.h"
-#include "include/GeTypes.h"
+#include "basetype.h"
+#include "GeTypes.h"
 #include "brush.h"
 #include "entity.h"
 #include "Parse3dt.h"

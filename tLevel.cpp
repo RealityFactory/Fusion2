@@ -20,6 +20,11 @@ CtLevel::CtLevel()
 	m_pWadFile = NULL;
 	m_pEntityDefs = NULL;
 	m_pEntityView = NULL;
+// changed QD Actors
+	m_pActorsDir = NULL;
+	m_pPawnIniPath = NULL;
+	m_ShowActors = GE_TRUE;
+// end change
 
 	m_pEntities = new CEntityArray;
 

@@ -23,7 +23,7 @@
 #ifndef WADFILE_H
 #define WADFILE_H
 
-#include "include/bitmap.h"
+#include "bitmap.h"
 
 struct WadFileEntry
 {

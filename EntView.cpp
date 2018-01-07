@@ -23,7 +23,7 @@
 #include "stdafx.h"  // for CString.  This is really ugly!
 #include "EntView.h"
 #include <assert.h>
-#include "include/ram.h"
+#include "ram.h"
 #include "util.h"
 
 EntityViewList *EntityViewList_Create

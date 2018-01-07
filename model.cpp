@@ -1,8 +1,8 @@
 /****************************************************************************************/
-/*  Model.c                                                                             */
+/*  Model.cpp                                                                           */
 /*                                                                                      */
 /*  Author:       Jim Mischel                                                           */
-/*  Description:  GEditPro editor model management module                                 */
+/*  Description:  GEditPro editor model management module                               */
 /*                                                                                      */
 /*  The contents of this file are subject to the Genesis3D Public License               */
 /*  Version 1.01 (the "License"); you may not use this file except in                   */
@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "model.h"
 #include <assert.h>
@@ -27,11 +27,11 @@
 #include "TypeIO.h"
 #include <float.h>
 #include "units.h"
-#include "include/ram.h"
+#include "ram.h"
 #include "util.h"
 #include "node.h"
 #include "brush.h"
-#include "include/vfile.h"
+#include "vfile.h"
 
 // Major/minor versions at which motions were introduced
 #define MODEL_MOTION_VERSION_MAJOR 1
@@ -96,7 +96,7 @@ void Model_CopyStuff
 
 	pDest->XfmObjectToWorld = pSrc->XfmObjectToWorld;
 	pDest->CurrentKeyTime = pSrc->CurrentKeyTime;
-		
+
 	// this will force creation of a path
 	pDestPath = Model_GetPath (pDest);
 	pSrcPath = Model_GetPath ((Model *)pSrc);
@@ -122,7 +122,7 @@ void Model_CopyStuff
 	pDest->RotationLocked = (Model_GetNumKeys (pDest) > 1);
 }
 
-Model *Model_Clone 
+Model *Model_Clone
 	(
 	  Model *OldModel
 	)
@@ -198,7 +198,7 @@ gePath *Model_GetPath
 	{
 		pModel->pMotion = geMotion_Create (GE_TRUE);
 	}
-	
+
 	if (pModel->pMotion != NULL)
 	{
 		pPath = geMotion_GetPathNamed (pModel->pMotion, MODEL_PATH_NAME);	// single path, for now
@@ -262,7 +262,7 @@ void Model_DeleteKeyframe
 	// Since there's no Path function to get the keyframe for a particular time,
 	// we'll iterate the path's keyframes looking for it.  If it doesn't exist,
 	// then we'll return GE_FALSE.
-	// 
+	//
 	// Probably should make the search into a utility function at some point.
 	KeyframeCount = gePath_GetKeyframeCount (pPath, GE_PATH_ROTATION_CHANNEL);
 	for (iKey = 0; iKey < KeyframeCount; ++iKey)
@@ -306,7 +306,7 @@ void Model_DeleteEvent
 	geMotion *pMotion;
 
 	assert (pModel != NULL);
-	
+
 	pMotion = Model_GetMotion (pModel);
 	assert (pMotion != NULL);
 
@@ -401,7 +401,7 @@ geBoolean Model_IsSelected
 
 	assert (pModel != NULL);
 	assert (pList != NULL);
-	
+
 	SelBrushCount = SelBrushList_GetSize (pSelList);
 	SelCount = 0;
 	// count the number of selected brushes that have this model id
@@ -414,7 +414,7 @@ geBoolean Model_IsSelected
 		}
 	}
 
-	
+
 	if (SelCount > 0)
 	{
 		// now count number of model brushes in the entire list...
@@ -435,7 +435,7 @@ geBoolean Model_IsSelected
 		if (ModelBrushCount == SelCount)
 		{
 			return GE_TRUE;
-		}		
+		}
 	}
 	return GE_FALSE;
 }
@@ -516,7 +516,7 @@ geBoolean Model_IsAnimating
 
 void Model_SetAnimating
 	(
-	  Model *pModel, 
+	  Model *pModel,
 	  geBoolean Anim
 	)
 {
@@ -668,7 +668,7 @@ void Model_Transform
 
 void Model_TransformFromTo
 	(
-	  Model const *pModel, 
+	  Model const *pModel,
 	  geXForm3d const *pXfmFrom,
 	  geXForm3d const *pXfmTo,
 	  BrushList *pList
@@ -681,7 +681,7 @@ void Model_TransformFromTo
 	assert (pXfmTo != NULL);
 	assert (pList != NULL);
 
-	// back out old transform	
+	// back out old transform
 	geXForm3d_Multiply (&(pModel->XfmObjectToWorld), pXfmFrom, &XfmDoIt);
 	geXForm3d_GetTranspose (&XfmDoIt, &XfmDoIt);
 
@@ -731,10 +731,10 @@ geXForm3d const * Model_GetObjectToWorldXfm
 }
 
 
-void Model_UpdateOrigin 
+void Model_UpdateOrigin
 	(
-	  Model *pModel, 
-	  int MoveRotate, 
+	  Model *pModel,
+	  int MoveRotate,
 	  geVec3d const *pVecDelta
 	)
 {
@@ -803,7 +803,7 @@ void Model_AddBrushes
 		Brush *pBrush = SelBrushList_GetBrush (pSelList, i);
 
 		Brush_SetModelId (pBrush, pModel->Id);
-	}		
+	}
 }
 
 void Model_RemoveBrushes
@@ -916,7 +916,7 @@ static geMotion *Model_CreateMotionFromFile (FILE *f, const char *Filename)
 		if (geVFile_Seek (vfile, CurrentFilePos, GE_VFILE_SEEKSET) != GE_FALSE)
 		{
 			long NewFilePos;
-			
+
 			// read the motion from that position
 			m = geMotion_CreateFromFile (vfile);
 
@@ -985,7 +985,7 @@ static geBoolean Model_Write
 
 	if (fprintf (f, "\tCurrentKeyTime %f\n", m->CurrentKeyTime) < 0) return GE_FALSE;
 	if (fprintf (f, "%s", "\tTransform\n") < 0) return GE_FALSE;
-	
+
 	if (!TypeIO_WriteXForm3dText (f, &(m->XfmObjectToWorld))) return GE_FALSE;
 
 	/*
@@ -1148,7 +1148,7 @@ static geMotion *Model_CreateScaledMotion
 				geXForm3d_Multiply (&XfmRotate, &XfmWork, &XfmRotate);
 				geXForm3d_Multiply (&XfmObjWorld, &XfmRotate, &XfmRotate);
 			}
-	
+
 			gePath_InsertKeyframe (pNewPath, GE_PATH_ALL_CHANNELS, Time, &XfmRotate);
 		}
 	}
@@ -1162,7 +1162,7 @@ void Model_Scale
 	)
 {
 	geMotion *pNewMotion;
-	
+
 	assert (pModel != NULL);
 	assert (ScaleFactor > 0);
 
@@ -1225,7 +1225,7 @@ static geBoolean Model_WriteToMap
 {
 	Brush const *b;
 	BrushIterator bi;
-	geXForm3d XfmCurrentSave;	
+	geXForm3d XfmCurrentSave;
 	geXForm3d XfmZero;
 	Model_BrushEnumData EnumData;
 
@@ -1255,7 +1255,7 @@ static geBoolean Model_WriteToMap
 
 	// Transform the brushes to the model's origin
 	Model_TransformFromTo (m, &XfmCurrentSave, &XfmZero, EnumData.pList);
-	
+
 	// write brush count
 	TypeIO_WriteInt (f, EnumData.BrushCount);
 
@@ -1303,7 +1303,7 @@ static geBoolean Model_WriteToMap
 					GE_PATH_INTERPOLATE_SLERP,	 // rotational
 					GE_FALSE);					 // looped flag
 				geMotion_AddPath (NewMotion, NewPath, "FixedPath", &Index);
-				
+
 				// paths are reference counted, so need to destroy it...
 				pPath = NewPath;
 				gePath_Destroy (&pPath);
@@ -1419,7 +1419,7 @@ ModelList	*ModelList_Clone(ModelList *pInputList)
 		if (pNewList)
 		{
 			ModelIterator MI;
-			
+
 			Model	*pTempModel = NULL;
 			pTempModel = ModelList_GetFirst(pInputList, &MI);
 			while (pTempModel)
@@ -1864,11 +1864,11 @@ geBoolean ModelList_WriteToMap
 	Model *m;
 	ListIterator li;
 
-	m = List_GetFirst ((List *)pList, &li);
+	m = (Model *)List_GetFirst ((List *)pList, &li);
 	while (m != NULL)
 	{
 		Model_WriteToMap (m, f, ppBList, SuppressHidden, VisDetail);
-		m = List_GetNext ((List *)pList, &li);
+		m = (Model *)List_GetNext ((List *)pList, &li);
 	}
 	return GE_TRUE;;
 }
@@ -1885,11 +1885,11 @@ void ModelList_ScaleAll
 	assert (pList != NULL);
 	assert (ScaleFactor > 0.0f);
 
-	m = List_GetFirst (pList, &li);
+	m = (Model *)List_GetFirst (pList, &li);
 	while (m != NULL)
 	{
 		Model_Scale (m, ScaleFactor);
-		m = List_GetNext (pList, &li);
+		m = (Model *)List_GetNext (pList, &li);
 	}
 }
 
@@ -1946,7 +1946,7 @@ static geBoolean Model_RenumBrush (Brush *pBrush, void *lParam)
 	return GE_TRUE;
 }
 
-void ModelList_Collapse 
+void ModelList_Collapse
 	(
 	  ModelList *pList,
 	  int StartingModel,

@@ -26,7 +26,7 @@
 #include "SkyDialog.h"
 #include "wadfile.h"
 //#include "GEditProDoc.h"
-#include "include/ram.h"
+#include "ram.h"
 #include "util.h"
 
 #ifdef _DEBUG

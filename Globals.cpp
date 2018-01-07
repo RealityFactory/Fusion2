@@ -25,7 +25,7 @@
 
 #include "stdafx.h"
 #include "Globals.h"
-#include "include/Ram.h"
+#include "Ram.h"
 #include "ChildFrm.h"
 #include "Splash.h"
 #ifdef _DEBUG

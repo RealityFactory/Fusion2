@@ -23,7 +23,7 @@
 #ifndef ENTVIEW_H
 #define ENTVIEW_H
 
-#include "include/basetype.h"
+#include "basetype.h"
 #include "parse3dt.h"
 #include "EntityTable.h"
 

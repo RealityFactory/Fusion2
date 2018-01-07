@@ -24,7 +24,7 @@
 #include "group.h"
 #include "resource.h"
 #include <assert.h>
-#include "include/ram.h"
+#include "ram.h"
 #include "util.h"
 
 struct tag_Group

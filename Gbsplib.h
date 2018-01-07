@@ -24,8 +24,8 @@
 #define GBSPLIB_H
 
 #include <Windows.h>
-#include "include/vec3d.h"
-#include "include/basetype.h"
+#include "vec3d.h"
+#include "basetype.h"
 
 //#include "MyDef.h"
 //#include "MathLib.h"

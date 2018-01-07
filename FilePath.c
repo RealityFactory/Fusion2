@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "FilePath.h"
 
@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <io.h>
 #include "util.h"
-#include "include/ram.h"
+#include "ram.h"
 
 geBoolean FilePath_GetDrive
 	(
@@ -191,6 +191,29 @@ geBoolean FilePath_AppendName
 
 	return GE_TRUE;
 }
+
+// changed QD 12/03
+geBoolean FilePath_ChangeName
+	(
+		char const *pPath,
+		char const *pName,
+		char *pDest
+	)
+{
+	char Drive[_MAX_PATH];
+	char Dir[_MAX_PATH];
+	char Name[_MAX_PATH];
+	char Ext[_MAX_PATH];
+
+	assert (pPath != NULL);
+	assert (pName != NULL);
+	assert (pDest != NULL);
+
+	_splitpath (pPath, Drive, Dir, Name, Ext);
+	_makepath (pDest, Drive, Dir, pName, Ext);
+	return GE_TRUE;
+}
+// end change
 
 // Search for a Filename in the semicolon-separated paths specified in SearchPath.
 // If found, returns GE_TRUE and the full path name of the file in FoundPath.

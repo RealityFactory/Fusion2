@@ -1,5 +1,5 @@
 /****************************************************************************************/
-/*  brush.c                                                                             */
+/*  brush.cpp                                                                           */
 /*                                                                                      */
 /*  Author:       Jim Mischel, Ken Baird, Jeff Lomax, John Pollard                      */
 /*  Description:  Brush management, io, csg, list management, and transform operations  */
@@ -15,10 +15,10 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #include "StdAfx.h"
 #include "Globals.h"
@@ -27,12 +27,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include "include/Vec3d.h"
-#include "include/basetype.h"
+#include "Vec3d.h"
+#include "basetype.h"
 #include "typeio.h"
 #include "facelist.h"
 #include "units.h"
-#include "include/ram.h"
+#include "ram.h"
 #include "util.h"
 //#include "ConsoleTab.h"	//for conprintf
 #include "Globals.h"
@@ -43,7 +43,7 @@
 	will have a facelist, and possibly a brushlist containing pieces of the original
 	brush that have been cut up by others.  Leaf is a bit confusing, since these
 	brushes aren't actually leaf regions in a tree or anything.
-	
+
 	Multi brushes such as hollows and arches and other nonconvex brushes will contain
 	a series of leaf brushes.  Multi brushes should contain no faces themselves.
 
@@ -60,7 +60,11 @@
 
 static const int		axidx[3][2]	={ 2, 1, 0, 2, 0, 1 };
 static const geVec3d	VecOrigin	={ 0.0f, 0.0f, 0.0f };
-
+// changed QD 11/03
+// 3ds export brush naming
+static int	BrushCount;
+static int	SubBrushCount;
+// end change
 
 struct tag_BrushList
 {
@@ -77,13 +81,13 @@ enum BrushFlags
 	BRUSH_SOLID			=0x0001,
 	BRUSH_WINDOW		=0x0002, 
 	BRUSH_WAVY			=0x0004,
-	BRUSH_DETAIL		=0x0008,	//not included in vis calculations		
+	BRUSH_DETAIL		=0x0008,	//not included in vis calculations
 	BRUSH_HOLLOWCUT		=0x0010,
 	BRUSH_TRANSLUCENT	=0x0020,
 	BRUSH_EMPTY			=0x0040,
 	BRUSH_SUBTRACT		=0x0080,
 	BRUSH_CLIP			=0x0100,
-	BRUSH_FLOCKING		=0x0200,	
+	BRUSH_FLOCKING		=0x0200,
 	BRUSH_HOLLOW		=0x0400,
 	BRUSH_SHEET			=0x0800,
 	BRUSH_HIDDEN		=0x1000,
@@ -1143,6 +1147,122 @@ geBoolean Brush_Write(const Brush *b, FILE *ofile)
 	}
 	return GE_TRUE;
 }
+
+// changed QD 11/03
+geBoolean Brush_ExportTo3dtv1_32(const Brush *b, FILE *ofile)
+{
+	assert(ofile);
+	assert(b);
+
+	if (b->Type == BRUSH_CSG)
+	{
+		// CSG brushes aren't saved
+		return GE_TRUE;
+	}
+
+	{
+		// make sure we don't output a blank name
+		char *Name;
+		char QuotedValue[SCANNER_MAXDATA];
+
+		Name = ((b->Name == NULL) || (*b->Name == '\0')) ? "NoName" : b->Name;
+		// quote the brush name string...
+		Util_QuoteString (Name, QuotedValue);
+		if (fprintf (ofile, "Brush %s\n", QuotedValue) < 0) return GE_FALSE;
+	}
+
+	if (fprintf(ofile, "\tFlags %d\n",	b->Flags) < 0) return GE_FALSE;
+	if (fprintf(ofile, "\tModelId %d\n",b->ModelId) < 0) return GE_FALSE;
+	if (fprintf(ofile, "\tGroupId %d\n", b->GroupId) < 0) return GE_FALSE;
+	{
+		if (b->HullSize < 1.0f)
+		{
+			((Brush *)b)->HullSize = 1.0f;
+		}
+		if (fprintf(ofile, "\tHullSize %f\n", b->HullSize) < 0) return GE_FALSE;
+	}
+	if (fprintf(ofile, "\tType %d\n", b->Type) < 0) return GE_FALSE;
+
+	switch (b->Type)
+	{
+		case	BRUSH_MULTI:
+			return BrushList_ExportTo3dtv1_32 (b->BList, ofile);
+
+		case	BRUSH_LEAF:
+			return FaceList_ExportTo3dtv1_32 (b->Faces, ofile);
+
+		default :
+			assert (0);		// invalid brush type
+			break;
+	}
+	return GE_TRUE;
+}
+
+// changed QD 12/03
+geBoolean Brush_GetUsedTextures(const Brush *b, geBoolean *UsedTex, CWadFile * WadFile)
+{
+	assert(UsedTex);
+	assert(b);
+
+	switch (b->Type)
+	{
+		case	BRUSH_MULTI:
+			return BrushList_GetUsedTextures(b->BList, UsedTex, WadFile);
+
+		case	BRUSH_LEAF:
+			if(b->BList)
+				return BrushList_GetUsedTextures(b->BList, UsedTex, WadFile);
+			else
+			{
+				if(!(b->Flags&(BRUSH_HOLLOW|BRUSH_HOLLOWCUT|BRUSH_SUBTRACT)))
+					return FaceList_GetUsedTextures(b->Faces, UsedTex, WadFile);
+			}
+			break;
+
+		case	BRUSH_CSG:
+			if(!(b->Flags&(BRUSH_HOLLOW|BRUSH_HOLLOWCUT|BRUSH_SUBTRACT)))
+				return FaceList_GetUsedTextures(b->Faces, UsedTex, WadFile);
+			break;
+		default :
+			assert (0);		// invalid brush type
+			break;
+	}
+	return GE_TRUE;
+}
+
+geBoolean Brush_ExportTo3ds(const Brush *b, FILE *ofile)
+{
+	assert(ofile);
+	assert(b);
+
+	switch (b->Type)
+	{
+		case	BRUSH_MULTI:
+			return BrushList_ExportTo3ds (b->BList, ofile, GE_TRUE);
+
+		case	BRUSH_LEAF:
+			if(b->BList)
+				return BrushList_ExportTo3ds (b->BList, ofile, GE_TRUE);
+			else
+			{
+				if(!(b->Flags&(BRUSH_HOLLOW|BRUSH_HOLLOWCUT|BRUSH_SUBTRACT)))
+					return FaceList_ExportTo3ds(b->Faces, ofile, BrushCount, SubBrushCount);
+				else if((b->Flags&BRUSH_SUBTRACT)&&!(b->Flags&(BRUSH_HOLLOW|BRUSH_HOLLOWCUT)))
+					BrushCount--;
+			}
+			break;
+
+		case	BRUSH_CSG:
+			if(!(b->Flags&(BRUSH_HOLLOW|BRUSH_HOLLOWCUT|BRUSH_SUBTRACT)))
+				return FaceList_ExportTo3ds(b->Faces, ofile, BrushCount, SubBrushCount);
+			break;
+		default :
+			assert (0);		// invalid brush type
+			break;
+	}
+	return GE_TRUE;
+}
+// end change
 
 Brush	*Brush_CreateFromFile
 	(
@@ -3917,6 +4037,65 @@ geBoolean BrushList_Write (BrushList *BList, FILE *ofile)
 	}
 	return GE_TRUE;
 }
+
+// changed QD 11/03
+geBoolean BrushList_ExportTo3dtv1_32 (BrushList *BList, FILE *ofile)
+{
+	Brush *pBrush;
+	BrushIterator bi;
+	int Count;
+
+	Count = BrushList_Count (BList, (BRUSH_COUNT_MULTI | BRUSH_COUNT_LEAF | BRUSH_COUNT_NORECURSE));
+	if (fprintf (ofile, "Brushlist %d\n", Count) < 0) return GE_FALSE;
+
+	pBrush = BrushList_GetFirst (BList, &bi);
+	while (pBrush != NULL)
+	{
+		if (!Brush_ExportTo3dtv1_32(pBrush, ofile)) return GE_FALSE;
+		pBrush = BrushList_GetNext (&bi);
+	}
+	return GE_TRUE;
+}
+
+// changed QD 12/03
+geBoolean BrushList_GetUsedTextures(BrushList *BList, geBoolean *UsedTex, CWadFile * WadFile)
+{
+	Brush *pBrush;
+	BrushIterator bi;
+
+	pBrush = BrushList_GetFirst (BList, &bi);
+	while (pBrush != NULL)
+	{
+		if (!Brush_GetUsedTextures(pBrush, UsedTex, WadFile)) return GE_FALSE;
+
+		pBrush = BrushList_GetNext (&bi);
+	}
+	return GE_TRUE;
+}
+
+geBoolean BrushList_ExportTo3ds (BrushList *BList, FILE *ofile, geBoolean SubBrush)
+{
+	Brush *pBrush;
+	BrushIterator bi;
+
+	pBrush = BrushList_GetFirst (BList, &bi);
+	while (pBrush != NULL)
+	{
+		if (!Brush_ExportTo3ds(pBrush, ofile)) return GE_FALSE;
+		pBrush = BrushList_GetNext (&bi);
+
+		if(SubBrush)
+			SubBrushCount++;
+		else
+			BrushCount++;
+	}
+	SubBrushCount=0;
+	if(!SubBrush)
+		BrushCount=0;
+	return GE_TRUE;
+
+}
+// end change
 
 //updates face flags and texinfos in children brushes
 static void	Brush_UpdateChildFacesRecurse(Brush *b, Brush *bp)

@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 #include "brush.h"
-#include "include/motion.h"
+#include "motion.h"
 #include "parse3dt.h"
 #include "list.h"
 #include "selbrushlist.h"

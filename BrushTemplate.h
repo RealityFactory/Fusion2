@@ -15,15 +15,15 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
-/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002							*/
+/*  Modified by Tom Morris for GEditPro ver. 0.7, Nov. 2, 2002                          */
 /****************************************************************************************/
 #ifndef BRUSHTEMPLATE_H
 #define BRUSHTEMPLATE_H
 
-#include "include/basetype.h"
+#include "basetype.h"
 #include "brush.h"
 
 #ifdef __cplusplus
@@ -42,6 +42,15 @@ typedef struct
 	geFloat		EndAngle;
 	geFloat		StartAngle;
 	geBoolean	TCut;
+// changed QD 11/03
+	int			Sides;
+	int			CW;
+	int			Shape;
+	geFloat		Radius2;
+	geFloat		Height;
+	geBoolean	Massive;
+	geBoolean	Steps;
+// end change
 } BrushTemplate_Arch;
 
 
@@ -116,6 +125,9 @@ Brush *BrushTemplate_CreateStaircase (const BrushTemplate_Staircase *Template);
 
 void BrushTemplate_ArchDefaults (BrushTemplate_Arch *pArchTemplate);
 geBoolean BrushTemplate_WriteArch (const BrushTemplate_Arch *pArchTemplate, FILE *f);
+// changed QD 11/03
+geBoolean BrushTemplate_WriteArchTo3dtv1_32 (const BrushTemplate_Arch *pArchTemplate, FILE *f);
+// end change
 
 geBoolean BrushTemplate_LoadArch 
 	(
@@ -128,6 +140,9 @@ geBoolean BrushTemplate_LoadArch
 
 void BrushTemplate_BoxDefaults (BrushTemplate_Box *pBoxTemplate);
 geBoolean BrushTemplate_WriteBox (const BrushTemplate_Box *pBoxTemplate, FILE *f);
+// changed QD 11/03
+geBoolean BrushTemplate_WriteBoxTo3dtv1_32 (const BrushTemplate_Box *pBoxTemplate, FILE *f);
+// end change
 
 geBoolean BrushTemplate_LoadBox
 	(
@@ -140,6 +155,9 @@ geBoolean BrushTemplate_LoadBox
 
 void BrushTemplate_ConeDefaults (BrushTemplate_Cone *pConeTemplate);
 geBoolean BrushTemplate_WriteCone (const BrushTemplate_Cone *pConeTemplate, FILE *f);
+// changed QD 11/03
+geBoolean BrushTemplate_WriteConeTo3dtv1_32 (const BrushTemplate_Cone *pConeTemplate, FILE *f);
+// end change
 
 geBoolean BrushTemplate_LoadCone
 	(
@@ -152,6 +170,9 @@ geBoolean BrushTemplate_LoadCone
 
 void BrushTemplate_CylinderDefaults (BrushTemplate_Cylinder *pCylinderTemplate);
 geBoolean BrushTemplate_WriteCylinder (const BrushTemplate_Cylinder *pCylinderTemplate, FILE *f);
+// changed QD 11/03
+geBoolean BrushTemplate_WriteCylinderTo3dtv1_32 (const BrushTemplate_Cylinder *pCylinderTemplate, FILE *f);
+// end change
 
 geBoolean BrushTemplate_LoadCylinder
 	(
@@ -164,6 +185,9 @@ geBoolean BrushTemplate_LoadCylinder
 
 void BrushTemplate_SpheroidDefaults (BrushTemplate_Spheroid *pSpheroidTemplate);
 geBoolean BrushTemplate_WriteSpheroid (const BrushTemplate_Spheroid *pSpheroidTemplate, FILE *f);
+// changed QD 11/03
+geBoolean BrushTemplate_WriteSpheroidTo3dtv1_32 (const BrushTemplate_Spheroid *pSpheroidTemplate, FILE *f);
+// end change
 
 geBoolean BrushTemplate_LoadSpheroid
 	(
@@ -176,6 +200,9 @@ geBoolean BrushTemplate_LoadSpheroid
 
 void BrushTemplate_StaircaseDefaults (BrushTemplate_Staircase *pStaircaseTemplate);
 geBoolean BrushTemplate_WriteStaircase (const BrushTemplate_Staircase *pStaircaseTemplate, FILE *f);
+// changed QD 11/03
+geBoolean BrushTemplate_WriteStaircaseTo3dtv1_32 (const BrushTemplate_Staircase *pStaircaseTemplate, FILE *f);
+// end change
 
 geBoolean BrushTemplate_LoadStaircase
 	(
