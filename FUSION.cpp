@@ -15,8 +15,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -134,6 +134,9 @@ void CFusionApp::ResolvePreferencesPaths (void)
 	::Prefs_SetBackgroundColor (pResolvedPrefs, Prefs_GetBackgroundColor (pPrefs));
 	::Prefs_SetGridColor (pResolvedPrefs, Prefs_GetGridColor (pPrefs));
 	::Prefs_SetSnapGridColor (pResolvedPrefs, Prefs_GetSnapGridColor (pPrefs));
+// changed QD
+//	::Prefs_SetSkyColor (pResolvedPrefs, Prefs_GetSkyColor (pPrefs));
+// end change
 	::FilePath_GetNameAndExt (Prefs_GetTxlName (pPrefs), Work);
 	::Prefs_SetTxlName (pResolvedPrefs, Work);
 
@@ -164,6 +167,14 @@ void CFusionApp::ResolvePreferencesPaths (void)
 	
 	::FilePath_ResolveRelativePath (Prefs_GetProjectDir (pPrefs), Work);
 	::Prefs_SetProjectDir (pResolvedPrefs, Work);
+
+// changed QD Actors
+	::FilePath_ResolveRelativePathList (Prefs_GetActorsList (pPrefs), Work);
+	::Prefs_SetActorsList (pResolvedPrefs, Work);
+
+	::FilePath_ResolveRelativePathList (Prefs_GetPawnIni (pPrefs), Work);
+	::Prefs_SetPawnIni (pResolvedPrefs, Work);
+// end change
 }
 
 BOOL CFusionApp::InitInstance()
@@ -591,12 +602,18 @@ void CFusionApp::OnPreferences()
 	PrefsDlg.coBackground = Prefs_GetBackgroundColor (pPrefs);
 	PrefsDlg.coGrid = Prefs_GetGridColor (pPrefs);
 	PrefsDlg.coSnapGrid = Prefs_GetSnapGridColor (pPrefs);
+// changed QD
+//	PrefsDlg.coSky = Prefs_GetSkyColor (pPrefs);
+// end change
 
 	if(	PrefsDlg.DoModal() == IDOK )
 	{
 		Prefs_SetBackgroundColor (pPrefs, PrefsDlg.coBackground);
 		Prefs_SetGridColor (pPrefs, PrefsDlg.coGrid);
 		Prefs_SetSnapGridColor (pPrefs, PrefsDlg.coSnapGrid);
+// changed QD
+//		Prefs_SetSkyColor (pPrefs, PrefsDlg.coSky);
+// end change
 #if 1
 		/*
 		  Something in this program has the disturbing tendency to change 
@@ -606,9 +623,12 @@ void CFusionApp::OnPreferences()
 		Prefs_SetBackgroundColor (pResolvedPrefs, PrefsDlg.coBackground);
 		Prefs_SetGridColor (pResolvedPrefs, PrefsDlg.coGrid);
 		Prefs_SetSnapGridColor (pResolvedPrefs, PrefsDlg.coSnapGrid);
-#else	
+// changed QD
+//		Prefs_SetSkyColor (pResolvedPrefs, PrefsDlg.coSky);
+// end change
+#else
 		ResolvePreferencesPaths ();
-#endif			
+#endif
 		CFusionDoc* pDoc = GetActiveFusionDoc() ;
 		if( pDoc != NULL )
 		{

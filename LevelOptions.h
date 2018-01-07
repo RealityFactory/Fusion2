@@ -46,6 +46,10 @@ public:
 	bool	m_TxlChanged;
 	CString	m_HeadersDir;
 	bool	m_HeadersChanged;
+	CString	m_ActorsDir;
+	bool	m_ActorsChanged;
+	CString	m_PawnIni;
+	bool	m_PawnIniChanged;
 	//}}AFX_DATA
 
 
@@ -64,6 +68,9 @@ protected:
 	afx_msg void OnBrowsetxl();
 	afx_msg void OnChangeEdittxl();
 	afx_msg void OnChangeEditheadersdir();
+	afx_msg void OnChangeEditactorsdir();
+	afx_msg void OnBrowseini();
+	afx_msg void OnChangeEditpawnini();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

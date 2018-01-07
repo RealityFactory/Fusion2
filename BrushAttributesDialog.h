@@ -80,6 +80,7 @@ protected:
 	afx_msg void OnBrushtranslucent();
 	afx_msg void OnBrushflocking();
 	afx_msg void OnBrushsheet();
+	afx_msg void OnKillfocusName();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:

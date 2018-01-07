@@ -15,8 +15,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 #if !defined(AFX_PREFERENCESDIALOG_H__14A85704_E5AB_11D1_A2EA_0000E823F3AA__INCLUDED_)
@@ -41,10 +41,14 @@ public:
 	COLORREF	coBackground ;
 	COLORREF	coGrid ;
 	COLORREF	coSnapGrid ;
+// changed QD
+//	COLORREF	coSky ;
 
 // Dialog Data
 	//{{AFX_DATA(CPreferencesDialog)
 	enum { IDD = IDD_PREFERENCES };
+// changed QD
+//	CColorButton	m_Sky;
 	CColorButton	m_SnapGrid;
 	CColorButton	m_Grid;
 	CColorButton	m_GridBackground;

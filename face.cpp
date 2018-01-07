@@ -15,8 +15,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 #include <stdafx.h>
@@ -93,7 +93,7 @@ typedef struct TexInfoTag
 	char Name[16];
 	geBoolean DirtyFlag;
 	geVec3d Pos;
-	int txSize, tySize;		// texture size (not currently used)
+	int txSize, tySize;		// used in 3ds export QD 12/03
 	geXForm3d XfmFaceAngle;	// face rotation angle
 } TexInfo;
 
@@ -273,7 +273,8 @@ Face	*Face_Create(int NumPnts, const geVec3d *pnts, int DibId)
 	Face	*f;
 
 	assert(NumPnts > 0);
-	assert(NumPnts < MAX_POINTS);
+	// changed QD 11/03
+	assert(NumPnts <= MAX_POINTS);
 	assert(pnts != NULL);
 
 	f	= (Face *)geRam_Allocate(sizeof(Face));
@@ -505,12 +506,55 @@ static void Face_UpdateLockedTextureVecs
 
 	// Compute rotation
 	geVec3d_Clear (&t->XfmFaceAngle.Translation);
-	geXForm3d_SetZRotation (&XfmTexture, Units_DegreesToRadians (-t->Rotate));
+//  changed QD
+/*	geXForm3d_SetZRotation (&XfmTexture, Units_DegreesToRadians (-t->Rotate));
 	geXForm3d_Multiply (&t->XfmFaceAngle, &XfmTexture, &XfmTexture);
 
 	// get info from transform into texture vectors.
+
 	geVec3d_Set (&t->TVecs.uVec, XfmTexture.AX, XfmTexture.BX, XfmTexture.CX);
 	geVec3d_Set (&t->TVecs.vVec, XfmTexture.AY, XfmTexture.BY, XfmTexture.CY);
+*/
+	// Must check x, y, z in order to match tools.
+	int WhichAxis = 0;		//	sides
+	if (fabs (t->VecNormal.Y) > fabs (t->VecNormal.X))
+	{
+		if (fabs (t->VecNormal.Z) > fabs (t->VecNormal.Y))
+		{
+			WhichAxis = 2;	// front / back
+		}
+		else
+		{
+			WhichAxis = 1;		//	top / bottom
+		}
+	}
+	else if (fabs (t->VecNormal.Z) > fabs (t->VecNormal.X))
+	{
+		WhichAxis = 2;
+	}
+
+	switch (WhichAxis)
+	{
+		case 0:			// sides
+			geXForm3d_SetZRotation (&XfmTexture, Units_DegreesToRadians (t->Rotate));
+			geXForm3d_Multiply (&t->XfmFaceAngle, &XfmTexture, &XfmTexture);
+			geVec3d_Set (&t->TVecs.uVec, -XfmTexture.AX, -XfmTexture.BX, -XfmTexture.CX);
+			geVec3d_Set (&t->TVecs.vVec, -XfmTexture.AY, -XfmTexture.BY, -XfmTexture.CY);
+			break;
+		case 1:			// top / bottom
+			geXForm3d_SetZRotation (&XfmTexture, Units_DegreesToRadians (t->Rotate));
+			geXForm3d_Multiply (&t->XfmFaceAngle, &XfmTexture, &XfmTexture);
+			geVec3d_Set (&t->TVecs.uVec, XfmTexture.AX, XfmTexture.BX, XfmTexture.CX);
+			geVec3d_Set (&t->TVecs.vVec, -XfmTexture.AY, -XfmTexture.BY, -XfmTexture.CY);
+			break;
+		case 2:			// front / back
+			geXForm3d_SetZRotation (&XfmTexture, Units_DegreesToRadians (t->Rotate));
+			geXForm3d_Multiply (&t->XfmFaceAngle, &XfmTexture, &XfmTexture);
+			geVec3d_Set (&t->TVecs.uVec, XfmTexture.AX, XfmTexture.BX, XfmTexture.CX);
+			geVec3d_Set (&t->TVecs.vVec, XfmTexture.AY, XfmTexture.BY, XfmTexture.CY);
+			break;
+	}
+//  end change
 
 	// and scale accordingly
 	geVec3d_Scale (&t->TVecs.uVec, 1.0f/t->xScale, &t->TVecs.uVec);
@@ -646,6 +690,18 @@ char const	*Face_GetTextureName(const Face *f)
 
 	return	f->Tex.Name;
 }
+
+// changed QD 12/03
+void	Face_GetTextureSize(const Face *f, int *ptxSize, int *ptySize)
+{
+	assert(f != NULL);
+	assert(ptxSize != NULL);
+	assert(ptySize != NULL);
+
+	*ptxSize = f->Tex.txSize;
+	*ptySize = f->Tex.tySize;
+}
+// end change
 
 geFloat	Face_GetMipMapBias(const Face *f)
 {
@@ -966,8 +1022,9 @@ void	Face_CopyTexInfo(const Face *src, Face *dst)
 //copies texinfo, flags, light, value
 void	Face_CopyFaceInfo(const Face *src, Face *dst)
 {
-	assert(src);
-	assert(dst);
+	// changed QD 12/03
+	if(!src) return;
+	if(!dst) return;
 
 	dst->Flags			=src->Flags;
 	dst->LightIntensity	=src->LightIntensity;
@@ -1240,10 +1297,59 @@ void	Face_WriteToQuakeMap(const Face *f, FILE *wf)
 	Rotate	= Face_GetTextureRotate (f);
 
 	fprintf(wf, Face_GetTextureName (f));
+
 	fprintf(wf, " %d %d %d %f %f\n", Rotate, xShift, yShift, xScale, yScale);
 }
 
 geBoolean Face_Write(const Face *f, FILE *wf)
+{
+	int		i, xShift, yShift; // changed QD
+	geFloat xScale, yScale, Rotate;
+
+	assert(f);
+	assert(wf);
+
+	if (fprintf(wf, "\t\tNumPoints %d\n", f->NumPoints) < 0) return GE_FALSE;
+	if (fprintf(wf, "\t\tFlags %d\n", f->Flags) < 0) return GE_FALSE;
+	if (fprintf(wf, "\t\tLight %d\n", f->LightIntensity) < 0) return GE_FALSE;
+	if (fprintf(wf, "\t\tMipMapBias %f\n", f->MipMapBias) < 0) return GE_FALSE;
+	if (fprintf(wf, "\t\tTranslucency %f\n", f->Translucency) < 0) return GE_FALSE;
+	if (fprintf(wf, "\t\tReflectivity %f\n", f->Reflectivity) < 0) return GE_FALSE;
+
+	for(i=0;i < f->NumPoints;i++)
+	{
+		if (fprintf(wf, "\t\t\tVec3d %f %f %f\n", f->Points[i].X, f->Points[i].Y, f->Points[i].Z) < 0) return GE_FALSE;
+	}
+
+	Face_GetTextureShift (f, &xShift, &yShift);
+	Face_GetTextureScale (f, &xScale, &yScale);
+	Rotate	=Face_GetTextureRotate (f);
+//	Rotate	=Units_Round(rot); changed QD
+
+	{
+		char QuotedValue[SCANNER_MAXDATA];
+
+		// Quote the texture name
+		Util_QuoteString (Face_GetTextureName (f), QuotedValue);
+// changed QD
+		if (fprintf(wf, "\t\t\tTexInfo Rotate %f Shift %d %d Scale %f %f Name %s\n",
+			Rotate, xShift, yShift, xScale, yScale, QuotedValue) < 0) return GE_FALSE;
+// end change
+	}
+
+	if (fprintf(wf, "\t\tLightScale %f %f\n", f->LightXScale, f->LightYScale) < 0) return GE_FALSE;
+
+	if (fprintf (wf, "%s", "\tTransform\t") < 0) return GE_FALSE;
+	if (!TypeIO_WriteXForm3dText (wf, &(f->Tex.XfmFaceAngle))) return GE_FALSE;
+
+	if (fprintf (wf, "%s", "\tPos\t") < 0) return GE_FALSE;
+	if( !TypeIO_WriteVec3dText(wf, &f->Tex.Pos )) return GE_FALSE;
+
+	return GE_TRUE;
+}
+
+// changed QD 11/03
+geBoolean Face_ExportTo3dtv1_32(const Face *f, FILE *wf)
 {
 	int		i, xShift, yShift, Rotate;
 	geFloat xScale, yScale, rot;
@@ -1279,14 +1385,15 @@ geBoolean Face_Write(const Face *f, FILE *wf)
 
 	if (fprintf(wf, "\t\tLightScale %f %f\n", f->LightXScale, f->LightYScale) < 0) return GE_FALSE;
 
-	if (fprintf (wf, "%s", "\tTransform\t") < 0) return GE_FALSE;	
+	if (fprintf (wf, "%s", "\tTransform\t") < 0) return GE_FALSE;
 	if (!TypeIO_WriteXForm3dText (wf, &(f->Tex.XfmFaceAngle))) return GE_FALSE;
 
-	if (fprintf (wf, "%s", "\tPos\t") < 0) return GE_FALSE;	
+	if (fprintf (wf, "%s", "\tPos\t") < 0) return GE_FALSE;
 	if( !TypeIO_WriteVec3dText(wf, &f->Tex.Pos )) return GE_FALSE;
 
 	return GE_TRUE;
 }
+// end change
 
 Face	*Face_CreateFromFile
 	(
@@ -1297,9 +1404,9 @@ Face	*Face_CreateFromFile
 	)
 {
 	Face	*f = NULL;
-	int		i, flg, NumPnts, xShift, yShift, tempint, Light;
+	int		i, flg, NumPnts, xShift, yShift, Light; // changed QD
 	geFloat MipMapBias, Reflectivity, Translucency;
-	geFloat	fVal, xScale, yScale;
+	geFloat	fVal, xScale, yScale, Rotate; // changed QD
 	geVec3d	*tmpPnts = NULL;
 	geBoolean LoadResult;
 	char	szTemp[_MAX_PATH];
@@ -1422,7 +1529,9 @@ Face	*Face_CreateFromFile
 			f->Translucency = Translucency;
 		}
 		if (!Parse3dt_ScanExpectingText (Parser, (*Expected = "TexInfo"))) goto DoneLoad;
-		if (!Parse3dt_GetInt (Parser, (*Expected = "Rotate"), &tempint)) goto DoneLoad;
+		// changed QD
+		if (!Parse3dt_GetFloat (Parser, (*Expected = "Rotate"), &Rotate)) goto DoneLoad;
+		// end change
 		if (!Parse3dt_GetInt (Parser, (*Expected = "Shift"), &xShift)) goto DoneLoad;
 		if (!Parse3dt_GetInt (Parser, NULL, &yShift)) goto DoneLoad;
 		if (!Parse3dt_GetFloat (Parser, (*Expected = "Scale"), &xScale)) goto DoneLoad;
@@ -1447,7 +1556,7 @@ Face	*Face_CreateFromFile
 			Face_InitTexInfo(&f->Tex, &f->Face_Plane.Normal);
 
 			Face_SetTextureName (f, szTemp);
-			Face_SetTextureRotate (f, (geFloat)tempint);
+			Face_SetTextureRotate (f, Rotate); // changed QD
 			Face_SetTextureShift (f, xShift, yShift);
 			Face_SetTextureScale (f, xScale, yScale);
 			Face_SetTexturePos (f);

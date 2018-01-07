@@ -22,7 +22,7 @@
 #include "stdafx.h"
 #include "compiler.h"
 
-#pragma warning(disable : 4201 4214 4115 4514)
+#pragma warning(disable : 4201 4214 4115 4514 4711)
 #include <windows.h>
 #include <shellapi.h>
 #pragma warning(default : 4201 4214 4115)

@@ -15,8 +15,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 
@@ -46,6 +46,8 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CPreferencesDialog)
+// changed QD
+//	DDX_Control(pDX, IDC_PREFSSKY, m_Sky);
 	DDX_Control(pDX, IDC_PREFSSNAPGRID, m_SnapGrid);
 	DDX_Control(pDX, IDC_PREFSGRID, m_Grid);
 	DDX_Control(pDX, IDC_PREFSGRIDBG, m_GridBackground);
@@ -65,11 +67,13 @@ END_MESSAGE_MAP()
 BOOL CPreferencesDialog::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
-	
+
 	m_GridBackground.SetColor( coBackground ) ;
 	m_Grid.SetColor( coGrid ) ;
 	m_SnapGrid.SetColor( coSnapGrid ) ;
-	
+// changed QD
+//	m_Sky.SetColor( coSky ) ;
+// end change
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
@@ -80,6 +84,9 @@ void CPreferencesDialog::OnOK()
 	coBackground = m_GridBackground.GetColor( ) ;
 	coSnapGrid = m_SnapGrid.GetColor( ) ;
 	coGrid = m_Grid.GetColor( ) ;
+// changed QD
+//	coSky = m_Sky.GetColor( ) ;
+// end change
 
 	CDialog::OnOK();
 }

@@ -15,8 +15,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 #include "BrushTemplate.h"
@@ -33,7 +33,16 @@ Brush *BrushTemplate_CreateArch (const BrushTemplate_Arch *pTemplate)
 	geVec3d		FaceVerts[4];
 
 	int		i, NumSlits			=pTemplate->NumSlits;
-	int		NumCrossSections	=NumSlits + 2;
+// changed QD 11/03
+	int		NumCrossSections	=NumSlits;
+	geFloat Height				=pTemplate->Height;
+	geFloat HeightDelta			=0;
+	int		NumSides			=pTemplate->Sides;
+	geFloat Radius2				=pTemplate->Radius2;
+	int		CW					=pTemplate->CW;
+	geBoolean Steps				=pTemplate->Steps;
+	geBoolean Massive			=pTemplate->Massive;
+// end change
 	geFloat	Thickness			=pTemplate->Thickness;
 	geFloat	Width				=pTemplate->Width;
 	geFloat	InnerRadius			=pTemplate->Radius;
@@ -70,209 +79,716 @@ Brush *BrushTemplate_CreateArch (const BrushTemplate_Arch *pTemplate)
 		EndAngle	=Temp;
 	}
 
-	geVec3d_Set(&TopInnerPoint, (geFloat)InnerRadius, 0.0, (geFloat)(Width / 2));
-	geVec3d_Set(&TopOuterPoint, (geFloat)(InnerRadius + Thickness), 0.0, (geFloat)(Width / 2));
-
-	AngleDelta	=(EndAngle - StartAngle)/(NumCrossSections - 1);
+	AngleDelta	=(EndAngle - StartAngle)/(NumCrossSections); //changed QD 11/03
 	CurAngle	=StartAngle + AngleDelta;
 
-	//	Create first cross section of 4 vertices ( outer face @ start angle)...
-	geVec3d_Set
-	(
-		&FinalTopInnerPoint,
-		(geFloat)(( TopInnerPoint.X * cos( StartAngle ) ) - ( TopInnerPoint.Y * sin( StartAngle ) )),
-		(geFloat)(( TopInnerPoint.X * sin( StartAngle ) ) + ( TopInnerPoint.Y * cos( StartAngle ) )),
-		TopInnerPoint.Z
-	);
-	geVec3d_Set
-	(
-		&FinalTopOuterPoint,
-		(geFloat)(( TopOuterPoint.X * cos( StartAngle ) ) - ( TopInnerPoint.Y * sin( StartAngle ) )),
-		(geFloat)(( TopOuterPoint.X * sin( StartAngle ) ) + ( TopInnerPoint.Y * cos( StartAngle ) )),
-		TopOuterPoint.Z
-	);
-	FinalBottomInnerPoint	=FinalTopInnerPoint;
-	FinalBottomInnerPoint.Z	=-FinalTopInnerPoint.Z;
-	FinalBottomOuterPoint	=FinalTopOuterPoint;
-	FinalBottomOuterPoint.Z	=-FinalTopOuterPoint.Z;
-	OldTopInner				=FinalTopInnerPoint;
-	OldTopOuter				=FinalTopOuterPoint;
-	OldBottomInner			=FinalBottomInnerPoint;
-	OldBottomOuter			=FinalBottomOuterPoint;
+// changed QD 11/03
+	HeightDelta =Height/NumCrossSections;
+	if(CW)
+		HeightDelta=-HeightDelta;
 
-	//Create the other cross sections and assign verts to polys after each...
-	for(i=0;i < (NumCrossSections-1);i++)
+////////////////
+// Shape = Round
+	if(pTemplate->Shape>0)
 	{
+		int			index, BottomCount;
+		geVec3d		StartPoint, CurPoint;
+		geVec3d		*CrossVerts, *OldVerts, *StartVerts;
+
+		double CurAngle2;
+		double AngleDelta2Degrees = 360.0f/(geFloat)NumSides;
+		double AngleDelta2 = Units_DegreesToRadians (AngleDelta2Degrees);
+
+		geVec3d_Set (&StartPoint, -(geFloat)Radius2, 0.0, 0.0);
+
+		CurPoint	=StartPoint;
+		CrossVerts	=(geVec3d *)geRam_Allocate(sizeof(geVec3d)*NumSides);
+		OldVerts	=(geVec3d *)geRam_Allocate(sizeof(geVec3d)*NumSides);
+		StartVerts	=(geVec3d *)geRam_Allocate(sizeof(geVec3d)*NumSides);
+		StartVerts[0]=CurPoint;
+		StartVerts[0].X+=InnerRadius+Radius2;
+
+		OldVerts[0]	= StartVerts[0];
+
+		CurAngle2 = BottomCount = 0;
+		for( index = 1; index < NumSides; index++ )
+		{
+			//	Rotate around to create our successive points...
+			CurAngle2 += AngleDelta2;
+
+			geVec3d_Set
+			(
+				&CurPoint,
+				(geFloat)((StartPoint.X * cos(CurAngle2)) + (StartPoint.Z * sin(CurAngle2))),
+				StartPoint.Y,
+				(geFloat)((StartPoint.Z * cos(CurAngle2)) - (StartPoint.X * sin(CurAngle2)))
+			);
+
+			CurPoint.X+=InnerRadius+Radius2;
+
+			geVec3d_Set
+			(
+				&(StartVerts[index]),
+				(geFloat)((CurPoint.X * cos(StartAngle)) - (CurPoint.Y * sin(StartAngle))),
+				(geFloat)((CurPoint.X * sin(StartAngle)) + (CurPoint.Y * cos(StartAngle))),
+				CurPoint.Z
+			);
+
+			OldVerts[index]=StartVerts[index];
+
+		}
+
+		for(i=0;i < NumCrossSections;i++) //changed QD 11/03
+		{
+			for(index=0;index<NumSides;index++)
+			{
+				geVec3d_Set
+				(
+					&(CrossVerts[index]),
+					(geFloat)((StartVerts[index].X * cos(CurAngle)) - (StartVerts[index].Y * sin(CurAngle))),
+					(geFloat)((StartVerts[index].X * sin(CurAngle)) + (StartVerts[index].Y * cos(CurAngle))),
+					StartVerts[index].Z+(i+1)*HeightDelta
+				);
+			}
+
+			CurAngle += AngleDelta;
+
+			fl	=FaceList_Create(NumSides+2);
+
+			// Sides ...
+			for(index=1;index<NumSides-1;index++)
+			{
+			//	geVec3d FaceVerts2[3];
+				FaceVerts[0] = CrossVerts[index];//FinalTopInnerPoint;
+				FaceVerts[1] = CrossVerts[index+1];//FinalTopOuterPoint;
+				FaceVerts[2] = OldVerts[index+1];
+				FaceVerts[3] = OldVerts[index];
+				f = Face_Create(4, FaceVerts, 0);
+
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}
+
+/*				FaceVerts2[0] = CrossVerts[index];//FinalTopInnerPoint;
+				//FaceVerts2[1] = CrossVerts[index+1];//FinalTopOuterPoint;
+				FaceVerts2[1] = OldVerts[index+1];
+				FaceVerts2[2] = OldVerts[index];
+				f = Face_Create(3, FaceVerts2, 0);
+
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}*/
+			}
+
+			//first side, last side are triangles if radius=0
+			if(InnerRadius>0.0f)
+			{
+				//first side
+			//	geVec3d FaceVerts2[3];
+				FaceVerts[0] = CrossVerts[0];
+				FaceVerts[1] = CrossVerts[1];
+				FaceVerts[2] = OldVerts[1];
+				FaceVerts[3] = OldVerts[0];
+				f = Face_Create(4, FaceVerts, 0);
+
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}
+
+	/*			FaceVerts2[0] = CrossVerts[0];
+				//FaceVerts2[1] = CrossVerts[1];
+				FaceVerts2[1] = OldVerts[1];
+				FaceVerts2[2] = OldVerts[0];
+				f = Face_Create(3, FaceVerts2, 0);
+
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}*/
+
+				//last side
+				FaceVerts[0] = CrossVerts[NumSides-1];
+				FaceVerts[1] = CrossVerts[0];
+				FaceVerts[2] = OldVerts[0];
+				FaceVerts[3] = OldVerts[NumSides-1];
+				f = Face_Create(4, FaceVerts, 0);
+
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}
+
+/*				FaceVerts2[0] = CrossVerts[NumSides-1];
+				//FaceVerts2[1] = CrossVerts[0];
+				FaceVerts2[1] = OldVerts[0];
+				FaceVerts2[2] = OldVerts[NumSides-1];
+				f = Face_Create(3, FaceVerts2, 0);
+
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}*/
+			}
+			else
+			{
+				geVec3d FaceVerts2[3];
+
+				FaceVerts2[0] = CrossVerts[0];
+				FaceVerts2[1] = CrossVerts[1];
+				FaceVerts2[2] = OldVerts[1];
+				f = Face_Create(3, FaceVerts2, 0);
+
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}
+
+				FaceVerts2[0] = CrossVerts[NumSides-1];
+				FaceVerts2[1] = CrossVerts[0];
+				FaceVerts2[2] = OldVerts[NumSides-1];
+				f = Face_Create(3, FaceVerts2, 0);
+
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}
+			}
+
+			//make the end faces
+			f = Face_Create(NumSides, OldVerts, 0);
+
+			if(f)
+			{
+				if(pTemplate->Style < 2)	//default to hollow (if they make hollow later)
+				{
+					if(i)
+					{
+						Face_SetFixedHull(f, GE_TRUE);
+					}
+				}
+				else
+				{
+					Face_SetFixedHull(f, GE_TRUE);
+				}
+				FaceList_AddFace(fl, f);
+			}
+
+			//need reverse order for the other end
+			for(index=0;index<NumSides;index++)
+				OldVerts[NumSides-index-1] = CrossVerts[index];
+
+			f = Face_Create(NumSides, OldVerts, 0);
+
+			if(f)
+			{
+				if(pTemplate->Style < 2)	//default to hollow (if they make hollow later)
+				{
+					if(i < (NumCrossSections-1))//changed QD
+					{
+						Face_SetFixedHull(f, GE_TRUE);
+					}
+				}
+				else
+				{
+					Face_SetFixedHull(f, GE_TRUE);
+				}
+				FaceList_AddFace(fl, f);
+			}
+
+			if(!pTemplate->Style)
+			{
+				b2	=Brush_Create(BRUSH_LEAF, fl, NULL);
+				if(b2)
+				{
+					Brush_SetSubtract(b2, pTemplate->TCut);
+				}
+				BrushList_Append(MBList, b2);
+			}
+			else
+			{
+				BrushList	*bl	=BrushList_Create();
+				Brush		*bh, *bm;
+
+				b2	=Brush_Create(BRUSH_LEAF, fl, NULL);
+				if(b2)
+				{
+					Brush_SetHollow(b2, GE_TRUE);
+					Brush_SetHullSize(b2, pTemplate->WallSize);
+					bh	=Brush_CreateHollowFromBrush(b2);
+					if(bh)
+					{
+						Brush_SetHollowCut(bh, GE_TRUE);
+						BrushList_Append(bl, b2);
+						BrushList_Append(bl, bh);
+
+						bm	=Brush_Create(BRUSH_MULTI, NULL, bl);
+						if(bm)
+						{
+							Brush_SetHollow(bm, GE_TRUE);
+							Brush_SetSubtract(bm, pTemplate->TCut);
+							Brush_SetHullSize(bm, pTemplate->WallSize);
+
+							BrushList_Append(MBList, bm);
+						}
+					}
+					else
+					{
+						Brush_Destroy(&b2);
+						BrushList_Destroy(&bl);
+					}
+				}
+				else
+				{
+					BrushList_Destroy(&bl);
+				}
+			}
+
+		//	Set old points...
+			for(index=0;index<NumSides;index++)
+				OldVerts[index] = CrossVerts[index];
+
+		}
+
+		//free allocated verts
+		geRam_Free(StartVerts);
+		geRam_Free(OldVerts);
+		geRam_Free(CrossVerts);
+	}
+//////////////////////
+// Shape = Rectangular
+	else
+	{
+// end change
+		geVec3d_Set(&TopInnerPoint, (geFloat)InnerRadius, 0.0, (geFloat)(Width / 2));
+		geVec3d_Set(&TopOuterPoint, (geFloat)(InnerRadius + Thickness), 0.0, (geFloat)(Width / 2));
+
+		//	Create first cross section of 4 vertices ( outer face @ start angle)...
 		geVec3d_Set
 		(
 			&FinalTopInnerPoint,
-			(geFloat)(( TopInnerPoint.X * cos( CurAngle ) ) - ( TopInnerPoint.Y * sin( CurAngle ) )),
-			(geFloat)(( TopInnerPoint.X * sin( CurAngle ) ) + ( TopInnerPoint.Y * cos( CurAngle ) )),
+			(geFloat)(( TopInnerPoint.X * cos( StartAngle ) ) - ( TopInnerPoint.Y * sin( StartAngle ) )),
+			(geFloat)(( TopInnerPoint.X * sin( StartAngle ) ) + ( TopInnerPoint.Y * cos( StartAngle ) )),
 			TopInnerPoint.Z
 		);
 		geVec3d_Set
 		(
 			&FinalTopOuterPoint,
-			(geFloat)(( TopOuterPoint.X * cos( CurAngle ) ) - ( TopInnerPoint.Y * sin( CurAngle ) )),
-			(geFloat)(( TopOuterPoint.X * sin( CurAngle ) ) + ( TopInnerPoint.Y * cos( CurAngle ) )),
+			(geFloat)(( TopOuterPoint.X * cos( StartAngle ) ) - ( TopInnerPoint.Y * sin( StartAngle ) )),
+			(geFloat)(( TopOuterPoint.X * sin( StartAngle ) ) + ( TopInnerPoint.Y * cos( StartAngle ) )),
 			TopOuterPoint.Z
 		);
-		FinalBottomInnerPoint = FinalTopInnerPoint;
-		FinalBottomInnerPoint.Z = -FinalTopInnerPoint.Z;
 
-		FinalBottomOuterPoint = FinalTopOuterPoint;
-		FinalBottomOuterPoint.Z = -FinalTopOuterPoint.Z;
-
-		CurAngle += AngleDelta;
-
-		fl	=FaceList_Create(6);
-
-		//Assign points to the 4 outer poly faces...
-
-		//Top face...
-		FaceVerts[0]	=FinalTopInnerPoint;
-		FaceVerts[1]	=FinalTopOuterPoint;
-		FaceVerts[2]	=OldTopOuter;
-		FaceVerts[3]	=OldTopInner;
-		f				=Face_Create(4, FaceVerts, 0);
-		if(f)
+		FinalBottomInnerPoint	=FinalTopInnerPoint;
+		FinalBottomInnerPoint.Z	=-FinalTopInnerPoint.Z;
+		FinalBottomOuterPoint	=FinalTopOuterPoint;
+		FinalBottomOuterPoint.Z	=-FinalTopOuterPoint.Z;
+// changed QD 11/03
+		if(CW)
 		{
-			FaceList_AddFace(fl, f);
-		}
-
-		//	Bottom face...
-		FaceVerts[3]	=FinalBottomInnerPoint;
-		FaceVerts[2]	=FinalBottomOuterPoint;
-		FaceVerts[1]	=OldBottomOuter;
-		FaceVerts[0]	=OldBottomInner;
-		f				=Face_Create(4, FaceVerts, 0);
-		if(f)
-		{
-			FaceList_AddFace(fl, f);
-		}
-
-		//	Inner side face...
-		FaceVerts[0]	=FinalTopInnerPoint;
-		FaceVerts[1]	=OldTopInner;
-		FaceVerts[2]	=OldBottomInner;
-		FaceVerts[3]	=FinalBottomInnerPoint;
-		f				=Face_Create(4, FaceVerts, 0);
-		if(f)
-		{
-			FaceList_AddFace(fl, f);
-		}
-
-		//	Outer side face...
-		FaceVerts[3]	=FinalTopOuterPoint;
-		FaceVerts[2]	=OldTopOuter;
-		FaceVerts[1]	=OldBottomOuter;
-		FaceVerts[0]	=FinalBottomOuterPoint;
-		f				=Face_Create(4, FaceVerts, 0);
-		if(f)
-		{
-			FaceList_AddFace(fl, f);
-		}
-
-		//make the end faces
-		FaceVerts[0]	=OldTopOuter;
-		FaceVerts[1]	=OldBottomOuter;
-		FaceVerts[2]	=OldBottomInner;
-		FaceVerts[3]	=OldTopInner;
-		f				=Face_Create(4, FaceVerts, 0);
-
-		if(f)
-		{
-			if(pTemplate->Style < 2)	//default to hollow (if they make hollow later)
+			FinalTopInnerPoint.Z+=Height;
+			FinalTopOuterPoint.Z+=Height;
+			if(!Massive)
 			{
-				if(i)
+				FinalBottomInnerPoint.Z+=Height;
+				FinalBottomOuterPoint.Z+=Height;
+			}
+			else if(Steps)
+			{
+				FinalBottomInnerPoint.Z-=HeightDelta;
+				FinalBottomOuterPoint.Z-=HeightDelta;
+			}
+		}
+// end change
+		OldTopInner				=FinalTopInnerPoint;
+		OldTopOuter				=FinalTopOuterPoint;
+		OldBottomInner			=FinalBottomInnerPoint;
+		OldBottomOuter			=FinalBottomOuterPoint;
+
+		//Create the other cross sections and assign verts to polys after each...
+		for(i=0;i < NumCrossSections;i++) // changed QD 11/03
+		{
+			geVec3d_Set
+			(
+				&FinalTopInnerPoint,
+				(geFloat)(( TopInnerPoint.X * cos( CurAngle ) ) - ( TopInnerPoint.Y * sin( CurAngle ) )),
+				(geFloat)(( TopInnerPoint.X * sin( CurAngle ) ) + ( TopInnerPoint.Y * cos( CurAngle ) )),
+				TopInnerPoint.Z
+			);
+
+			geVec3d_Set
+			(
+				&FinalTopOuterPoint,
+				(geFloat)(( TopOuterPoint.X * cos( CurAngle ) ) - ( TopInnerPoint.Y * sin( CurAngle ) )),
+				(geFloat)(( TopOuterPoint.X * sin( CurAngle ) ) + ( TopInnerPoint.Y * cos( CurAngle ) )),
+				TopOuterPoint.Z
+			);
+
+			FinalBottomInnerPoint = FinalTopInnerPoint;
+			FinalBottomInnerPoint.Z = -FinalTopInnerPoint.Z;
+// changed QD 11/03
+			if(CW)
+			{
+				if(!Massive)
+					FinalBottomInnerPoint.Z += Height;
+				else if(Steps)
+					FinalBottomInnerPoint.Z -= HeightDelta;
+				FinalTopInnerPoint.Z += Height;
+			}
+			if(!Steps)
+			{
+				if(!Massive)
+					FinalBottomInnerPoint.Z += ((i+1)*HeightDelta);
+				FinalTopInnerPoint.Z += ((i+1)*HeightDelta);
+			}
+			else if(i>0)
+			{
+				if(!Massive)
+					FinalBottomInnerPoint.Z += ((i)*HeightDelta);
+				FinalTopInnerPoint.Z += ((i)*HeightDelta);
+			}
+// end change
+			FinalBottomOuterPoint = FinalTopOuterPoint;
+			FinalBottomOuterPoint.Z = -FinalTopOuterPoint.Z;
+// changed QD 11/03
+			if(CW)
+			{
+				if(!Massive)
+					FinalBottomOuterPoint.Z +=Height;
+				else if(Steps)
+					FinalBottomOuterPoint.Z -=HeightDelta;
+				FinalTopOuterPoint.Z +=Height;
+			}
+			if(!Steps)
+			{
+				if(!Massive)
+					FinalBottomOuterPoint.Z +=((i+1)*HeightDelta);
+				FinalTopOuterPoint.Z += ((i+1)*HeightDelta);
+			}
+			else if(i>0)//Steps&&i>0)
+			{
+				if(!Massive)
+					FinalBottomOuterPoint.Z +=((i)*HeightDelta);
+				FinalTopOuterPoint.Z += ((i)*HeightDelta);
+			}
+// end change
+
+			CurAngle += AngleDelta;
+// changed QD 11/03
+			if(InnerRadius>0.0f)
+			{
+				if(Height>0.0f&&!Steps)
 				{
-					Face_SetFixedHull(f, GE_TRUE);
+					if(Massive)
+						fl	=FaceList_Create(7);
+					else
+						fl	=FaceList_Create(8);
+				}
+				else
+				{
+					fl	=FaceList_Create(6);
 				}
 			}
 			else
 			{
-				Face_SetFixedHull(f, GE_TRUE);
-			}
-			FaceList_AddFace(fl, f);
-		}
+				if(Height>0.0f&&!Steps)
 
-		FaceVerts[3]	=FinalTopOuterPoint;
-		FaceVerts[2]	=FinalBottomOuterPoint;
-		FaceVerts[1]	=FinalBottomInnerPoint;
-		FaceVerts[0]	=FinalTopInnerPoint;
-		f				=Face_Create(4, FaceVerts, 0);
-
-		if(f)
-		{
-			if(pTemplate->Style < 2)	//default to hollow (if they make hollow later)
-			{
-				if(i < (NumCrossSections-2))
 				{
-					Face_SetFixedHull(f, GE_TRUE);
+					if(Massive)
+						fl	=FaceList_Create(6);
+					else
+						fl	=FaceList_Create(7);
+				}
+				else
+				{
+					fl	=FaceList_Create(5);
 				}
 			}
-			else
-			{
-				Face_SetFixedHull(f, GE_TRUE);
-			}
-			FaceList_AddFace(fl, f);
-		}
 
-		if(!pTemplate->Style)
-		{
-			b2	=Brush_Create(BRUSH_LEAF, fl, NULL);
-			if(b2)
-			{
-				Brush_SetSubtract(b2, pTemplate->TCut);
-			}
-			BrushList_Append(MBList, b2);
-		}
-		else
-		{
-			BrushList	*bl	=BrushList_Create();
-			Brush		*bh, *bm;
+			//Assign points to the 4 outer poly faces...
 
-			b2	=Brush_Create(BRUSH_LEAF, fl, NULL);
-			if(b2)
+			//Top face...
+			if(Height>0.0f&&!Steps)
 			{
-				Brush_SetHollow(b2, GE_TRUE);
-				Brush_SetHullSize(b2, pTemplate->WallSize);
-				bh	=Brush_CreateHollowFromBrush(b2);
-				if(bh)
+				if(CW)
 				{
-					Brush_SetHollowCut(bh, GE_TRUE);
-					BrushList_Append(bl, b2);
-					BrushList_Append(bl, bh);
-
-					bm	=Brush_Create(BRUSH_MULTI, NULL, bl);
-					if(bm)
+					FaceVerts[0]	=FinalTopInnerPoint;
+					FaceVerts[1]	=FinalTopOuterPoint;
+				//	FaceVerts[2]	=OldTopOuter;
+					FaceVerts[2]	=OldTopInner;
+					f				=Face_Create(3, FaceVerts, 0);
+					if(f)
 					{
-						Brush_SetHollow(bm, GE_TRUE);
-						Brush_SetSubtract(bm, pTemplate->TCut);
-						Brush_SetHullSize(bm, pTemplate->WallSize);
-
-						BrushList_Append(MBList, bm);
+						FaceList_AddFace(fl, f);
+					}
+					//FaceVerts[0]	=FinalTopInnerPoint;
+					FaceVerts[0]	=FinalTopOuterPoint;
+					FaceVerts[1]	=OldTopOuter;
+					FaceVerts[2]	=OldTopInner;
+					f				=Face_Create(3, FaceVerts, 0);
+					if(f)
+					{
+						FaceList_AddFace(fl, f);
 					}
 				}
 				else
 				{
-					Brush_Destroy(&b2);
-					BrushList_Destroy(&bl);
+					FaceVerts[0]	=FinalTopInnerPoint;
+					FaceVerts[1]	=FinalTopOuterPoint;
+					FaceVerts[2]	=OldTopOuter;
+				//	FaceVerts[2]	=OldTopInner;
+					f				=Face_Create(3, FaceVerts, 0);
+					if(f)
+					{
+						FaceList_AddFace(fl, f);
+					}
+					FaceVerts[0]	=FinalTopInnerPoint;
+					//FaceVerts[0]	=FinalTopOuterPoint;
+					FaceVerts[1]	=OldTopOuter;
+					FaceVerts[2]	=OldTopInner;
+					f				=Face_Create(3, FaceVerts, 0);
+					if(f)
+					{
+						FaceList_AddFace(fl, f);
+					}
 				}
 			}
 			else
 			{
-				BrushList_Destroy(&bl);
+				if(InnerRadius>0.0f)
+				{
+					FaceVerts[0]	=FinalTopInnerPoint;
+					FaceVerts[1]	=FinalTopOuterPoint;
+					FaceVerts[2]	=OldTopOuter;
+					FaceVerts[3]	=OldTopInner;
+					f				=Face_Create(4, FaceVerts, 0);
+				}
+				else
+				{
+					FaceVerts[0]	=FinalTopInnerPoint;
+					FaceVerts[1]	=FinalTopOuterPoint;
+					FaceVerts[2]	=OldTopOuter;
+					//FaceVerts[3]	=OldTopInner;
+					f				=Face_Create(3, FaceVerts, 0);
+				}
+
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}
 			}
+
+			//	Bottom face...
+			if(Height>0.0f&&!Steps&&!Massive)
+			{
+				if(CW)
+				{
+					FaceVerts[2]	=FinalBottomInnerPoint;
+					FaceVerts[1]	=FinalBottomOuterPoint;
+					FaceVerts[0]	=OldBottomOuter;
+					//FaceVerts3[0]	=OldBottomInner;
+					f				=Face_Create(3, FaceVerts, 0);
+					if(f)
+					{
+						FaceList_AddFace(fl, f);
+					}
+					FaceVerts[2]	=FinalBottomInnerPoint;
+					//FaceVerts[2]	=FinalBottomOuterPoint;
+					FaceVerts[1]	=OldBottomOuter;
+					FaceVerts[0]	=OldBottomInner;
+					f				=Face_Create(3, FaceVerts, 0);
+					if(f)
+					{
+						FaceList_AddFace(fl, f);
+					}
+				}
+				else
+				{
+					FaceVerts[2]	=FinalBottomInnerPoint;
+					FaceVerts[1]	=FinalBottomOuterPoint;
+					//FaceVerts[1]	=OldBottomOuter;
+					FaceVerts[0]	=OldBottomInner;
+					f				=Face_Create(3, FaceVerts, 0);
+					if(f)
+					{
+						FaceList_AddFace(fl, f);
+					}
+					//FaceVerts[3]	=FinalBottomInnerPoint;
+					FaceVerts[2]	=FinalBottomOuterPoint;
+					FaceVerts[1]	=OldBottomOuter;
+					FaceVerts[0]	=OldBottomInner;
+					f				=Face_Create(3, FaceVerts, 0);
+					if(f)
+					{
+						FaceList_AddFace(fl, f);
+					}
+				}
+			}
+			else
+			{
+				if(InnerRadius>0.0f)
+				{
+					FaceVerts[3]	=FinalBottomInnerPoint;
+					FaceVerts[2]	=FinalBottomOuterPoint;
+					FaceVerts[1]	=OldBottomOuter;
+					FaceVerts[0]	=OldBottomInner;
+					f				=Face_Create(4, FaceVerts, 0);
+				}
+				else
+				{
+					FaceVerts[2]	=FinalBottomInnerPoint;
+					FaceVerts[1]	=FinalBottomOuterPoint;
+					FaceVerts[0]	=OldBottomOuter;
+					//FaceVerts[3]	=OldTopInner;
+					f				=Face_Create(3, FaceVerts, 0);
+				}
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}
+			}
+
+			if(InnerRadius>0.0f)
+			{
+				//	Inner side face...
+				FaceVerts[0]	=FinalTopInnerPoint;
+				FaceVerts[1]	=OldTopInner;
+				FaceVerts[2]	=OldBottomInner;
+				FaceVerts[3]	=FinalBottomInnerPoint;
+				f				=Face_Create(4, FaceVerts, 0);
+				if(f)
+				{
+					FaceList_AddFace(fl, f);
+				}
+			}
+// end change
+
+			//	Outer side face...
+			FaceVerts[3]	=FinalTopOuterPoint;
+			FaceVerts[2]	=OldTopOuter;
+			FaceVerts[1]	=OldBottomOuter;
+			FaceVerts[0]	=FinalBottomOuterPoint;
+			f				=Face_Create(4, FaceVerts, 0);
+			if(f)
+			{
+				FaceList_AddFace(fl, f);
+			}
+
+			//make the end faces
+			FaceVerts[0]	=OldTopOuter;
+			FaceVerts[1]	=OldBottomOuter;
+			FaceVerts[2]	=OldBottomInner;
+			FaceVerts[3]	=OldTopInner;
+			f				=Face_Create(4, FaceVerts, 0);
+
+			if(f)
+			{
+				if(pTemplate->Style < 2)	//default to hollow (if they make hollow later)
+				{
+					if(i)
+					{
+						Face_SetFixedHull(f, GE_TRUE);
+					}
+				}
+				else
+				{
+					Face_SetFixedHull(f, GE_TRUE);
+				}
+				FaceList_AddFace(fl, f);
+			}
+
+			FaceVerts[3]	=FinalTopOuterPoint;
+			FaceVerts[2]	=FinalBottomOuterPoint;
+			FaceVerts[1]	=FinalBottomInnerPoint;
+			FaceVerts[0]	=FinalTopInnerPoint;
+			f				=Face_Create(4, FaceVerts, 0);
+
+			if(f)
+			{
+				if(pTemplate->Style < 2)	//default to hollow (if they make hollow later)
+				{
+					if(i < (NumCrossSections-1)) // changed QD 11/03
+					{
+						Face_SetFixedHull(f, GE_TRUE);
+					}
+				}
+				else
+				{
+					Face_SetFixedHull(f, GE_TRUE);
+				}
+				FaceList_AddFace(fl, f);
+			}
+
+			if(!pTemplate->Style)
+			{
+				b2	=Brush_Create(BRUSH_LEAF, fl, NULL);
+				if(b2)
+				{
+					Brush_SetSubtract(b2, pTemplate->TCut);
+				}
+				BrushList_Append(MBList, b2);
+			}
+			else
+			{
+				BrushList	*bl	=BrushList_Create();
+				Brush		*bh, *bm;
+
+				b2	=Brush_Create(BRUSH_LEAF, fl, NULL);
+				if(b2)
+				{
+					Brush_SetHollow(b2, GE_TRUE);
+					Brush_SetHullSize(b2, pTemplate->WallSize);
+					bh	=Brush_CreateHollowFromBrush(b2);
+					if(bh)
+					{
+						Brush_SetHollowCut(bh, GE_TRUE);
+						BrushList_Append(bl, b2);
+						BrushList_Append(bl, bh);
+
+						bm	=Brush_Create(BRUSH_MULTI, NULL, bl);
+						if(bm)
+						{
+							Brush_SetHollow(bm, GE_TRUE);
+							Brush_SetSubtract(bm, pTemplate->TCut);
+							Brush_SetHullSize(bm, pTemplate->WallSize);
+
+							BrushList_Append(MBList, bm);
+						}
+					}
+					else
+					{
+						Brush_Destroy(&b2);
+						BrushList_Destroy(&bl);
+					}
+				}
+				else
+				{
+					BrushList_Destroy(&bl);
+				}
+			}
+
+			//	Set old points...
+			OldTopInner		=FinalTopInnerPoint;
+			OldTopOuter		=FinalTopOuterPoint;
+			OldBottomInner	=FinalBottomInnerPoint;
+			OldBottomOuter	=FinalBottomOuterPoint;
+// changed QD 11/03
+			if(Steps)
+			{
+				OldTopInner.Z		+=HeightDelta;
+				OldTopOuter.Z		+=HeightDelta;
+				if(!Massive)
+				{
+					OldBottomInner.Z	+=HeightDelta;
+					OldBottomOuter.Z	+=HeightDelta;
+				}
+			}
+// end change
 		}
-
-		//	Set old points...
-		OldTopInner		=FinalTopInnerPoint;
-		OldTopOuter		=FinalTopOuterPoint;
-		OldBottomInner	=FinalBottomInnerPoint;
-		OldBottomOuter	=FinalBottomOuterPoint;
-
 	}
+
 	b	=Brush_Create(BRUSH_MULTI, NULL, MBList);
 
 	if(b)
@@ -307,6 +823,7 @@ Brush *BrushTemplate_CreateBox (const BrushTemplate_Box *pTemplate)
 	geVec3d_Set (&Verts[6], (geFloat)(pTemplate->XSizeBot/2), (geFloat)-(pTemplate->YSize/2), (geFloat)(pTemplate->ZSizeBot/2));
 	geVec3d_Set (&Verts[7], (geFloat)-(pTemplate->XSizeBot/2), (geFloat)-(pTemplate->YSize/2), (geFloat)(pTemplate->ZSizeBot/2));
 
+	// top face
 	FaceVerts[3]	=Verts[0];
 	FaceVerts[2]	=Verts[1];
 	FaceVerts[1]	=Verts[2];
@@ -318,6 +835,7 @@ Brush *BrushTemplate_CreateBox (const BrushTemplate_Box *pTemplate)
 		FaceList_AddFace(fl, f);
 	}
 
+	// bottom face
 	FaceVerts[3]	=Verts[4];
 	FaceVerts[2]	=Verts[5];
 	FaceVerts[1]	=Verts[6];
@@ -684,11 +1202,22 @@ Brush *BrushTemplate_CreateCylinder (const BrushTemplate_Cylinder *pTemplate)
 	{
 		for(VBand = 0;VBand < NumVerticalBands;VBand++)
 		{
+// changed QD 11/03
+			// TopPoints minimum is 3!!!
+			/*
 			TopPoints[3]	=Verts[(HBand * NumVerticalBands) + VBand];
 			TopPoints[2]	=Verts[(HBand * NumVerticalBands) + ((VBand + 1) % NumVerticalBands)];
 			TopPoints[1]	=Verts[((HBand + 1) * NumVerticalBands) + ((VBand + 1) % NumVerticalBands)];
 			TopPoints[0]	=Verts[((HBand + 1) * NumVerticalBands) + VBand];
 			f				=Face_Create(4, TopPoints, 0);
+			*/
+			geVec3d Points[4];
+			Points[3]	=Verts[(HBand * NumVerticalBands) + VBand];
+			Points[2]	=Verts[(HBand * NumVerticalBands) + ((VBand + 1) % NumVerticalBands)];
+			Points[1]	=Verts[((HBand + 1) * NumVerticalBands) + ((VBand + 1) % NumVerticalBands)];
+			Points[0]	=Verts[((HBand + 1) * NumVerticalBands) + VBand];
+			f				=Face_Create(4, Points, 0);
+// end change
 			if(f)
 			{
 				FaceList_AddFace(fl, f);
@@ -997,6 +1526,15 @@ void BrushTemplate_ArchDefaults (BrushTemplate_Arch *pArchTemplate)
 	pArchTemplate->EndAngle		= 180.0f;
 	pArchTemplate->StartAngle	= 0.0f;
 	pArchTemplate->TCut			= GE_FALSE;
+// changed QD 11/03
+	pArchTemplate->Sides		= 3;
+	pArchTemplate->CW			= 0;
+	pArchTemplate->Shape		= 0;
+	pArchTemplate->Radius2		= 64;
+	pArchTemplate->Height		= 0;
+	pArchTemplate->Massive		= GE_FALSE;
+	pArchTemplate->Steps		= GE_FALSE;
+// end change
 }
 
 geBoolean BrushTemplate_WriteArch (const BrushTemplate_Arch *pArchTemplate, FILE *f)
@@ -1011,9 +1549,33 @@ geBoolean BrushTemplate_WriteArch (const BrushTemplate_Arch *pArchTemplate, FILE
 	if (fprintf (f, "EndAngle %f\n", pArchTemplate->EndAngle) < 0) return GE_FALSE;
 	if (fprintf (f, "StartAngle %f\n", pArchTemplate->StartAngle) < 0) return GE_FALSE;
 	if (fprintf (f, "TCut %d\n", pArchTemplate->TCut) < 0) return GE_FALSE;
-
+// changed QD 11/03
+	if (fprintf (f, "Sides %d\n", pArchTemplate->Sides) < 0) return GE_FALSE;
+	if (fprintf (f, "CW %d\n", pArchTemplate->CW) < 0) return GE_FALSE;
+	if (fprintf (f, "Shape %d\n", pArchTemplate->Shape) < 0) return GE_FALSE;
+	if (fprintf (f, "Radius2 %f\n", pArchTemplate->Radius2) < 0) return GE_FALSE;
+	if (fprintf (f, "Height %f\n", pArchTemplate->Height) < 0) return GE_FALSE;
+	if (fprintf (f, "Massive %d\n", pArchTemplate->Massive) < 0) return GE_FALSE;
+	if (fprintf (f, "Steps %d\n", pArchTemplate->Steps) < 0) return GE_FALSE;
+// end change
 	return GE_TRUE;
 }
+// changed QD 11/03
+geBoolean BrushTemplate_WriteArchTo3dtv1_32 (const BrushTemplate_Arch *pArchTemplate, FILE *f)
+{
+	if (fprintf (f, "%s\n", "ArchTemplate") < 0) return GE_FALSE;
+	if (fprintf (f, "NumSlits %d\n", pArchTemplate->NumSlits) < 0) return GE_FALSE;
+	if (fprintf (f, "Thickness %f\n", pArchTemplate->Thickness) < 0) return GE_FALSE;
+	if (fprintf (f, "Width %f\n", pArchTemplate->Width) < 0) return GE_FALSE;
+	if (fprintf (f, "Radius %f\n", pArchTemplate->Radius) < 0) return GE_FALSE;
+	if (fprintf (f, "WallSize %f\n", pArchTemplate->WallSize) < 0) return GE_FALSE;
+	if (fprintf (f, "Style %d\n", pArchTemplate->Style) < 0) return GE_FALSE;
+	if (fprintf (f, "EndAngle %f\n", pArchTemplate->EndAngle) < 0) return GE_FALSE;
+	if (fprintf (f, "StartAngle %f\n", pArchTemplate->StartAngle) < 0) return GE_FALSE;
+	if (fprintf (f, "TCut %d\n", pArchTemplate->TCut) < 0) return GE_FALSE;
+	return GE_TRUE;
+}
+// end change
 
 #pragma warning (disable:4100)
 geBoolean BrushTemplate_LoadArch 
@@ -1039,7 +1601,28 @@ geBoolean BrushTemplate_LoadArch
 	if (!Parse3dt_GetFloat (Parser, (*Expected = "EndAngle"), &pArchTemplate->EndAngle)) return GE_FALSE;
 	if (!Parse3dt_GetFloat (Parser, (*Expected = "StartAngle"), &pArchTemplate->StartAngle)) return GE_FALSE;
 	if (!Parse3dt_GetInt (Parser, (*Expected = "TCut"), &pArchTemplate->TCut)) return GE_FALSE;
-
+// changed QD 11/03
+	if ((VersionMajor > 1) || ((VersionMajor == 1) && (VersionMinor >33)))
+	{
+		if (!Parse3dt_GetInt (Parser, (*Expected = "Sides"), &pArchTemplate->Sides)) return GE_FALSE;
+		if (!Parse3dt_GetInt (Parser, (*Expected = "CW"), &pArchTemplate->CW)) return GE_FALSE;
+		if (!Parse3dt_GetInt (Parser, (*Expected = "Shape"), &pArchTemplate->Shape)) return GE_FALSE;
+		if (!Parse3dt_GetFloat (Parser, (*Expected = "Radius2"), &pArchTemplate->Radius2)) return GE_FALSE;
+		if (!Parse3dt_GetFloat (Parser, (*Expected = "Height"), &pArchTemplate->Height)) return GE_FALSE;
+		if (!Parse3dt_GetInt (Parser, (*Expected = "Massive"), &pArchTemplate->Massive)) return GE_FALSE;
+		if (!Parse3dt_GetInt (Parser, (*Expected = "Steps"), &pArchTemplate->Steps)) return GE_FALSE;
+	}
+	else
+	{
+		pArchTemplate->Sides		= 3;
+		pArchTemplate->CW			= 0;
+		pArchTemplate->Shape		= 0;
+		pArchTemplate->Radius2		= 64;
+		pArchTemplate->Height		= 0;
+		pArchTemplate->Massive		= GE_FALSE;
+		pArchTemplate->Steps		= GE_FALSE;
+	}
+// end change
 	return GE_TRUE;
 }
 #pragma warning (default:4100)
@@ -1073,6 +1656,23 @@ geBoolean BrushTemplate_WriteBox (const BrushTemplate_Box *pBoxTemplate, FILE *f
 
 	return GE_TRUE;
 }
+// changed QD 11/03
+geBoolean BrushTemplate_WriteBoxTo3dtv1_32 (const BrushTemplate_Box *pBoxTemplate, FILE *f)
+{
+	if (fprintf (f, "%s\n", "BoxTemplate") < 0) return GE_FALSE;
+	if (fprintf (f, "Solid %d\n", pBoxTemplate->Solid) < 0) return GE_FALSE;
+	if (fprintf (f, "TCut %d\n", pBoxTemplate->TCut) < 0) return GE_FALSE;
+	if (fprintf (f, "TSheet %d\n", pBoxTemplate->TSheet) < 0) return GE_FALSE;
+	if (fprintf (f, "Thickness %f\n", pBoxTemplate->Thickness) < 0) return GE_FALSE;
+	if (fprintf (f, "XSizeBot %f\n", pBoxTemplate->XSizeBot) < 0) return GE_FALSE;
+	if (fprintf (f, "XSizeTop %f\n", pBoxTemplate->XSizeTop) < 0) return GE_FALSE;
+	if (fprintf (f, "YSize %f\n", pBoxTemplate->YSize) < 0) return GE_FALSE;
+	if (fprintf (f, "ZSizeBot %f\n", pBoxTemplate->ZSizeBot) < 0) return GE_FALSE;
+	if (fprintf (f, "ZSizeTop %f\n", pBoxTemplate->ZSizeTop) < 0) return GE_FALSE;
+
+	return GE_TRUE;
+}
+// end change
 
 
 geBoolean BrushTemplate_LoadBox
@@ -1132,6 +1732,20 @@ geBoolean BrushTemplate_WriteCone (const BrushTemplate_Cone *pConeTemplate, FILE
 
 	return GE_TRUE;
 }
+// changed QD 11/03
+geBoolean BrushTemplate_WriteConeTo3dtv1_32 (const BrushTemplate_Cone *pConeTemplate, FILE *f)
+{
+	if (fprintf (f, "%s\n", "ConeTemplate") < 0) return GE_FALSE;
+	if (fprintf (f, "Style %d\n", pConeTemplate->Style) < 0) return GE_FALSE;
+	if (fprintf (f, "Width %f\n", pConeTemplate->Width) < 0) return GE_FALSE;
+	if (fprintf (f, "Height %f\n", pConeTemplate->Height) < 0) return GE_FALSE;
+	if (fprintf (f, "VerticalStrips %d\n", pConeTemplate->VerticalStrips) < 0) return GE_FALSE;
+	if (fprintf (f, "Thickness %f\n", pConeTemplate->Thickness) < 0) return GE_FALSE;
+	if (fprintf (f, "TCut %d\n", pConeTemplate->TCut) < 0) return GE_FALSE;
+
+	return GE_TRUE;
+}
+// end change
 
 
 #pragma warning (disable:4100)
@@ -1196,6 +1810,27 @@ geBoolean BrushTemplate_WriteCylinder (const BrushTemplate_Cylinder *pCylinderTe
 	if (fprintf (f, "TCut %d\n", pCylinderTemplate->TCut) < 0) return GE_FALSE;
 	return GE_TRUE;
 }
+// changed QD 11/03
+geBoolean BrushTemplate_WriteCylinderTo3dtv1_32 (const BrushTemplate_Cylinder *pCylinderTemplate, FILE *f)
+{
+	if (fprintf (f, "%s\n", "CylinderTemplate") < 0) return GE_FALSE;
+	if (fprintf (f, "BotXOffset %f\n", pCylinderTemplate->BotXOffset) < 0) return GE_FALSE;
+	if (fprintf (f, "BotXSize %f\n", pCylinderTemplate->BotXSize) < 0) return GE_FALSE;
+	if (fprintf (f, "BotZOffset %f\n", pCylinderTemplate->BotZOffset) < 0) return GE_FALSE;
+	if (fprintf (f, "BotZSize %f\n", pCylinderTemplate->BotZSize) < 0) return GE_FALSE;
+	if (fprintf (f, "Solid %d\n", pCylinderTemplate->Solid) < 0) return GE_FALSE;
+	if (fprintf (f, "Thickness %f\n", pCylinderTemplate->Thickness) < 0) return GE_FALSE;
+	if (fprintf (f, "TopXOffset %f\n", pCylinderTemplate->TopXOffset) < 0) return GE_FALSE;
+	if (fprintf (f, "TopXSize %f\n", pCylinderTemplate->TopXSize) < 0) return GE_FALSE;
+	if (fprintf (f, "TopZOffset %f\n", pCylinderTemplate->TopZOffset) < 0) return GE_FALSE;
+	if (fprintf (f, "TopZSize %f\n", pCylinderTemplate->TopZSize) < 0) return GE_FALSE;
+	if (fprintf (f, "VerticalStripes %d\n", pCylinderTemplate->VerticalStripes) < 0) return GE_FALSE;
+	if (fprintf (f, "YSize %f\n", pCylinderTemplate->YSize) < 0) return GE_FALSE;
+	if (fprintf (f, "RingLength %f\n", pCylinderTemplate->RingLength) < 0) return GE_FALSE;
+	if (fprintf (f, "TCut %d\n", pCylinderTemplate->TCut) < 0) return GE_FALSE;
+	return GE_TRUE;
+}
+// end change
 
 
 #pragma warning (disable:4100)
@@ -1258,6 +1893,20 @@ geBoolean BrushTemplate_WriteSpheroid (const BrushTemplate_Spheroid *pSpheroidTe
 
 	return GE_TRUE;
 }
+// changed QD 11/03
+geBoolean BrushTemplate_WriteSpheroidTo3dtv1_32 (const BrushTemplate_Spheroid *pSpheroidTemplate, FILE *f)
+{
+	if (fprintf (f, "%s\n", "SpheroidTemplate") < 0) return GE_FALSE;
+	if (fprintf (f, "HorizontalBands %d\n", pSpheroidTemplate->HorizontalBands) < 0) return GE_FALSE;
+	if (fprintf (f, "VerticalBands %d\n", pSpheroidTemplate->VerticalBands) < 0) return GE_FALSE;
+	if (fprintf (f, "YSize %f\n", pSpheroidTemplate->YSize) < 0) return GE_FALSE;
+	if (fprintf (f, "Solid %d\n", pSpheroidTemplate->Solid) < 0) return GE_FALSE;
+	if (fprintf (f, "Thickness %f\n", pSpheroidTemplate->Thickness) < 0) return GE_FALSE;
+	if (fprintf (f, "TCut %d\n", pSpheroidTemplate->TCut) < 0) return GE_FALSE;
+
+	return GE_TRUE;
+}
+// end change
 
 
 #pragma warning (disable:4100)
@@ -1308,7 +1957,20 @@ geBoolean BrushTemplate_WriteStaircase (const BrushTemplate_Staircase *pStaircas
 
 	return GE_TRUE;
 }
+// changed QD 11/03
+geBoolean BrushTemplate_WriteStaircaseTo3dtv1_32 (const BrushTemplate_Staircase *pStaircaseTemplate, FILE *f)
+{
+	if (fprintf (f, "%s\n", "StaircaseTemplate") < 0) return GE_FALSE;
+	if (fprintf (f, "Height %f\n", pStaircaseTemplate->Height) < 0) return GE_FALSE;
+	if (fprintf (f, "Length %f\n", pStaircaseTemplate->Length) < 0) return GE_FALSE;
+	if (fprintf (f, "NumberOfStairs %d\n", pStaircaseTemplate->NumberOfStairs) < 0) return GE_FALSE;
+	if (fprintf (f, "Width %f\n", pStaircaseTemplate->Width) < 0) return GE_FALSE;
+	if (fprintf (f, "MakeRamp %d\n", pStaircaseTemplate->MakeRamp) < 0) return GE_FALSE;
+	if (fprintf (f, "TCut %d\n", pStaircaseTemplate->TCut) < 0) return GE_FALSE;
 
+	return GE_TRUE;
+}
+// end change
 #pragma warning (disable:4100)
 geBoolean BrushTemplate_LoadStaircase
 	(
@@ -1329,3 +1991,4 @@ geBoolean BrushTemplate_LoadStaircase
 	return GE_TRUE;
 }
 #pragma warning (default:4100)
+#pragma warning (disable:4514)

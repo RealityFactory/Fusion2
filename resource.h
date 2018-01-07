@@ -94,6 +94,8 @@
 #define IDD_LEVELOPTIONS                231
 #define IDD_BOOLEDIT                    232
 #define IDD_DIALOG2                     233
+#define IDB_ARCHBIT                     236
+#define IDD_EXPORT3DSDIALOG             238
 #define IDC_RESET_ALL                   1000
 #define IDC_EDIT1                       1001
 #define IDC_EDIT10                      1002
@@ -351,6 +353,7 @@
 #define IDC_CBSKYRIGHT                  1239
 #define IDC_PATHPREFS                   1239
 #define IDC_BRUSHTRANSLUCENT            1240
+#define IDC_PREFSSKY                    1240
 #define IDC_CBSKYTOP                    1241
 #define IDC_CBSKYBOTTOM                 1242
 #define IDC_CBSKYFRONT                  1243
@@ -404,6 +407,21 @@
 #define IDC_EDITSCALE                   1289
 #define IDC_TRANSPARENT                 1289
 #define IDC_BROWSETXL                   1290
+#define IDC_EDITACTORSDIR               1291
+#define IDC_EDITPAWNINI                 1292
+#define IDC_CCW                         1292
+#define IDC_BROWSEINI                   1293
+#define IDC_CW                          1293
+#define IDC_RADIUS2                     1294
+#define IDC_SIDES                       1295
+#define IDC_RECTANGULAR                 1296
+#define IDC_ROUND                       1297
+#define IDC_MASSIVE                     1298
+#define IDC_STEPS                       1299
+#define IDC_EXPORTALL                   1300
+#define IDC_EXPORTSELECTED              1301
+#define IDC_GROUPFILE                   1303
+#define IDC_EXPORTLIGHTS                1304
 #define ID_BRUSH_PRIMITIVES_CUBE        32771
 #define ID_BRUSH_PRIMITIVES_PYRAMID     32772
 #define ID_BRUSH_PRIMITIVES_SPHEROID    32773
@@ -518,15 +536,18 @@
 #define ID_QUICK_BACKUP                 32968
 #define ID_QUICK_RESTORE                32969
 #define IDM_AUTOSAVE                    32970
+#define ID_VIEW_SHOW_ACTORS             32971
+#define ID_FILE_EXPORT3DT               32972
+#define ID_FILE_EXPORT3DS               32973
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        234
-#define _APS_NEXT_COMMAND_VALUE         32971
-#define _APS_NEXT_CONTROL_VALUE         1291
+#define _APS_NEXT_RESOURCE_VALUE        239
+#define _APS_NEXT_COMMAND_VALUE         32974
+#define _APS_NEXT_CONTROL_VALUE         1305
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

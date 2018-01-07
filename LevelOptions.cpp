@@ -15,8 +15,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -42,6 +42,8 @@ CLevelOptions::CLevelOptions(CWnd* pParent /*=NULL*/)
 	m_TextureLib = _T("");
 	m_TxlChanged = false;
 	m_HeadersDir = _T("");
+	m_ActorsDir = _T("");
+	m_PawnIni = _T("");
 	//}}AFX_DATA_INIT
 }
 
@@ -54,6 +56,8 @@ void CLevelOptions::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_LIGHTMAPSCALE, m_LightmapScale);
 	DDX_Text(pDX, IDC_EDITTXL, m_TextureLib);
 	DDX_Text(pDX, IDC_EDITHEADERSDIR, m_HeadersDir);
+	DDX_Text(pDX, IDC_EDITACTORSDIR, m_ActorsDir);
+	DDX_Text(pDX, IDC_EDITPAWNINI, m_PawnIni);
 	//}}AFX_DATA_MAP
 }
 
@@ -63,6 +67,11 @@ BEGIN_MESSAGE_MAP(CLevelOptions, CDialog)
 	ON_BN_CLICKED(IDC_BROWSETXL, OnBrowsetxl)
 	ON_EN_CHANGE(IDC_EDITTXL, OnChangeEdittxl)
 	ON_EN_CHANGE(IDC_EDITHEADERSDIR, OnChangeEditheadersdir)
+// changed QD Actors
+	ON_EN_CHANGE(IDC_EDITACTORSDIR, OnChangeEditactorsdir)
+	ON_BN_CLICKED(IDC_BROWSEINI, OnBrowseini)
+	ON_EN_CHANGE(IDC_EDITPAWNINI, OnChangeEditpawnini)
+// end change
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -92,3 +101,28 @@ void CLevelOptions::OnChangeEditheadersdir()
 {
 	m_HeadersChanged = true;
 }
+
+// changed QD Actors
+void CLevelOptions::OnChangeEditactorsdir()
+{
+	m_ActorsChanged = true;
+}
+
+void CLevelOptions::OnBrowseini()
+{
+	CFileDialog FileDlg (TRUE, "ini", m_PawnIni, OFN_FILEMUSTEXIST, "Ini Files (*.ini)|*.ini||");
+	FileDlg.m_ofn.lpstrTitle	="Open";
+
+	if (FileDlg.DoModal () == IDOK)
+	{
+		m_PawnIniChanged = true;
+		m_PawnIni = FileDlg.GetPathName ();
+		UpdateData (FALSE);
+	}
+}
+
+void CLevelOptions::OnChangeEditpawnini()
+{
+	m_PawnIniChanged = true;
+}
+// end change

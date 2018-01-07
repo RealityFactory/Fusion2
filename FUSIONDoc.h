@@ -16,8 +16,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef FUSIONDOC_H
@@ -232,6 +232,9 @@ public:
 	void RenderOrthoView(ViewVars *, CDC *);
 	int AreBrushesSelected();
 	void UpdateEntityOrigins();
+// changed QD Actors
+	void UpdateEntityActors();
+// end change
 	int CanRedo();
 	void SaveBrushUndo();
 	int CanUndo();
@@ -385,6 +388,13 @@ protected:
 	afx_msg void OnLeveloptions();
 	afx_msg void OnAutosaveOption();
 	afx_msg void OnUpdateAutosave(CCmdUI* pCmdUI);
+// changed QD Actors
+	afx_msg void OnViewShowActors();
+	afx_msg void OnUpdateViewShowActors(CCmdUI* pCmdUI);
+// changed QD 11/03
+	afx_msg void OnFileExport3dtv1_32();
+	afx_msg void OnFileExport3ds();
+	// end change
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:
@@ -395,14 +405,20 @@ private:
 	geBoolean	LoadMapFile(const char *Filename);
 	UndoStack	*pUndoStack;
 	char		LastPath[MAX_PATH];  //no cstrings for dialog action
-
-	geBoolean	bShowClipBrushes, bShowDetailBrushes, bShowHintBrushes;
+// changed QD Actors
+	geBoolean	bShowClipBrushes, bShowDetailBrushes, bShowHintBrushes, bShowActors;
+// end change
 
 	int DoCompileDialog (void);
 	geBoolean WriteLevelToMap (const char *Filename);
 
 	geBoolean Load( const char *FileName );  // Loads from filename
 	geBoolean Save( const char *FileName );  // saves filename
+// changed QD 11/03
+	geBoolean ExportTo3dtv1_32(const char *FileName);
+// changed QD 12/03
+	geBoolean ExportTo3ds(const char *FileName, int ExpSelected, geBoolean ExpLights, geBoolean ExpFiles);
+// end change
 
 	void UpdateSelectedModel (int MoveRotate, geVec3d const *pVecDelta);
 

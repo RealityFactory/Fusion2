@@ -15,15 +15,15 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 #include "prefs.h"
 #include "ram.h"
 #include "util.h"
 #include <assert.h>
-#pragma warning(disable : 4201 4214 4115 4514)
+#pragma warning(disable : 4201 4214 4115 4514 4711)
 #include <windows.h>
 #pragma warning(default : 4201 4214 4115)
 #include <stdlib.h>
@@ -32,17 +32,26 @@ static const char GRID_SECTION_NAME[]	= "Grid";
 static const char BACKGROUND_KEY[]		= "Background";
 static const char GRID_COLOR_KEY[]		= "Color";
 static const char SNAPGRID_COLOR_KEY[]	= "SnapColor";
+// changed QD
+//static const char SKY_KEY[]				= "Sky";
+// end change
 
 static const int DEFAULT_BACKGROUND_COLOR	= 0x00808080;
 static const int DEFAULT_GRID_COLOR			= 0x00646464;
 static const int DEFAULT_SNAPGRID_COLOR		= 0x00464646;
-
+// changed QD
+//static const int DEFAULT_SKY_COLOR			= 0x000002bf;
+// end change
 
 static const char PATHS_SECTION_NAME[]	= "Paths";
 static const char TXLNAME_KEY[]			= "TxlName";
 static const char TXLSEARCH_KEY[]		= "TxlSearchPath";
 static const char PREVIEW_KEY[]			= "PreviewPath";
 static const char HEADERS_KEY[]			= "Headers";
+// changed QD Actors
+static const char ACTORS_KEY[]			= "Actors";
+static const char PAWNINI_KEY[]			= "PawnIni";
+// end change
 static const char OBJECTSDIR_KEY[]		= "ObjectsDir";
 static const char PROJECTDIR_KEY[]		= "ProjectDir";
 
@@ -50,6 +59,10 @@ static const char DEFAULT_TXLNAME[]		= "gedit.txl";
 static const char DEFAULT_TXLSEARCH[]	= ".\\";
 static const char DEFAULT_PREVIEW[]		= "RealityFactory.exe";
 static const char DEFAULT_HEADERS[]		= ".\\Headers";
+// changed QD Actors
+static const char DEFAULT_ACTORS[]		= ".\\Actors";
+static const char DEFAULT_PAWNINI[]		= ".\\Pawn.ini";
+// end change
 static const char DEFAULT_OBJECTSDIR[]	= ".\\Objects";
 static const char DEFAULT_PROJECTDIR[]	= ".\\Levels";
 
@@ -60,6 +73,10 @@ struct tag_PathPrefs
 	char *TxlSearchPath;
 	char *PreviewPath;
 	char *HeadersList;
+// changed QD Actors
+	char *ActorsList;
+	char *PawnIniPath;
+// end change
 	char *ObjectsDir;
 	char *ProjectDir;
 };
@@ -69,6 +86,9 @@ struct tag_Prefs
 	int BackgroundColor;
 	int GridColor;
 	int SnapGridColor;
+// changed QD
+//	int SkyColor;
+// end change
 	PathPrefs Paths;
 };
 
@@ -102,10 +122,17 @@ Prefs *Prefs_Create (void)
 		pPrefs->BackgroundColor = DEFAULT_BACKGROUND_COLOR;
 		pPrefs->GridColor = DEFAULT_GRID_COLOR;
 		pPrefs->SnapGridColor = DEFAULT_SNAPGRID_COLOR;
+// changed QD
+//		pPrefs->SkyColor = DEFAULT_SKY_COLOR;
+// end change
 		pPrefs->Paths.TxlName = Util_Strdup (DEFAULT_TXLNAME);
 		pPrefs->Paths.TxlSearchPath = Util_Strdup (DEFAULT_TXLSEARCH);
 		pPrefs->Paths.PreviewPath = Util_Strdup (DEFAULT_PREVIEW);
 		pPrefs->Paths.HeadersList = Util_Strdup (DEFAULT_HEADERS);
+// changed QD Actors
+		pPrefs->Paths.ActorsList = Util_Strdup (DEFAULT_ACTORS);
+		pPrefs->Paths.PawnIniPath = Util_Strdup (DEFAULT_PAWNINI);
+// end change
 		pPrefs->Paths.ObjectsDir = Util_Strdup (DEFAULT_OBJECTSDIR);
 		pPrefs->Paths.ProjectDir = Util_Strdup (DEFAULT_PROJECTDIR);
 	}
@@ -128,6 +155,10 @@ void Prefs_Destroy (Prefs **ppPrefs)
 	if (pPaths->TxlSearchPath != NULL)	geRam_Free (pPaths->TxlSearchPath);
 	if (pPaths->PreviewPath != NULL)	geRam_Free (pPaths->PreviewPath);
 	if (pPaths->HeadersList != NULL)	geRam_Free (pPaths->HeadersList);
+// changed QD Actors
+	if (pPaths->ActorsList != NULL)		geRam_Free (pPaths->ActorsList);
+	if (pPaths->PawnIniPath != NULL)	geRam_Free (pPaths->PawnIniPath);
+// end change
 	if (pPaths->ObjectsDir != NULL)		geRam_Free (pPaths->ObjectsDir);
 	if (pPaths->ProjectDir != NULL)		geRam_Free (pPaths->ProjectDir);
 
@@ -144,11 +175,18 @@ Prefs *Prefs_Read (const char *IniFilename)
 		pPrefs->BackgroundColor = GetPrivateProfileInt (GRID_SECTION_NAME, BACKGROUND_KEY, DEFAULT_BACKGROUND_COLOR, IniFilename);
 		pPrefs->GridColor = GetPrivateProfileInt (GRID_SECTION_NAME, GRID_COLOR_KEY, DEFAULT_GRID_COLOR, IniFilename);
 		pPrefs->SnapGridColor = GetPrivateProfileInt (GRID_SECTION_NAME, SNAPGRID_COLOR_KEY, DEFAULT_SNAPGRID_COLOR, IniFilename);
+// changed QD
+//		pPrefs->SkyColor = GetPrivateProfileInt (GRID_SECTION_NAME, SKY_KEY, DEFAULT_SKY_COLOR, IniFilename);
+// end change
 
 		pPrefs->Paths.TxlName = Prefs_GetString (PATHS_SECTION_NAME, TXLNAME_KEY, DEFAULT_TXLNAME, IniFilename);
 		pPrefs->Paths.TxlSearchPath = Prefs_GetString (PATHS_SECTION_NAME, TXLSEARCH_KEY, DEFAULT_TXLSEARCH, IniFilename);
 		pPrefs->Paths.PreviewPath = Prefs_GetString (PATHS_SECTION_NAME, PREVIEW_KEY, DEFAULT_PREVIEW, IniFilename);
 		pPrefs->Paths.HeadersList = Prefs_GetString (PATHS_SECTION_NAME, HEADERS_KEY, DEFAULT_HEADERS, IniFilename);
+// changed QD Actors
+		pPrefs->Paths.ActorsList = Prefs_GetString (PATHS_SECTION_NAME, ACTORS_KEY, DEFAULT_ACTORS, IniFilename);
+		pPrefs->Paths.PawnIniPath = Prefs_GetString (PATHS_SECTION_NAME, PAWNINI_KEY, DEFAULT_PAWNINI, IniFilename);
+// end change
 		pPrefs->Paths.ObjectsDir = Prefs_GetString (PATHS_SECTION_NAME, OBJECTSDIR_KEY, DEFAULT_OBJECTSDIR, IniFilename);
 		pPrefs->Paths.ProjectDir = Prefs_GetString (PATHS_SECTION_NAME, PROJECTDIR_KEY, DEFAULT_PROJECTDIR, IniFilename);
 	}
@@ -174,11 +212,18 @@ geBoolean Prefs_Save (const Prefs *pPrefs, const char *IniFilename)
 	WritePrivateProfileInt (GRID_SECTION_NAME, BACKGROUND_KEY, pPrefs->BackgroundColor, IniFilename);
 	WritePrivateProfileInt (GRID_SECTION_NAME, GRID_COLOR_KEY, pPrefs->GridColor, IniFilename);
 	WritePrivateProfileInt (GRID_SECTION_NAME, SNAPGRID_COLOR_KEY, pPrefs->SnapGridColor, IniFilename);
+// changed QD
+//	WritePrivateProfileInt (GRID_SECTION_NAME, SKY_KEY, pPrefs->SkyColor, IniFilename);
+// end change
 
 	WritePrivateProfileString (PATHS_SECTION_NAME, TXLNAME_KEY, pPrefs->Paths.TxlName, IniFilename);
 	WritePrivateProfileString (PATHS_SECTION_NAME, TXLSEARCH_KEY, pPrefs->Paths.TxlSearchPath, IniFilename);
 	WritePrivateProfileString (PATHS_SECTION_NAME, PREVIEW_KEY, pPrefs->Paths.PreviewPath, IniFilename);
 	WritePrivateProfileString (PATHS_SECTION_NAME, HEADERS_KEY, pPrefs->Paths.HeadersList, IniFilename);
+// changed QD Actors
+	WritePrivateProfileString (PATHS_SECTION_NAME, ACTORS_KEY, pPrefs->Paths.ActorsList, IniFilename);
+	WritePrivateProfileString (PATHS_SECTION_NAME, PAWNINI_KEY, pPrefs->Paths.PawnIniPath , IniFilename);
+// end change
 	WritePrivateProfileString (PATHS_SECTION_NAME, OBJECTSDIR_KEY, pPrefs->Paths.ObjectsDir, IniFilename);
 	WritePrivateProfileString (PATHS_SECTION_NAME, PROJECTDIR_KEY, pPrefs->Paths.ProjectDir, IniFilename);	
 
@@ -220,6 +265,19 @@ geBoolean Prefs_SetSnapGridColor (Prefs *pPrefs, int Color)
 	return GE_TRUE;
 }
 
+// changed QD
+/*int Prefs_GetSkyColor (const Prefs *pPrefs)
+{
+	return pPrefs->SkyColor;
+}
+
+geBoolean Prefs_SetSkyColor (Prefs *pPrefs, int Color)
+{
+	pPrefs->SkyColor = Color;
+	return GE_TRUE;
+}*/
+// end change
+
 const char *Prefs_GetTxlName (const Prefs *pPrefs)
 {
 	return pPrefs->Paths.TxlName;
@@ -259,6 +317,27 @@ geBoolean Prefs_SetHeadersList (Prefs *pPrefs, const char *NewList)
 {
 	return Util_SetString (&pPrefs->Paths.HeadersList, NewList);
 }
+// changed QD Actors
+const char *Prefs_GetActorsList (const Prefs *pPrefs)
+{
+	return pPrefs->Paths.ActorsList;
+}
+
+geBoolean Prefs_SetActorsList (Prefs *pPrefs, const char *NewList)
+{
+	return Util_SetString (&pPrefs->Paths.ActorsList, NewList);
+}
+
+const char *Prefs_GetPawnIni (const Prefs *pPrefs)
+{
+	return pPrefs->Paths.PawnIniPath;
+}
+
+geBoolean Prefs_SetPawnIni (Prefs *pPrefs, const char *NewPath)
+{
+	return Util_SetString (&pPrefs->Paths.PawnIniPath, NewPath);
+}
+// end change
 
 const char *Prefs_GetObjectsDir (const Prefs *pPrefs)
 {

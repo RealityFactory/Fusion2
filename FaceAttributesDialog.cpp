@@ -15,8 +15,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -31,8 +31,10 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-#define MIN_TEX_OFF	-256
-#define MAX_TEX_OFF	256
+// changed QD
+#define MIN_TEX_OFF	-16384
+#define MAX_TEX_OFF	16384
+// end change
 #define MIN_TEX_SCL	-20
 #define MAX_TEX_SCL	20
 #define MIN_TEX_ANG	-359

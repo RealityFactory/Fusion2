@@ -15,8 +15,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*  Genesis3D Version 1.1 released November 15, 1999                                 */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 #ifndef PREFS_H
@@ -42,6 +42,11 @@ geBoolean Prefs_SetGridColor (Prefs *pPrefs, int Color);
 int Prefs_GetSnapGridColor (const Prefs *pPrefs);
 geBoolean Prefs_SetSnapGridColor (Prefs *pPrefs, int Color);
 
+// changed QD
+//int Prefs_GetSkyColor (const Prefs *pPrefs);
+//geBoolean Prefs_SetSkyColor (Prefs *pPrefs, int Color);
+// end change
+
 const char *Prefs_GetTxlName (const Prefs *pPrefs);
 geBoolean Prefs_SetTxlName (Prefs *pPrefs, const char *NewName);
 
@@ -54,6 +59,13 @@ geBoolean Prefs_SetPreviewPath (Prefs *pPrefs, const char *NewPath);
 const char *Prefs_GetHeadersList (const Prefs *pPrefs);
 geBoolean Prefs_SetHeadersList (Prefs *pPrefs, const char *NewList);
 
+//changed QD Actors
+const char *Prefs_GetActorsList (const Prefs *pPrefs);
+geBoolean Prefs_SetActorsList (Prefs *pPrefs, const char *NewList);
+
+const char *Prefs_GetPawnIni (const Prefs *pPrefs);
+geBoolean Prefs_SetPawnIni (Prefs *pPrefs, const char *NewPath);
+// end change
 const char *Prefs_GetObjectsDir (const Prefs *pPrefs);
 geBoolean Prefs_SetObjectsDir (Prefs *pPrefs, const char *NewDir);
 

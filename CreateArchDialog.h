@@ -43,6 +43,15 @@ public:
 	geFloat	m_EndAngle;
 	geFloat	m_StartAngle;
 	BOOL	m_TCut;
+// changed QD 11/03
+	int		m_Sides;
+	int		m_CW;
+	int		m_Shape;
+	geFloat	m_Radius2;
+	geFloat	m_Height;
+	BOOL	m_Massive;
+	BOOL	m_Steps;
+// end change
 	//}}AFX_DATA
 
 

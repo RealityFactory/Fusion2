@@ -1,5 +1,5 @@
 /****************************************************************************************/
-/*  face.c                                                                              */
+/*  facelist.cpp                                                                        */
 /*                                                                                      */
 /*  Author:       Jim Mischel, Ken Baird                                                */
 /*  Description:  Face list management, io, etc...                                      */
@@ -15,8 +15,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 #include "facelist.h"
@@ -24,6 +24,14 @@
 #include "typeio.h"
 #include "ram.h"
 #include <memory.h>
+// changed QD 12/03
+#include <string.h>
+#include <malloc.h>
+#include <stdafx.h>
+#include "ConsoleTab.h"	//for conprintf
+// end change
+#pragma warning(disable : 4711)
+//#include <math.h>
 
 struct tag_FaceList
 {
@@ -140,9 +148,10 @@ FaceList	*FaceList_Clone(const FaceList *pList)
 
 void	FaceList_AddFace(FaceList *pList, Face *pFace)
 {
-	assert (pList != NULL);
-	assert (pFace != NULL);
-	assert (pList->NumFaces < pList->Limit);
+	// changed QD 12/03
+	if(!pList) return;
+	if(!pFace) return;
+	if(!(pList->NumFaces < pList->Limit)) return;
 
 	// here we could grow the list if we want...
 
@@ -329,6 +338,290 @@ geBoolean	FaceList_Write(const FaceList *pList, FILE *f)
 	}
 	return GE_TRUE;
 }
+// changed QD 11/03
+geBoolean FaceList_ExportTo3dtv1_32(const FaceList *pList, FILE *f)
+{
+	int i;
+
+	assert (pList != NULL);
+	assert (f != NULL);
+
+	if (fprintf(f, "\tBrushFaces %d\n",pList->NumFaces) < 0) return GE_FALSE;
+	for(i=0;i < pList->NumFaces; i++)
+	{
+		if (!Face_ExportTo3dtv1_32(pList->Faces[i], f)) return GE_FALSE;
+	}
+	return GE_TRUE;
+}
+
+//changed QD 12/03
+geBoolean	FaceList_GetUsedTextures(const FaceList *pList, geBoolean *WrittenTex, CWadFile * WadFile)
+{
+	int i, index;
+	for(i=0;i < pList->NumFaces; i++)
+	{
+		index = Face_GetTextureDibId(pList->Faces[i]);
+
+		if(index<WadFile->mBitmapCount)
+			WrittenTex[index]=GE_TRUE;
+		else
+		{
+			ConPrintf("Could not find texture '%s' in texture library.\n", Face_GetTextureName(pList->Faces[i]));
+			ConPrintf("Applying default texture '%s'", WadFile->mBitmaps[0].Name);
+			WrittenTex[0]=GE_TRUE;
+			Face_SetTextureDibId (pList->Faces[i], 0);
+			Face_SetTextureName(pList->Faces[i], WadFile->mBitmaps[0].Name);
+			Face_SetTextureSize (pList->Faces[i], WadFile->mBitmaps[0].Width, WadFile->mBitmaps[0].Height);
+		}
+	}
+
+	return GE_TRUE;
+}
+
+// 3DS chunks
+//#define CHUNK_MAIN3DS		0x4d4d
+//#define CHUNK_EDIT3DS		0x3d3d
+//#define CHUNK_COLORRGB	0x0011
+//#define CHUNK_PERCENT		0x0030
+//#define MASTER_SCALE		0x0100
+// Object block
+#define CHUNK_OBJBLOCK		0x4000
+#define CHUNK_TRIMESH		0x4100
+#define CHUNK_VERTLIST		0x4110
+#define CHUNK_FACELIST		0x4120
+#define CHUNK_MATLIST		0x4130
+#define CHUNK_MAPLIST		0x4140 // uv coordinates
+/* Material block
+#define CHUNK_MATBLOCK		0xAFFF
+#define CHUNK_MATNAME		0xA000
+#define CHUNK_MATAMB		0xA010 // Ambient color
+#define CHUNK_MATDIFF		0xA020 // Diffuse color
+#define CHUNK_MATSPEC		0xA030 // Specular color
+#define CHUNK_MATSHININESS	0xA040
+#define CHUNK_MATSHIN2PCT	0xA041
+#define CHUNK_MATTRANS		0xA050
+#define CHUNK_MATXPFALL		0xA052
+#define CHUNK_MATREFBLUR	0xA053
+#define CHUNK_MATSHADING	0xA100
+#define CHUNK_MATDECAL		0xA084
+#define CHUNK_MATWIRESIZE	0xA087
+#define CHUNK_MAP			0xA200
+#define CHUNK_MAPNAME		0xA300 // name of bitmap
+#define CHUNK_MAPTILING		0xA351
+*/
+
+#define SIZE_CHUNKID		sizeof(unsigned short)
+#define SIZE_CHUNKLENGTH	sizeof(long)
+#define SIZE_USHORT			sizeof(unsigned short)
+#define SIZE_FLOAT			sizeof(float)
+
+
+geBoolean	FaceList_ExportTo3ds(const FaceList *pList, FILE *f, int BrushCount, int SubBrushCount)
+{
+	int i, j, k, num_faces, num_verts, num_mats, num_chars, curnum_verts;
+	int size_verts, size_faces, size_trimesh, size_objblock, size_name, size_mapuv, size_mats;
+	char matname[9];
+
+	char *matf=(char *)calloc(sizeof(char), pList->NumFaces);
+
+	assert (pList != NULL);
+	assert (f != NULL);
+
+	num_faces = num_verts = num_mats = num_chars =0;
+// get the total number of verts and faces of the object
+	for(i=0;i < pList->NumFaces; i++)
+	{
+		curnum_verts=Face_GetNumPoints(pList->Faces[i]);
+		num_faces+=(curnum_verts-2);
+		num_verts+=curnum_verts;
+
+		if(!matf[i])
+		{
+			matf[i]=1;
+			num_mats++;
+
+			for(j=i+1; j<pList->NumFaces; j++)
+			{
+				if(strcmp(Face_GetTextureName(pList->Faces[i]), Face_GetTextureName(pList->Faces[j]))==0)
+					matf[j]=1;
+			}
+
+			strncpy (matname, Face_GetTextureName(pList->Faces[i]), 9);
+			matname[8] = '\0';
+			for(j=0;matname[j]!='\0';j++,num_chars++);
+		}
+	}
+
+	for(i=0;i<pList->NumFaces;i++)
+		matf[i]=0;
+
+// calculate the size of the different chunks
+	size_name		= 7; //xxx_xx\0
+	size_verts		= SIZE_CHUNKID+SIZE_CHUNKLENGTH+SIZE_USHORT+3*SIZE_FLOAT*num_verts;
+	size_mats		= (SIZE_CHUNKID+SIZE_CHUNKLENGTH+SIZE_USHORT)*num_mats+(num_chars+num_mats)+SIZE_USHORT*num_faces;
+	size_faces		= SIZE_CHUNKID+SIZE_CHUNKLENGTH+SIZE_USHORT+4*SIZE_USHORT*num_faces+size_mats;
+	size_mapuv		= SIZE_CHUNKID+SIZE_CHUNKLENGTH+SIZE_USHORT+2*SIZE_FLOAT*num_verts;
+	size_trimesh	= SIZE_CHUNKID+SIZE_CHUNKLENGTH+size_verts+size_faces+size_mapuv;
+	size_objblock	= SIZE_CHUNKID+SIZE_CHUNKLENGTH+size_name+size_trimesh;
+
+
+// write the objblock
+	TypeIO_WriteUshort(f,CHUNK_OBJBLOCK);
+	TypeIO_WriteInt(f,size_objblock);
+// give each object a unique name xxx_xx\0
+	TypeIO_WriteUChar(f,(char)(48+(BrushCount-BrushCount%100)/100));
+	TypeIO_WriteUChar(f,(char)(48+((BrushCount-BrushCount%10)/10)%10));
+	TypeIO_WriteUChar(f,(char)(48+BrushCount%10));
+	TypeIO_WriteUChar(f,'_');
+	TypeIO_WriteUChar(f,(char)(48+(SubBrushCount-SubBrushCount%10)/10));
+	TypeIO_WriteUChar(f,(char)(48+SubBrushCount%10));
+	TypeIO_WriteUChar(f,'\0');
+// end name of this object
+
+// this object is a trimesh
+	TypeIO_WriteUshort(f,CHUNK_TRIMESH);
+	TypeIO_WriteInt(f,size_trimesh);
+
+// write all vertices of each face of this object
+    TypeIO_WriteUshort(f,CHUNK_VERTLIST);
+    TypeIO_WriteInt(f,size_verts);
+	TypeIO_WriteUshort(f, (unsigned short)num_verts);
+	for(i=0;i<pList->NumFaces;i++)
+	{
+		const geVec3d	*verts;
+		verts=Face_GetPoints(pList->Faces[i]);
+		curnum_verts=Face_GetNumPoints(pList->Faces[i]);
+		for(j=0;j<curnum_verts;j++)
+		{
+			TypeIO_WriteFloat(f, verts[j].X);
+			TypeIO_WriteFloat(f, verts[j].Y);
+			TypeIO_WriteFloat(f, verts[j].Z);
+		}
+	}
+
+// write MAPPING COORDINATES
+	/*
+	Although from the chunk id you would suppose that FACELIST (0x4120) and
+	CHUNK_MATLIST (0x4130) would be the next chunks, 3ds max does not recognize the
+	mapping coordinates if they are not after the vertlist chunk!
+	*/
+    TypeIO_WriteUshort(f,CHUNK_MAPLIST);
+    TypeIO_WriteInt(f,size_mapuv); // size = word(numverts)+numverts*2*float(u,v)
+	TypeIO_WriteUshort(f, (unsigned short)num_verts);
+	for(i=0;i<pList->NumFaces;i++)
+	{
+		const TexInfo_Vectors *TVecs = Face_GetTextureVecs (pList->Faces[i]);
+		const geVec3d	*verts;
+		geVec3d uVec, vVec;
+		geFloat U, V;
+
+		int txSize, tySize;
+
+		Face_GetTextureSize(pList->Faces[i], &txSize, &tySize);
+
+		if(txSize==0)
+			txSize=32;
+		if(tySize==0)
+			tySize=32;
+
+
+		geVec3d_Scale (&TVecs->uVec, 1.f/(geFloat)txSize, &uVec);
+		geVec3d_Scale (&TVecs->vVec, -1.f/(geFloat)tySize, &vVec);
+
+		verts=Face_GetPoints(pList->Faces[i]);
+		curnum_verts=Face_GetNumPoints(pList->Faces[i]);
+
+		for(j=0;j<curnum_verts;j++)
+		{
+			U = geVec3d_DotProduct(&(verts[j]), &uVec);
+			V = geVec3d_DotProduct(&(verts[j]), &vVec);
+			U+=(TVecs->uOffset/txSize);
+			V-=(TVecs->vOffset/tySize);
+			TypeIO_WriteFloat(f, U);
+			TypeIO_WriteFloat(f, V);
+		}
+	}
+
+// write all faces of this object (all faces are split into triangles)
+    TypeIO_WriteUshort(f,CHUNK_FACELIST);
+    TypeIO_WriteInt(f,size_faces);
+	TypeIO_WriteUshort(f, (unsigned short)num_faces);
+	num_verts=0;
+	for(i=0;i<pList->NumFaces;i++)
+	{
+		curnum_verts=Face_GetNumPoints(pList->Faces[i]);
+		for(j=0;j<curnum_verts-2;j++)
+		{
+			TypeIO_WriteUshort(f, (unsigned short)num_verts);
+			TypeIO_WriteUshort(f, (unsigned short)(num_verts+2+j));
+			TypeIO_WriteUshort(f, (unsigned short)(num_verts+1+j));
+			TypeIO_WriteUshort(f, 6);
+		}
+		num_verts+=curnum_verts;
+	}
+
+// write MATERIALS
+	for(i=0;i<pList->NumFaces;i++)
+	{
+		if(!matf[i])
+		{
+			matf[i]=1;
+
+			int curnum_faces=(Face_GetNumPoints(pList->Faces[i])-2);
+
+			for(j=i+1; j<pList->NumFaces; j++)
+			{
+				if(strcmp(Face_GetTextureName(pList->Faces[i]), Face_GetTextureName(pList->Faces[j]))==0)
+				{
+					curnum_faces+=(Face_GetNumPoints(pList->Faces[j])-2);
+				}
+			}
+
+			strncpy (matname, Face_GetTextureName(pList->Faces[i]), 9);
+			matname[8] = '\0';
+			for(num_chars=0;matname[num_chars]!='\0';num_chars++);
+
+			TypeIO_WriteUshort(f,CHUNK_MATLIST);
+			int size = SIZE_CHUNKID+SIZE_CHUNKLENGTH+(num_chars+1)+SIZE_USHORT+SIZE_USHORT*curnum_faces;
+			TypeIO_WriteInt(f,size);
+
+			// write matname
+			for(j=0;j<=num_chars;j++)
+				TypeIO_WriteUChar(f, matname[j]);
+
+			// write number of faces
+			TypeIO_WriteUshort(f, (unsigned short)curnum_faces);
+
+			// write face numbers
+			curnum_faces=0;
+			for(j=0;j<i;j++)
+				curnum_faces+=(Face_GetNumPoints(pList->Faces[j])-2);
+
+			curnum_verts=Face_GetNumPoints(pList->Faces[i]);
+			for(j=0; j<curnum_verts-2; j++)
+				TypeIO_WriteUshort(f, (unsigned short)(curnum_faces+j));
+
+
+			curnum_faces+=(curnum_verts-2);
+
+			for(j=i+1; j<pList->NumFaces; j++)
+			{
+				curnum_verts=Face_GetNumPoints(pList->Faces[j]);
+				if(strcmp(Face_GetTextureName(pList->Faces[i]), Face_GetTextureName(pList->Faces[j]))==0)
+				{
+					matf[j]=1;
+					for(k=0;k<curnum_verts-2;k++)
+						TypeIO_WriteUshort(f, (unsigned short)(curnum_faces+k));
+				}
+				curnum_faces+=(curnum_verts-2);
+			}
+		}
+	}
+	free(matf);
+
+	return GE_TRUE;
+}
+// end change
 
 FaceList	*FaceList_CreateFromFile
 	(

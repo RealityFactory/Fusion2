@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /c
-# ADD CPP /nologo /G5 /MT /W4 /GX /Ot /Ow /Og /Oi /Op /Oy- /Ob2 /I "." /I ".." /I ".\TypeParser" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /FD /c
+# ADD CPP /nologo /G5 /MT /W4 /GX /Ot /Ow /Og /Oi /Op /Ob2 /I "." /I ".." /I ".\TypeParser" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "WIN32_LEAN_AND_MEAN" /FD /c
 # SUBTRACT CPP /Ox /Oa /X /Fr /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -258,6 +258,10 @@ SOURCE=.\EntTypeName.cpp
 # Begin Source File
 
 SOURCE=.\EntView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Export3dsDialog.cpp
 # End Source File
 # Begin Source File
 
@@ -497,6 +501,10 @@ SOURCE=.\EntView.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Export3dsDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\face.h
 # End Source File
 # Begin Source File
@@ -650,6 +658,10 @@ SOURCE=.\WadFile.h
 # Begin Source File
 
 SOURCE=.\res\actor.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\arch.bmp
 # End Source File
 # Begin Source File
 

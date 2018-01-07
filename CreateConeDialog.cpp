@@ -55,7 +55,7 @@ void CCreateConeDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT10, m_Height);
 	DDV_MinMaxFloat(pDX, m_Height, 1.f, 4000.f);
 	DDX_Text(pDX, IDC_EDIT11, m_VerticalStrips);
-	DDV_MinMaxInt(pDX, m_VerticalStrips, 1, 100);
+	DDV_MinMaxInt(pDX, m_VerticalStrips, 3, 64);
 	DDX_Text(pDX, IDC_EDIT12, m_Thickness);
 	DDV_MinMaxFloat(pDX, m_Thickness, 1.f, 2000.f);
 	DDX_Check(pDX, IDC_TCUT, m_TCut);

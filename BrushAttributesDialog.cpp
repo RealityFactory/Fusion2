@@ -15,8 +15,8 @@
 /*  under the License.                                                                  */
 /*                                                                                      */
 /*  The Original Code is Genesis3D, released March 25, 1999.                            */
-/*Genesis3D Version 1.1 released November 15, 1999                            */
-/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
+/*  Genesis3D Version 1.1 released November 15, 1999                                    */
+/*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved                            */
 /*                                                                                      */
 /****************************************************************************************/
 #include "stdafx.h"
@@ -116,6 +116,7 @@ BEGIN_MESSAGE_MAP(CBrushAttributesDialog, CDialog)
 	ON_BN_CLICKED(IDC_BRUSHTRANSLUCENT, OnBrushtranslucent)
 	ON_BN_CLICKED(IDC_BRUSHFLOCKING, OnBrushflocking)
 	ON_BN_CLICKED(IDC_BRUSHSHEET, OnBrushsheet)
+	ON_EN_KILLFOCUS(IDC_NAME, OnKillfocusName)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -158,10 +159,10 @@ void CBrushAttributesDialog::SetFlagsToBrushType( void )
 	}
 }
 
-void CBrushAttributesDialog::BrushOptionsFromType( void ) 
+void CBrushAttributesDialog::BrushOptionsFromType( void )
 {
 	SetFlagsToBrushType( ) ;	// Set Main Type flag
-	
+
 	switch( m_BrushType )
 	{
 		case IDRB_EMPTY :
@@ -175,7 +176,7 @@ void CBrushAttributesDialog::BrushOptionsFromType( void )
 
 		case IDRB_SOLID :
 			GetDlgItem( IDC_BRUSHDETAIL )->EnableWindow( TRUE ) ;
-			GetDlgItem( IDC_BRUSHAREA )->EnableWindow( TRUE ) ;	
+			GetDlgItem( IDC_BRUSHAREA )->EnableWindow( TRUE ) ;
 			GetDlgItem( IDC_BRUSHTRANSLUCENT )->EnableWindow( FALSE ) ;
 			GetDlgItem( IDC_BRUSHWAVY )->EnableWindow( FALSE ) ;
 			GetDlgItem( IDC_BRUSHSHEET )->EnableWindow( TRUE );
@@ -187,7 +188,7 @@ void CBrushAttributesDialog::BrushOptionsFromType( void )
 			GetDlgItem( IDC_BRUSHDETAIL )->EnableWindow( FALSE ) ;
 			GetDlgItem( IDC_BRUSHTRANSLUCENT )->EnableWindow( FALSE ) ;
 			GetDlgItem( IDC_BRUSHWAVY )->EnableWindow( FALSE ) ;
-			GetDlgItem( IDC_BRUSHAREA )->EnableWindow( FALSE ) ;	
+			GetDlgItem( IDC_BRUSHAREA )->EnableWindow( FALSE ) ;
 			GetDlgItem( IDC_BRUSHSHEET )->EnableWindow( FALSE );
 			m_Detail = TRUE ;
 			m_Translucent = TRUE ;
@@ -274,9 +275,10 @@ void CBrushAttributesDialog::AssignCurrentToValues()
 	{
 		Brush *pBrush = SelBrushList_GetBrush (m_pDoc->pSelBrushes, i);
 
-		pName = Brush_GetName (pBrush);	
+		pName = Brush_GetName (pBrush);
 		// Flags for the Types (RB's) are always up to date.
-		if( strcmp( pName, m_Name ) )
+		// changed QD 11/03
+		if( strcmp( pName, m_Name ) && !strstr(pName,".act"))
 		{
 			Brush_SetName (pBrush, m_Name);
 		}
@@ -313,7 +315,7 @@ void CBrushAttributesDialog::SetDialogFields (void)
 	Brush *pBrush = SelBrushList_GetBrush (m_pDoc->pSelBrushes, 0);
 
 	m_Wavy			=Brush_IsWavy (pBrush)			? TRUE : FALSE ;
-	m_Area			=Brush_IsArea (pBrush)			? TRUE : FALSE ;	
+	m_Area			=Brush_IsArea (pBrush)			? TRUE : FALSE ;
 	m_Translucent	=Brush_IsTranslucent(pBrush)	? TRUE : FALSE ;
 	m_Detail		=Brush_IsDetail (pBrush)		? TRUE : FALSE ;
 	m_Hollow		=Brush_IsHollow (pBrush)		? TRUE : FALSE ;
@@ -368,7 +370,7 @@ BOOL CBrushAttributesDialog::OnInitDialog()
 	return FALSE;
 }
 
-void CBrushAttributesDialog::PostNcDestroy() 
+void CBrushAttributesDialog::PostNcDestroy()
 {
 	if (m_pDoc != NULL)
 	{
@@ -395,53 +397,58 @@ void CBrushAttributesDialog::OnCancel()
 }
 
 
-void CBrushAttributesDialog::OnApply() 
+void CBrushAttributesDialog::OnApply()
 {
+// changed QD 11/03
+	CString	lastValue = m_Name;
+
 	if (UpdateData(TRUE))
 	{
+		if ((strstr(lastValue,".act")!=NULL) || (strstr(m_Name,".act")!=NULL))
+			m_Name=lastValue;
 		AssignCurrentToValues();
 		AssignCurrentToViews();
 		DestroyWindow();
 	}
 }
 
-void CBrushAttributesDialog::OnBrushsolid() 
+void CBrushAttributesDialog::OnBrushsolid()
 {
 	OnRadioButton() ;
 }
 
-void CBrushAttributesDialog::OnBrushclip() 
+void CBrushAttributesDialog::OnBrushclip()
 {
 	OnRadioButton() ;
 }
 
-void CBrushAttributesDialog::OnBrushwindow() 
+void CBrushAttributesDialog::OnBrushwindow()
 {
 	OnRadioButton() ;
 }
 
-void CBrushAttributesDialog::OnBrushhint() 
+void CBrushAttributesDialog::OnBrushhint()
 {
 	OnRadioButton() ;
 }
 
-void CBrushAttributesDialog::OnBrushsubtract() 
+void CBrushAttributesDialog::OnBrushsubtract()
 {
 	OnRadioButton() ;
-	
+
 }
 
-void CBrushAttributesDialog::OnBrushempty() 
+void CBrushAttributesDialog::OnBrushempty()
 {
 	OnRadioButton ();
 }
 
-void CBrushAttributesDialog::OnRadioButton( void ) 
+void CBrushAttributesDialog::OnRadioButton( void )
 {
 	int OldBrushType ;
 
 	OldBrushType = m_BrushType ;
-	
+
 	UpdateData(TRUE);
 	if( OldBrushType == IDRB_WINDOW )
 	{
@@ -452,24 +459,56 @@ void CBrushAttributesDialog::OnRadioButton( void )
 	UpdateData(FALSE);
 }
 
-void CBrushAttributesDialog::OnBrushtranslucent() 
+void CBrushAttributesDialog::OnBrushtranslucent()
 {
 	m_Translucent = !m_Translucent;
 	EnableTranslucency ();
 }
 
-void CBrushAttributesDialog::OnBrushhollow() 
+void CBrushAttributesDialog::OnBrushhollow()
 {
 	m_Hollow = !m_Hollow;
 	EnableHullsize ();
 }
 
-void CBrushAttributesDialog::OnBrushflocking() 
+void CBrushAttributesDialog::OnBrushflocking()
 {
-	m_Flocking = !m_Flocking;	
+	m_Flocking = !m_Flocking;
 }
 
-void CBrushAttributesDialog::OnBrushsheet() 
+void CBrushAttributesDialog::OnBrushsheet()
 {
-	m_Sheet = !m_Sheet;	
+	m_Sheet = !m_Sheet;
 }
+
+// changed QD 11/03
+static geBoolean SetName (Brush *pBrush, void *lParam)
+{
+	CString *pName = (CString *)lParam;
+
+	if (strstr(Brush_GetName(pBrush),".act")!=NULL)
+		return GE_TRUE;
+	Brush_SetName (pBrush, *pName);
+	return GE_TRUE;
+}
+
+void CBrushAttributesDialog::OnKillfocusName()
+{
+	if (m_pDoc)
+	{
+		CString	lastValue = m_Name;
+		if (UpdateData (TRUE))
+		{
+			if ((strstr(lastValue,".act")!=NULL) || (strstr(m_Name,".act")!=NULL))
+			{
+				m_Name=lastValue;
+				UpdateData (FALSE);
+				return;
+			}
+			m_pDoc->SetModifiedFlag();
+			SelBrushList_Enum (m_pDoc->pSelBrushes, ::SetName, &m_Name);
+			AssignCurrentToViews ();
+		}
+	}
+}
+// end change

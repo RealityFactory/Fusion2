@@ -19,6 +19,7 @@
 /*  Copyright (C) 1999 WildTangent, Inc. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#pragma warning (disable:4514 4711)
 #include "node.h"
 #include "basetype.h"
 #include "Vec3d.h"
