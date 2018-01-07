@@ -18,6 +18,7 @@
 /*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#pragma warning(disable : 4711)
 #include "typeio.h"
 #include <string.h>
 #include <assert.h>
@@ -226,6 +227,48 @@ geBoolean TypeIO_WriteXForm3dText
 		TypeIO_WriteVec3dText (f, &pXfm->Translation)
 	);
 }
+
+// changed QD 12/03
+geBoolean TypeIO_WriteUshort
+	(
+	  FILE *f,
+	  unsigned short i
+	)
+{
+	return TypeIO_WriteBlock (f, &i, sizeof (i));
+}
+
+geBoolean TypeIO_WriteUshortText
+	(
+	  FILE *f,
+	  unsigned short i
+	)
+{
+	if(!f) return GE_FALSE;
+
+	return (fprintf (f, "%u ", i) != 0);
+}
+
+geBoolean TypeIO_WriteUChar
+	(
+	  FILE *f,
+	  unsigned char c
+	)
+{
+	return TypeIO_WriteBlock (f, &c, sizeof (c));
+}
+
+geBoolean TypeIO_WriteUCharText
+	(
+	  FILE *f,
+	  unsigned char c
+	)
+{
+	if(!f) return GE_FALSE;
+
+	return (fprintf (f, "%c ", c) != 0);
+}
+// end change
 
 // *********************************************************
 // ********************* INPUT ROUTINES ********************

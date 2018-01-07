@@ -18,6 +18,7 @@
 /*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#pragma warning(disable : 4514 4711)
 #include "node.h"
 #include "basetype.h"
 #include "Vec3d.h"
@@ -45,7 +46,7 @@ typedef struct NodeTag
 {
 	struct NodeTag	*Front, *Back;
 	Face			*Face;
-	const Face		*OGFace;
+	const FaceTag		*OGFace;
 	int				Flags;
 } Node;
 
@@ -57,7 +58,7 @@ static Node	*Node_Create(const Face *f)
 
 	assert(f);
 
-	n	=geRam_Allocate(sizeof(Node));
+	n	= (Node *)geRam_Allocate(sizeof(Node));
 	if(n)
 	{
 		n->Face	=Face_Clone(f);

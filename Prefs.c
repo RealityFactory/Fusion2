@@ -22,7 +22,7 @@
 #include "ram.h"
 #include "util.h"
 #include <assert.h>
-#pragma warning(disable : 4201 4214 4115 4514)
+#pragma warning(disable : 4201 4214 4115 4514 4711)
 #include <windows.h>
 #pragma warning(default : 4201 4214 4115)
 #include <stdlib.h>
@@ -45,6 +45,10 @@ static const char TXLNAME_KEY[]			= "TxlName";
 static const char TXLSEARCH_KEY[]		= "TxlSearchPath";
 static const char PREVIEW_KEY[]			= "PreviewPath";
 static const char HEADERS_KEY[]			= "Headers";
+// changed QD Actors
+static const char ACTORS_KEY[]			= "Actors";
+static const char PAWNINI_KEY[]			= "PawnIni";
+// end change
 static const char OBJECTSDIR_KEY[]		= "ObjectsDir";
 static const char PROJECTDIR_KEY[]		= "ProjectDir";
 
@@ -52,6 +56,10 @@ static const char DEFAULT_TXLNAME[]		= "wrldedit.txl";
 static const char DEFAULT_TXLSEARCH[]	= ".\\";
 static const char DEFAULT_PREVIEW[]		= "gpreview.exe";
 static const char DEFAULT_HEADERS[]		= ".\\Headers";
+// changed QD Actors
+static const char DEFAULT_ACTORS[]		= ".\\Actors";
+static const char DEFAULT_PAWNINI[]		= ".\\Pawn.ini";
+// end change
 static const char DEFAULT_OBJECTSDIR[]	= ".\\Objects";
 static const char DEFAULT_PROJECTDIR[]	= ".\\Levels";
 
@@ -77,6 +85,10 @@ struct tag_PathPrefs
 	char *TxlSearchPath;
 	char *PreviewPath;
 	char *HeadersList;
+// changed QD Actors
+	char *ActorsList;
+	char *PawnIniPath;
+// end change
 	char *ObjectsDir;
 	char *ProjectDir;
 };
@@ -125,6 +137,10 @@ Prefs *Prefs_Create (void)
 		pPrefs->Paths.TxlSearchPath = Util_Strdup (DEFAULT_TXLSEARCH);
 		pPrefs->Paths.PreviewPath = Util_Strdup (DEFAULT_PREVIEW);
 		pPrefs->Paths.HeadersList = Util_Strdup (DEFAULT_HEADERS);
+// changed QD Actors
+		pPrefs->Paths.ActorsList = Util_Strdup (DEFAULT_ACTORS);
+		pPrefs->Paths.PawnIniPath = Util_Strdup (DEFAULT_PAWNINI);
+// end change
 		pPrefs->Paths.ObjectsDir = Util_Strdup (DEFAULT_OBJECTSDIR);
 		pPrefs->Paths.ProjectDir = Util_Strdup (DEFAULT_PROJECTDIR);
 	}
@@ -147,6 +163,10 @@ void Prefs_Destroy (Prefs **ppPrefs)
 	if (pPaths->TxlSearchPath != NULL)	geRam_Free (pPaths->TxlSearchPath);
 	if (pPaths->PreviewPath != NULL)	geRam_Free (pPaths->PreviewPath);
 	if (pPaths->HeadersList != NULL)	geRam_Free (pPaths->HeadersList);
+// changed QD Actors
+	if (pPaths->ActorsList != NULL)		geRam_Free (pPaths->ActorsList);
+	if (pPaths->PawnIniPath != NULL)	geRam_Free (pPaths->PawnIniPath);
+// end change
 	if (pPaths->ObjectsDir != NULL)		geRam_Free (pPaths->ObjectsDir);
 	if (pPaths->ProjectDir != NULL)		geRam_Free (pPaths->ProjectDir);
 
@@ -170,6 +190,10 @@ Prefs *Prefs_Read (const char *IniFilename)
 		pPrefs->Paths.TxlSearchPath = Prefs_GetString (PATHS_SECTION_NAME, TXLSEARCH_KEY, DEFAULT_TXLSEARCH, IniFilename);
 		pPrefs->Paths.PreviewPath = Prefs_GetString (PATHS_SECTION_NAME, PREVIEW_KEY, DEFAULT_PREVIEW, IniFilename);
 		pPrefs->Paths.HeadersList = Prefs_GetString (PATHS_SECTION_NAME, HEADERS_KEY, DEFAULT_HEADERS, IniFilename);
+// changed QD Actors
+		pPrefs->Paths.ActorsList = Prefs_GetString (PATHS_SECTION_NAME, ACTORS_KEY, DEFAULT_ACTORS, IniFilename);
+		pPrefs->Paths.PawnIniPath = Prefs_GetString (PATHS_SECTION_NAME, PAWNINI_KEY, DEFAULT_PAWNINI, IniFilename);
+// end change
 		pPrefs->Paths.ObjectsDir = Prefs_GetString (PATHS_SECTION_NAME, OBJECTSDIR_KEY, DEFAULT_OBJECTSDIR, IniFilename);
 		pPrefs->Paths.ProjectDir = Prefs_GetString (PATHS_SECTION_NAME, PROJECTDIR_KEY, DEFAULT_PROJECTDIR, IniFilename);
 	}
@@ -202,8 +226,12 @@ geBoolean Prefs_Save (const Prefs *pPrefs, const char *IniFilename)
 	WritePrivateProfileString (PATHS_SECTION_NAME, TXLSEARCH_KEY, pPrefs->Paths.TxlSearchPath, IniFilename);
 	WritePrivateProfileString (PATHS_SECTION_NAME, PREVIEW_KEY, pPrefs->Paths.PreviewPath, IniFilename);
 	WritePrivateProfileString (PATHS_SECTION_NAME, HEADERS_KEY, pPrefs->Paths.HeadersList, IniFilename);
+// changed QD Actors
+	WritePrivateProfileString (PATHS_SECTION_NAME, ACTORS_KEY, pPrefs->Paths.ActorsList, IniFilename);
+	WritePrivateProfileString (PATHS_SECTION_NAME, PAWNINI_KEY, pPrefs->Paths.PawnIniPath , IniFilename);
+// end change
 	WritePrivateProfileString (PATHS_SECTION_NAME, OBJECTSDIR_KEY, pPrefs->Paths.ObjectsDir, IniFilename);
-	WritePrivateProfileString (PATHS_SECTION_NAME, PROJECTDIR_KEY, pPrefs->Paths.ProjectDir, IniFilename);	
+	WritePrivateProfileString (PATHS_SECTION_NAME, PROJECTDIR_KEY, pPrefs->Paths.ProjectDir, IniFilename);
 
 	return GE_TRUE;
 }
@@ -293,6 +321,28 @@ geBoolean Prefs_SetHeadersList (Prefs *pPrefs, const char *NewList)
 {
 	return Util_SetString (&pPrefs->Paths.HeadersList, NewList);
 }
+
+// changed QD Actors
+const char *Prefs_GetActorsList (const Prefs *pPrefs)
+{
+	return pPrefs->Paths.ActorsList;
+}
+
+geBoolean Prefs_SetActorsList (Prefs *pPrefs, const char *NewList)
+{
+	return Util_SetString (&pPrefs->Paths.ActorsList, NewList);
+}
+
+const char *Prefs_GetPawnIni (const Prefs *pPrefs)
+{
+	return pPrefs->Paths.PawnIniPath;
+}
+
+geBoolean Prefs_SetPawnIni (Prefs *pPrefs, const char *NewPath)
+{
+	return Util_SetString (&pPrefs->Paths.PawnIniPath, NewPath);
+}
+// end change
 
 const char *Prefs_GetObjectsDir (const Prefs *pPrefs)
 {

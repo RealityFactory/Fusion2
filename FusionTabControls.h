@@ -21,7 +21,7 @@
 
 #ifndef	FUSIONTABCONTROLS_H
 #define FUSIONTABCONTROLS_H
-
+#include <stdafx.h>
 #include "resource.h"
 #include "ConsoleTab.h"
 #include "BrushEntityDialog.h"

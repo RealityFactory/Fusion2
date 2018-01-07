@@ -208,7 +208,7 @@ SOURCE=.\box3d.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\brush.c
+SOURCE=.\brush.cpp
 # End Source File
 # Begin Source File
 
@@ -224,7 +224,7 @@ SOURCE=.\BrushGroupDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\BrushTemplate.c
+SOURCE=.\BrushTemplate.cpp
 # End Source File
 # Begin Source File
 
@@ -300,6 +300,10 @@ SOURCE=.\EntView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Export3dsDialog.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\face.c
 # End Source File
 # Begin Source File
@@ -308,7 +312,7 @@ SOURCE=.\FaceAttributesDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\FaceList.c
+SOURCE=.\FaceList.cpp
 # End Source File
 # Begin Source File
 
@@ -364,7 +368,7 @@ SOURCE=.\MainFrm.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\model.c
+SOURCE=.\model.cpp
 # End Source File
 # Begin Source File
 
@@ -380,7 +384,7 @@ SOURCE=.\NameWindow.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\node.c
+SOURCE=.\node.cpp
 # End Source File
 # Begin Source File
 
@@ -396,7 +400,7 @@ SOURCE=.\Prefs.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\render.c
+SOURCE=.\render.cpp
 # End Source File
 # Begin Source File
 
@@ -408,7 +412,7 @@ SOURCE=.\ScaleDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\SelBrushList.c
+SOURCE=.\SelBrushList.cpp
 # End Source File
 # Begin Source File
 
@@ -557,6 +561,10 @@ SOURCE=.\EntTypeName.h
 # Begin Source File
 
 SOURCE=.\EntView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Export3dsDialog.h
 # End Source File
 # Begin Source File
 

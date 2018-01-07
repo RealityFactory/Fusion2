@@ -175,7 +175,8 @@ char *TranslateString(char *buf)
 	return	buf2;
 }
 
-extern "C" void ConClear(void)
+extern "C"
+void ConClear(void)
 {
 	char	text[4];
 
@@ -187,7 +188,8 @@ extern "C" void ConClear(void)
 	}
 }
 
-extern "C" void ConPrintf(char *text, ...)
+extern "C"
+void ConPrintf(char *text, ...)
 {
 	char	buf[32768];		//this is ... cautious
 	char	*out;
@@ -206,7 +208,8 @@ extern "C" void ConPrintf(char *text, ...)
 	}
 }
 
-extern "C" void ConError(char *text, ...)
+extern "C"
+void ConError(char *text, ...)
 {
 	char	buf[32768];		//this is ... cautious
 	char	*out;

@@ -18,6 +18,7 @@
 /*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#pragma warning(disable : 4711)
 #include "SelFaceList.h"
 #include "array.h"
 #include "ram.h"

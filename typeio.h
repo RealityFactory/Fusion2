@@ -114,6 +114,32 @@ geBoolean TypeIO_WriteXForm3dText
 	  geXForm3d const *pXfm
 	);
 
+// changed QD 12/03
+geBoolean TypeIO_WriteUshort
+	(
+	  FILE *f,
+	  unsigned short i
+	);
+
+geBoolean TypeIO_WriteUshortText
+	(
+	  FILE *f,
+	  unsigned short i
+	);
+
+geBoolean TypeIO_WriteUChar
+	(
+	  FILE *f,
+	  unsigned char c
+	);
+
+geBoolean TypeIO_WriteUCharText
+	(
+	  FILE *f,
+	  unsigned char c
+	);
+// end change
+
 // reading
 geBoolean TypeIO_ReadBlock
 	(

@@ -20,6 +20,60 @@
 /////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_EXPORT3DSDIALOG DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "3DS Export Options"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+    CONTROL         "Export All",IDC_EXPORTALL,"Button",BS_AUTORADIOBUTTON |
+                    WS_GROUP,7,7,45,10
+    CONTROL         "Export Selected",IDC_EXPORTSELECTED,"Button",
+                    BS_AUTORADIOBUTTON,7,28,66,10
+    CONTROL         "Seperate File For Each Group",IDC_GROUPFILE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,49,109,10
+    CONTROL         "Export Lights",IDC_EXPORTLIGHTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,70,57,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE
+BEGIN
+    IDD_EXPORT3DSDIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -302,6 +356,7 @@ BEGIN
             MENUITEM "C&lip Brushes",               ID_VIEW_SHOW_CLIP
             MENUITEM "&Hint Brushes",               ID_VIEW_SHOW_HINT
             MENUITEM "&Detail Brushes",             ID_VIEW_SHOW_DETAIL
+            MENUITEM "Actors",                      ID_VIEW_SHOW_ACTORS
             MENUITEM SEPARATOR
             MENUITEM "&Entities",                   ID_ENTITIES_SHOW
             MENUITEM "E&ntity Classes...",          ID_ENTITYVISIBILITY
@@ -494,7 +549,7 @@ IDD_BRUSHDIALOG DIALOGEX 0, 0, 136, 191
 STYLE DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "Brush Properties"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Number of Brushes Selected:",IDC_LABEL_NUM_BRUSHES,6,4,
                     123,8
@@ -755,7 +810,7 @@ STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "Face Properties"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Number of Faces Selected:",IDC_LABEL_NUM_FACES,6,4,141,
                     9
@@ -844,13 +899,13 @@ STYLE WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN
 FONT 8, "MS Sans Serif"
 BEGIN
     PUSHBUTTON      "&Add",IDC_ADDTEXTURE,5,10,45,15
-    PUSHBUTTON      "&Remove",IDC_REMOVETEXTURE,55,10,45,15
+    PUSHBUTTON      "&Remove",IDC_REMOVETEXTURE,55,10,46,15
     DEFPUSHBUTTON   "A&pply",IDC_APPLYTEXTURE,5,28,45,15,BS_NOTIFY | 
                     WS_GROUP
-    LISTBOX         IDC_TEXTURELIST,5,47,95,189,LBS_SORT | 
+    LISTBOX         IDC_TEXTURELIST,5,47,96,189,LBS_SORT |
                     LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
                     WS_GROUP | WS_TABSTOP
-    LTEXT           "Static",IDC_SIZETEXT,5,239,95,8
+    LTEXT           "Static",IDC_SIZETEXT,5,239,96,8
     CONTROL         "",IDC_TEXTUREIMAGE,"Static",SS_BITMAP | WS_DISABLED,5,
                     249,15,13
 END
@@ -887,40 +942,60 @@ BEGIN
                     WS_DISABLED | NOT WS_TABSTOP
 END
 
-IDD_CREATE_ARCH DIALOG DISCARDABLE  0, 0, 251, 215
+IDD_CREATE_ARCH DIALOG DISCARDABLE  0, 0, 257, 273
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Create Arch"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         240,IDC_STATIC,"Static",SS_BITMAP | SS_REALSIZEIMAGE,7,
-                    32,111,90
-    GROUPBOX        "General",IDC_STATIC,123,7,121,129
+                    26,111,90
+    GROUPBOX        "General",IDC_STATIC,123,7,122,124
     LTEXT           "&Start Angle:",IDC_STATIC,136,22,55,10
     EDITTEXT        IDC_STARTANGLE,197,20,36,12,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "&End Angle:",IDC_STATIC,136,38,55,10
     EDITTEXT        IDC_ENDANGLE,197,36,36,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "&Thickness:",IDC_STATIC,136,54,55,10
-    EDITTEXT        IDC_THICKNESS,197,52,36,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "&Width:",IDC_STATIC,136,70,55,10
-    EDITTEXT        IDC_WIDTH,197,68,36,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Inner &Radius:",IDC_STATIC,136,86,55,10
-    EDITTEXT        IDC_RADIUS,197,84,36,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "W&all Size:",IDC_STATIC,136,102,55,10
-    EDITTEXT        IDC_WALLSIZE,197,100,36,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Cr&oss Sections:",IDC_STATIC,136,118,55,10
-    EDITTEXT        IDC_NUMSLITS,197,116,36,12,ES_AUTOHSCROLL | ES_NUMBER
-    GROUPBOX        "Style",IDC_STATIC,123,143,121,43
+    LTEXT           "&Thickness:",IDC_STATIC,25,163,36,10
+    EDITTEXT        IDC_THICKNESS,73,163,36,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "&Width:",IDC_STATIC,25,179,36,10
+    EDITTEXT        IDC_WIDTH,73,179,36,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Inner &Radius:",IDC_STATIC,136,54,55,10
+    EDITTEXT        IDC_RADIUS,197,52,36,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "W&all Size:",IDC_STATIC,136,70,55,10
+    EDITTEXT        IDC_WALLSIZE,197,68,36,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "N&um. Segments:",IDC_STATIC,136,86,55,10
+    EDITTEXT        IDC_NUMSLITS,197,84,36,12,ES_AUTOHSCROLL | ES_NUMBER
+    GROUPBOX        "Style",IDC_STATIC,12,218,233,28
     CONTROL         "So&lid",IDC_SOLID,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP | WS_TABSTOP,136,157,31,10
-    CONTROL         "&Hollow",IDC_HOLLOW,"Button",BS_AUTORADIOBUTTON,169,157,
+                    WS_GROUP | WS_TABSTOP,18,230,31,10
+    CONTROL         "&Hollow",IDC_HOLLOW,"Button",BS_AUTORADIOBUTTON,73,230,
                     37,10
-    CONTROL         "Ri&ng",IDC_RING,"Button",BS_AUTORADIOBUTTON,208,157,28,
+    CONTROL         "Ri&ng",IDC_RING,"Button",BS_AUTORADIOBUTTON,134,230,28,
                     10
     CONTROL         "&Cut Brush",IDC_TCUT,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,136,169,47,10
-    PUSHBUTTON      "&Default",ID_DEFAULTS,78,194,50,14
-    DEFPUSHBUTTON   "OK",IDOK,141,194,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,194,194,50,14
+                    WS_TABSTOP,186,230,47,10
+    PUSHBUTTON      "&Default",ID_DEFAULTS,73,252,50,14
+    DEFPUSHBUTTON   "OK",IDOK,141,252,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,193,252,50,14
+    GROUPBOX        "Shape",IDC_STATIC,12,131,233,83
+    LTEXT           "He&ight:",IDC_STATIC,136,102,55,10
+    EDITTEXT        IDC_HEIGHT,197,100,36,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "CCW",IDC_CCW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,136,
+                    116,33,10
+    CONTROL         "CW",IDC_CW,"Button",BS_AUTORADIOBUTTON,196,116,28,10
+    CONTROL         "Rectan&gular",IDC_RECTANGULAR,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,19,145,55,10
+    CONTROL         "R&ound",IDC_ROUND,"Button",BS_AUTORADIOBUTTON,136,145,
+                    37,10
+    CONTROL         "Ste&ps",IDC_STEPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    25,196,34,10
+    CONTROL         "&Massive",IDC_MASSIVE,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,72,196,42,10
+    GROUPBOX        "",IDC_STATIC,18,154,105,55
+    GROUPBOX        "",IDC_STATIC,136,154,103,42
+    EDITTEXT        IDC_RADIUS2,197,163,36,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_SIDES,197,179,36,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Radius:",IDC_STATIC,143,164,49,10
+    LTEXT           "Sides",IDC_STATIC,143,180,49,11
 END
 
 IDD_PROGRESSDIALOG DIALOG DISCARDABLE  0, 0, 187, 66
@@ -1199,7 +1274,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,115,48,46,14
 END
 
-IDD_LEVELOPTIONS DIALOG DISCARDABLE  0, 0, 183, 129
+IDD_LEVELOPTIONS DIALOG DISCARDABLE  0, 0, 183, 186
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "World Properties"
 FONT 8, "MS Sans Serif"
@@ -1211,10 +1286,15 @@ BEGIN
     LTEXT           "&Texture Library:",IDC_STATIC,7,44,50,8
     EDITTEXT        IDC_EDITTXL,7,55,132,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Browse...",IDC_BROWSETXL,139,55,37,12
-    LTEXT           "&Headers Directory:",IDC_STATIC,7,71,60,8
+    LTEXT           "&Headers Directory:",IDC_STATIC,7,70,60,8
     EDITTEXT        IDC_EDITHEADERSDIR,7,81,132,12,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,72,108,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,126,108,50,14
+    DEFPUSHBUTTON   "OK",IDOK,72,165,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,126,165,50,14
+    LTEXT           "&Pawn.ini:",IDC_STATIC,7,122,30,8
+    EDITTEXT        IDC_EDITPAWNINI,7,133,132,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BROWSEPAWNINI,139,133,37,12
+    LTEXT           "&Actors Directory:",IDC_STATIC,7,96,53,8
+    EDITTEXT        IDC_EDITACTORSDIR,7,107,132,12,ES_AUTOHSCROLL
 END
 
 IDD_BOOLEDIT DIALOG DISCARDABLE  0, 0, 126, 47
@@ -1548,7 +1628,7 @@ BEGIN
     IDD_TEXTUREDIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 5
-        RIGHTMARGIN, 100
+        RIGHTMARGIN, 101
         VERTGUIDE, 50
         VERTGUIDE, 55
         TOPMARGIN, 7
@@ -1572,15 +1652,16 @@ BEGIN
     IDD_CREATE_ARCH, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 244
+        RIGHTMARGIN, 250
+        VERTGUIDE, 12
         VERTGUIDE, 123
         VERTGUIDE, 136
         VERTGUIDE, 191
         VERTGUIDE, 197
         VERTGUIDE, 233
-        VERTGUIDE, 244
+        VERTGUIDE, 245
         TOPMARGIN, 7
-        BOTTOMMARGIN, 208
+        BOTTOMMARGIN, 266
         HORZGUIDE, 20
         HORZGUIDE, 32
         HORZGUIDE, 36
@@ -1594,10 +1675,12 @@ BEGIN
         HORZGUIDE, 100
         HORZGUIDE, 112
         HORZGUIDE, 116
-        HORZGUIDE, 128
+        HORZGUIDE, 131
         HORZGUIDE, 136
-        HORZGUIDE, 143
-        HORZGUIDE, 157
+        HORZGUIDE, 145
+        HORZGUIDE, 163
+        HORZGUIDE, 179
+        HORZGUIDE, 196
     END
 
     IDD_PROGRESSDIALOG, DIALOG
@@ -1772,7 +1855,7 @@ BEGIN
         VERTGUIDE, 67
         VERTGUIDE, 105
         TOPMARGIN, 7
-        BOTTOMMARGIN, 122
+        BOTTOMMARGIN, 179
         HORZGUIDE, 19
         HORZGUIDE, 24
     END

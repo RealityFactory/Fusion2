@@ -34,7 +34,7 @@
 	4115 - 'type' : named type definition in parentheses
 	4514 - unreferenced inline/local function has been removed
 */
-#pragma warning(disable : 4201 4214 4115 4514)
+#pragma warning(disable : 4201 4214 4115 4514 4711)
 
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions

@@ -105,6 +105,7 @@
 #define IDD_ROTATEDIALOG                249
 #define IDD_SCALEDIALOG                 251
 #define IDB_GENESIS3D                   252
+#define IDD_EXPORT3DSDIALOG             254
 #define IDC_RESET_ALL                   1000
 #define IDC_EDIT1                       1001
 #define IDC_EDIT10                      1002
@@ -252,6 +253,8 @@
 #define IDC_ENDANGLE                    1149
 #define IDC_STATUSPROGRESS1             1149
 #define IDC_STATUSPROGRESS2             1150
+#define IDC_RADIUS2                     1150
+#define IDC_SIDES                       1151
 #define IDC_FUNNEL                      1152
 #define IDC_VISNONE                     1157
 #define IDC_VISLEVEL1                   1158
@@ -404,7 +407,9 @@
 #define IDC_CONTENTSLIST                1282
 #define IDC_EDITHEADERSDIR              1282
 #define IDC_MIPMAPBIAS                  1283
+#define IDC_EDITPAWNINI                 1283
 #define IDC_TEXTURELOCK                 1284
+#define IDC_EDITACTORSDIR               1284
 #define IDC_AXISX                       1285
 #define IDC_REFLECTIVITY                1285
 #define IDC_AXISY                       1286
@@ -414,6 +419,7 @@
 #define IDC_EDITSCALE                   1289
 #define IDC_TRANSPARENT                 1289
 #define IDC_BROWSETXL                   1290
+#define IDC_BROWSEPAWNINI               1291
 #define IDC_GROUP_TEXTURE_OFFSET_SCALE  1293
 #define IDC_GROUP_LIGHTMAP_SCALE        1294
 #define IDC_LABEL_TEXTURE_OFFSET_SCALEX 1295
@@ -449,6 +455,16 @@
 #define IDC_STATIC3                     1330
 #define IDC_STATIC4                     1331
 #define IDC_STATIC5                     1332
+#define IDC_CCW                         1333
+#define IDC_CW                          1334
+#define IDC_RECTANGULAR                 1335
+#define IDC_ROUND                       1336
+#define IDC_MASSIVE                     1337
+#define IDC_STEPS                       1338
+#define IDC_EXPORTALL                   1339
+#define IDC_EXPORTSELECTED              1340
+#define IDC_EXPORTLIGHTS                1341
+#define IDC_GROUPFILE                   1342
 #define ID_BRUSH_PRIMITIVES_CUBE        32771
 #define ID_BRUSH_PRIMITIVES_PYRAMID     32772
 #define ID_BRUSH_PRIMITIVES_SPHEROID    32773
@@ -611,6 +627,7 @@
 #define IDS_SCALEFACTORZERO             33042
 #define ID_VIEWPORT_LINKVIEWPORTS       33045
 #define ID_TEMPLATE_SUNLIGHT            33046
+#define ID_VIEW_SHOW_ACTORS             33047
 #define IDS_HELPINFORMATION             38000
 
 // Next default values for new objects
@@ -618,9 +635,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        254
-#define _APS_NEXT_COMMAND_VALUE         33047
-#define _APS_NEXT_CONTROL_VALUE         1333
+#define _APS_NEXT_RESOURCE_VALUE        255
+#define _APS_NEXT_COMMAND_VALUE         33048
+#define _APS_NEXT_CONTROL_VALUE         1343
 #define _APS_NEXT_SYMED_VALUE           112
 #endif
 #endif

@@ -42,6 +42,15 @@ public:
 	float	m_EndAngle;
 	float	m_StartAngle;
 	BOOL	m_TCut;
+// changed QD 11/03
+	float	m_Height;
+	float	m_Radius2;
+	BOOL	m_Massive;
+	int		m_Shape;
+	int		m_Sides;
+	BOOL	m_Steps;
+	int		m_CW;
+// end change
 	//}}AFX_DATA
 
 

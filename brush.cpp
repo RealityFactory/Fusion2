@@ -18,6 +18,7 @@
 /*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#include <stdafx.h>
 #include "brush.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,7 +39,7 @@
 	will have a facelist, and possibly a brushlist containing pieces of the original
 	brush that have been cut up by others.  Leaf is a bit confusing, since these
 	brushes aren't actually leaf regions in a tree or anything.
-	
+
 	Multi brushes such as hollows and arches and other nonconvex brushes will contain
 	a series of leaf brushes.  Multi brushes should contain no faces themselves.
 
@@ -55,6 +56,11 @@
 
 static const int		axidx[3][2]	={ 2, 1, 0, 2, 0, 1 };
 static const geVec3d	VecOrigin	={ 0.0f, 0.0f, 0.0f };
+// changed QD 11/03
+// 3ds export brush naming
+static int	BrushCount;
+static int	SubBrushCount;
+// end change
 
 struct tag_BrushList
 {
@@ -69,15 +75,15 @@ struct tag_BrushList
 enum BrushFlags
 {
 	BRUSH_SOLID			=0x0001,
-	BRUSH_WINDOW		=0x0002, 
+	BRUSH_WINDOW		=0x0002,
 	BRUSH_WAVY			=0x0004,
-	BRUSH_DETAIL		=0x0008,	//not included in vis calculations		
+	BRUSH_DETAIL		=0x0008,	//not included in vis calculations
 	BRUSH_HOLLOWCUT		=0x0010,
 	BRUSH_TRANSLUCENT	=0x0020,
 	BRUSH_EMPTY			=0x0040,
 	BRUSH_SUBTRACT		=0x0080,
 	BRUSH_CLIP			=0x0100,
-	BRUSH_FLOCKING		=0x0200,	
+	BRUSH_FLOCKING		=0x0200,
 	BRUSH_HOLLOW		=0x0400,
 	BRUSH_SHEET			=0x0800,
 	BRUSH_HIDDEN		=0x1000,
@@ -178,7 +184,7 @@ Brush	*Brush_Create(int Type, const FaceList *fl, const BrushList *BList)
 {
 	Brush	*pBrush;
 
-	pBrush	=geRam_Allocate(sizeof (Brush));
+	pBrush	= (Brush *)geRam_Allocate(sizeof (Brush));
 	if(pBrush != NULL)
 	{
 		pBrush->Prev	=NULL;
@@ -228,7 +234,7 @@ static Brush	*Brush_CreateFromParent(const Brush *ParentBrush, const FaceList *f
 	assert(fl != NULL);
 	assert(ParentBrush->Type!=BRUSH_MULTI);
 
-	pBrush	=geRam_Allocate(sizeof (Brush));
+	pBrush	= (Brush *)geRam_Allocate(sizeof (Brush));
 	if(pBrush != NULL)
 	{
 		pBrush->Prev	=NULL;
@@ -296,7 +302,7 @@ Brush	*Brush_Clone(Brush const *from)
 		{
 			break;
 		}
-		to		=Brush_Create(from->Type, NULL, MBList);	
+		to		=Brush_Create(from->Type, NULL, MBList);
 		break;
 
 	case	BRUSH_LEAF:
@@ -372,7 +378,7 @@ int	Brush_GetModelId(const Brush *b)
 int	Brush_GetGroupId(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	b->GroupId;
 }
 
@@ -386,7 +392,7 @@ geFloat	Brush_GetHullSize(const Brush *b)
 uint32	Brush_GetColor(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	b->Color;
 }
 
@@ -398,7 +404,7 @@ int			Brush_GetType (const Brush *b)
 const char	*Brush_GetName(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	//are empty names ok?
 	return	b->Name;
 }
@@ -406,7 +412,7 @@ const char	*Brush_GetName(const Brush *b)
 const BrushList	*Brush_GetBrushList(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	//are empty names ok?
 	return	b->BList;
 }
@@ -415,7 +421,7 @@ const BrushList	*Brush_GetBrushList(const Brush *b)
 void	Brush_SetModelId(Brush *b, const int mid)
 {
 	assert(b != NULL);
-	
+
 	if (b->Type == BRUSH_MULTI)
 	{
 		BrushList_SetInt (b->BList, mid, Brush_SetModelId);
@@ -427,7 +433,7 @@ void	Brush_SetModelId(Brush *b, const int mid)
 void	Brush_SetGroupId(Brush *b, const int gid)
 {
 	assert(b != NULL);
-	
+
 	if (b->Type == BRUSH_MULTI)
 	{
 		BrushList_SetInt (b->BList, gid, Brush_SetGroupId);
@@ -456,7 +462,7 @@ void	Brush_SetHullSize(Brush *b, const geFloat hsize)
 void	Brush_SetColor(Brush *b, const uint32 newcolor)
 {
 	assert(b != NULL);
-	
+
 	if(b->Type==BRUSH_MULTI)
 	{
 		BrushList_SetUint32(b->BList, newcolor, Brush_SetColor);
@@ -482,42 +488,42 @@ void	Brush_SetName(Brush *b, const char *newname)
 geBoolean	Brush_IsSolid(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_SOLID)?	GE_TRUE : GE_FALSE;
 }
 
 geBoolean	Brush_IsWindow(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_WINDOW)?	GE_TRUE : GE_FALSE;
 }
 
 geBoolean	Brush_IsWavy(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_WAVY)?	GE_TRUE : GE_FALSE;
 }
 
 geBoolean	Brush_IsDetail(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_DETAIL)?	GE_TRUE : GE_FALSE;
 }
 
 geBoolean	Brush_IsSubtract(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_SUBTRACT)?	GE_TRUE : GE_FALSE;
 }
 
 geBoolean	Brush_IsClip(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_CLIP)?	GE_TRUE : GE_FALSE;
 }
 
@@ -538,7 +544,7 @@ geBoolean	Brush_IsHollowCut(const Brush *b)
 geBoolean	Brush_IsEmpty(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_EMPTY)?	GE_TRUE : GE_FALSE;
 }
 
@@ -546,28 +552,28 @@ geBoolean	Brush_IsEmpty(const Brush *b)
 geBoolean	Brush_IsVisible(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_HIDDEN)?	GE_FALSE : GE_TRUE;
 }
 
 geBoolean	Brush_IsLocked(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_LOCKED)?	GE_TRUE : GE_FALSE;
 }
 
 geBoolean	Brush_IsHint(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_HINT)?	GE_TRUE : GE_FALSE;
 }
 
 geBoolean	Brush_IsArea(const Brush *b)
 {
 	assert(b != NULL);
-	
+
 	return	(b->Flags & BRUSH_AREA)?	GE_TRUE : GE_FALSE;
 }
 
@@ -628,7 +634,7 @@ void	Brush_SetSolid(Brush *b, const geBoolean bState)
 void	Brush_SetWindow(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
-		
+
 	if(b->Type==BRUSH_MULTI)
 	{
 		BrushList_SetFlag(b->BList, bState, Brush_SetWindow);
@@ -640,7 +646,7 @@ void	Brush_SetWindow(Brush *b, const geBoolean bState)
 void	Brush_SetWavy(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
-		
+
 	if(b->Type==BRUSH_MULTI)
 	{
 		BrushList_SetFlag(b->BList, bState, Brush_SetWavy);
@@ -652,7 +658,7 @@ void	Brush_SetWavy(Brush *b, const geBoolean bState)
 void	Brush_SetDetail(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
-		
+
 	if(b->Type==BRUSH_MULTI)
 	{
 		BrushList_SetFlag(b->BList, bState, Brush_SetDetail);
@@ -674,7 +680,7 @@ void	Brush_SetSubtract(Brush *b, const geBoolean bState)
 	{
 		return;	//can't reset these
 	}
-	
+
 	Brush_SetExclusiveState (b, BRUSH_SUBTRACT, bState);
 }
 
@@ -686,14 +692,14 @@ void	Brush_SetClip(Brush *b, const geBoolean bState)
 	{
 		BrushList_SetFlag(b->BList, bState, Brush_SetClip);
 	}
-		
+
 	Brush_SetExclusiveState (b, BRUSH_CLIP, bState);
 }
 
 void	Brush_SetHollow(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
-		
+
 	if(b->Type==BRUSH_MULTI)
 	{
 		BrushList_SetFlag(b->BList, bState, Brush_SetHollow);
@@ -711,7 +717,7 @@ void	Brush_SetHollowCut(Brush *b, const geBoolean bState)
 	assert(b != NULL);
 	assert(b->Type != BRUSH_MULTI);
 
-	//should set both here... HOLLOWCUT is just a dialog helper		
+	//should set both here... HOLLOWCUT is just a dialog helper
 	b->Flags	=(bState)? b->Flags|BRUSH_HOLLOWCUT : b->Flags&~BRUSH_HOLLOWCUT;
 	b->Flags	=(bState)? b->Flags|BRUSH_SUBTRACT : b->Flags&~BRUSH_SUBTRACT;
 }
@@ -762,7 +768,7 @@ unsigned long Brush_GetUserFlags (const Brush *b)
 void	Brush_SetEmpty(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
-		
+
 	if(b->Type==BRUSH_MULTI)
 	{
 		BrushList_SetFlag(b->BList, bState, Brush_SetEmpty);
@@ -774,7 +780,7 @@ void	Brush_SetEmpty(Brush *b, const geBoolean bState)
 void	Brush_SetHint(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
-		
+
 	if(b->Type==BRUSH_MULTI)
 	{
 		BrushList_SetFlag(b->BList, bState, Brush_SetHint);
@@ -787,7 +793,7 @@ void	Brush_SetHint(Brush *b, const geBoolean bState)
 void	Brush_SetVisible(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
-		
+
 	b->Flags	=(bState)? b->Flags&~BRUSH_HIDDEN : b->Flags|BRUSH_HIDDEN;
 }
 
@@ -795,14 +801,14 @@ void	Brush_SetVisible(Brush *b, const geBoolean bState)
 void	Brush_SetLocked(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
-		
+
 	b->Flags	=(bState)? b->Flags|BRUSH_LOCKED : b->Flags&~BRUSH_LOCKED;
 }
 
 void	Brush_SetArea(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
-		
+
 	if(b->Type==BRUSH_MULTI)
 	{
 		BrushList_SetFlag(b->BList, bState, Brush_SetArea);
@@ -815,7 +821,7 @@ void	Brush_SetArea(Brush *b, const geBoolean bState)
 void	Brush_SetTranslucent(Brush *b, const geBoolean bState)
 {
 	assert(b != NULL);
-	
+
 	if(b->Type==BRUSH_MULTI)
 	{
 		BrushList_SetFlag(b->BList, bState, Brush_SetTranslucent);
@@ -913,11 +919,127 @@ geBoolean Brush_Write(const Brush *b, FILE *ofile)
 	return GE_TRUE;
 }
 
+// changed QD 11/03
+geBoolean Brush_ExportTo3dtv1_32(const Brush *b, FILE *ofile)
+{
+	assert(ofile);
+	assert(b);
+
+	if (b->Type == BRUSH_CSG)
+	{
+		// CSG brushes aren't saved
+		return GE_TRUE;
+	}
+
+	{
+		// make sure we don't output a blank name
+		char *Name;
+		char QuotedValue[SCANNER_MAXDATA];
+
+		Name = ((b->Name == NULL) || (*b->Name == '\0')) ? "NoName" : b->Name;
+		// quote the brush name string...
+		Util_QuoteString (Name, QuotedValue);
+		if (fprintf (ofile, "Brush %s\n", QuotedValue) < 0) return GE_FALSE;
+	}
+
+	if (fprintf(ofile, "\tFlags %d\n",	b->Flags) < 0) return GE_FALSE;
+	if (fprintf(ofile, "\tModelId %d\n",b->ModelId) < 0) return GE_FALSE;
+	if (fprintf(ofile, "\tGroupId %d\n", b->GroupId) < 0) return GE_FALSE;
+	{
+		if (b->HullSize < 1.0f)
+		{
+			((Brush *)b)->HullSize = 1.0f;
+		}
+		if (fprintf(ofile, "\tHullSize %f\n", b->HullSize) < 0) return GE_FALSE;
+	}
+	if (fprintf(ofile, "\tType %d\n", b->Type) < 0) return GE_FALSE;
+
+	switch (b->Type)
+	{
+		case	BRUSH_MULTI:
+			return BrushList_ExportTo3dtv1_32 (b->BList, ofile);
+
+		case	BRUSH_LEAF:
+			return FaceList_ExportTo3dtv1_32 (b->Faces, ofile);
+
+		default :
+			assert (0);		// invalid brush type
+			break;
+	}
+	return GE_TRUE;
+}
+
+// changed QD 12/03
+geBoolean Brush_GetUsedTextures(const Brush *b, geBoolean *UsedTex, CWadFile * WadFile)
+{
+	assert(UsedTex);
+	assert(b);
+
+	switch (b->Type)
+	{
+		case	BRUSH_MULTI:
+			return BrushList_GetUsedTextures(b->BList, UsedTex, WadFile);
+
+		case	BRUSH_LEAF:
+			if(b->BList)
+				return BrushList_GetUsedTextures(b->BList, UsedTex, WadFile);
+			else
+			{
+				if(!(b->Flags&(BRUSH_HOLLOW|BRUSH_HOLLOWCUT|BRUSH_SUBTRACT)))
+					return FaceList_GetUsedTextures(b->Faces, UsedTex, WadFile);
+			}
+			break;
+
+		case	BRUSH_CSG:
+			if(!(b->Flags&(BRUSH_HOLLOW|BRUSH_HOLLOWCUT|BRUSH_SUBTRACT)))
+				return FaceList_GetUsedTextures(b->Faces, UsedTex, WadFile);
+			break;
+		default :
+			assert (0);		// invalid brush type
+			break;
+	}
+	return GE_TRUE;
+}
+
+geBoolean Brush_ExportTo3ds(const Brush *b, FILE *ofile)
+{
+	assert(ofile);
+	assert(b);
+
+	switch (b->Type)
+	{
+		case	BRUSH_MULTI:
+			return BrushList_ExportTo3ds (b->BList, ofile, GE_TRUE);
+
+		case	BRUSH_LEAF:
+			if(b->BList)
+				return BrushList_ExportTo3ds (b->BList, ofile, GE_TRUE);
+			else
+			{
+				if(!(b->Flags&(BRUSH_HOLLOW|BRUSH_HOLLOWCUT|BRUSH_SUBTRACT)))
+					return FaceList_ExportTo3ds(b->Faces, ofile, BrushCount, SubBrushCount);
+				else if((b->Flags&BRUSH_SUBTRACT)&&!(b->Flags&(BRUSH_HOLLOW|BRUSH_HOLLOWCUT)))
+					BrushCount--;
+			}
+			break;
+
+		case	BRUSH_CSG:
+			if(!(b->Flags&(BRUSH_HOLLOW|BRUSH_HOLLOWCUT|BRUSH_SUBTRACT)))
+				return FaceList_ExportTo3ds(b->Faces, ofile, BrushCount, SubBrushCount);
+			break;
+		default :
+			assert (0);		// invalid brush type
+			break;
+	}
+	return GE_TRUE;
+}
+// end change
+
 Brush	*Brush_CreateFromFile
 	(
-	  Parse3dt *Parser, 
-	  int VersionMajor, 
-	  int VersionMinor, 
+	  Parse3dt *Parser,
+	  int VersionMajor,
+	  int VersionMinor,
 	  const char **Expected
 	)
 {
@@ -973,7 +1095,7 @@ Brush	*Brush_CreateFromFile
 		if (!Parse3dt_GetInt (Parser, (*Expected = "EntityId"), &tmpModelId)) return NULL;
 		tmpGroupId	=0;
 	}
-	
+
 	if (!Parse3dt_GetFloat (Parser, (*Expected = "HullSize"), &tmpHullSize)) return NULL;
 	if (tmpHullSize < 1.0f)
 	{
@@ -1166,7 +1288,7 @@ void	Brush_Resize(Brush *b, float dx, float dy, int sides, int inidx, geVec3d *f
 void Brush_Bound(Brush *b)
 {
 	assert(b);
-	
+
 	Box3d_SetBogusBounds(&b->BoundingBox);
 	if(b->Type==BRUSH_MULTI)
 	{
@@ -1572,9 +1694,9 @@ void	Brush_Rotate
 	Brush_Bound (b);
 }
 
-void	Brush_Transform 
+void	Brush_Transform
 	(
-	  Brush *b, 
+	  Brush *b,
 	  const geXForm3d *pXfm
 	)
 // Apply the transform to all points in all brush faces
@@ -1616,7 +1738,7 @@ geBoolean	Brush_Scale (Brush *b, float ScaleFactor)
 	if (b->Type == BRUSH_MULTI)
 	{
 //MRB BEGIN
-	Success = 
+	Success =
 //MRB END
 		BrushList_Scale (b->BList, ScaleFactor);
 	}
@@ -1626,7 +1748,7 @@ geBoolean	Brush_Scale (Brush *b, float ScaleFactor)
 
 		geVec3d_Set (&vecScale, ScaleFactor, ScaleFactor, ScaleFactor);
 //MRB BEGIN
-	Success = 
+	Success =
 //MRB END
 		FaceList_Scale (b->Faces, &vecScale);
 	}
@@ -1652,14 +1774,14 @@ geBoolean	Brush_Scale3d(Brush *b, const geVec3d *mag)
 	if(b->Type==BRUSH_MULTI)
 	{
 //MRB BEGIN
-	Success = 
+	Success =
 //MRB END
 		BrushList_Scale3d(b->BList, mag);
 	}
 	else
 	{
 //MRB BEGIN
-	Success = 
+	Success =
 //MRB END
 		FaceList_Scale(b->Faces, mag);
 	}
@@ -1713,7 +1835,7 @@ Face	*Brush_RayCast(const Brush *b, geVec3d *CamOrg, geVec3d *dir, geFloat *dist
 				if(f)
 				{
 					if((*dist >= 8.0f) && (*dist < minBDist))
-					{ 
+					{
 						minBDist	=*dist;
 						curFace		=f;
 					}
@@ -1784,14 +1906,14 @@ Face	*Brush_RayCast(const Brush *b, geVec3d *CamOrg, geVec3d *dir, geFloat *dist
 /**************  BRUSH LIST HANDLERS *******************************/
 /*******************************************************************/
 
-BrushList *BrushList_Create 
+BrushList *BrushList_Create
 	(
 	  void
 	)
 {
 	BrushList *pList;
 
-	pList = geRam_Allocate (sizeof (BrushList));
+	pList = (BrushList *)geRam_Allocate (sizeof (BrushList));
 	if (pList != NULL)
 	{
 		pList->First = NULL;
@@ -1800,11 +1922,11 @@ BrushList *BrushList_Create
 	return pList;
 }
 
-BrushList *BrushList_CreateFromFile 
+BrushList *BrushList_CreateFromFile
 	(
-	  Parse3dt *Parser, 
-	  int VersionMajor, 
-	  int VersionMinor, 
+	  Parse3dt *Parser,
+	  int VersionMajor,
+	  int VersionMinor,
 	  const char **Expected
 	)
 {
@@ -1836,7 +1958,7 @@ BrushList *BrushList_CreateFromFile
 	return blist;
 }
 
-void BrushList_Destroy 
+void BrushList_Destroy
 	(
 	  BrushList **ppList
 	)
@@ -1853,9 +1975,9 @@ void BrushList_Destroy
 	*ppList = NULL;
 }
 
-void BrushList_Append 
+void BrushList_Append
 	(
-	  BrushList *pList, 
+	  BrushList *pList,
 	  Brush *pBrush
 	)
 {
@@ -1933,9 +2055,9 @@ void BrushList_InsertBefore(BrushList *pList, Brush *pBMarker, Brush *pBrush)
 	pBMarker->Prev	=pBrush;
 }
 
-void BrushList_Prepend 
+void BrushList_Prepend
 	(
-	  BrushList *pList, 
+	  BrushList *pList,
 	  Brush *pBrush
 	)
 {
@@ -1964,9 +2086,9 @@ void BrushList_Prepend
 	}
 }
 
-void BrushList_Remove 
+void BrushList_Remove
 	(
-	  BrushList *pList, 
+	  BrushList *pList,
 	  Brush *pBrush
 	)
 {
@@ -2029,9 +2151,9 @@ void BrushList_DeleteAll
 	}
 }
 
-Brush *BrushList_GetFirst 
+Brush *BrushList_GetFirst
 	(
-	  BrushList *pList, 
+	  BrushList *pList,
 	  BrushIterator *bi
 	 )
 {
@@ -2049,7 +2171,7 @@ Brush *BrushList_GetFirst
 	return pList->First;
 }
 
-Brush *BrushList_GetNext 
+Brush *BrushList_GetNext
 	(
 	  BrushIterator *bi
 	)
@@ -2073,7 +2195,7 @@ Brush *BrushList_GetNext
 
 Brush *BrushList_GetLast
 	(
-	  BrushList *pList, 
+	  BrushList *pList,
 	  BrushIterator *bi
 	 )
 {
@@ -2181,7 +2303,7 @@ geBoolean BrushList_Enum
 	while (b != NULL)
 	{
 		if( (bResult = CallBack( b, lParam )) == GE_FALSE )
-			break ;		
+			break ;
 		b = b->Next;
 	}
 	return bResult ;
@@ -2204,7 +2326,7 @@ geBoolean BrushList_EnumAll
 	while (b != NULL)
 	{
 		if( (bResult = CallBack( b, lParam )) == GE_FALSE )
-			break ;		
+			break ;
 		if (b->Type == BRUSH_MULTI)
 		{
 			bResult = BrushList_EnumAll (b->BList, lParam, CallBack);
@@ -2218,7 +2340,7 @@ geBoolean BrushList_EnumAll
 	return bResult ;
 }
 
-//traverses inorder 
+//traverses inorder
 int	BrushList_EnumLeafBrushes(const BrushList	*pList,
 							  void *			pVoid,
 							  BrushList_CB		CallBack)
@@ -2335,7 +2457,7 @@ geBoolean	Brush_GetParent(const BrushList	*pList,		//list to search
 }
 
 
-Brush *	Brush_GetTopLevelParent 
+Brush *	Brush_GetTopLevelParent
 	(
 	  const BrushList	*pList,		//list to search
 	  const Brush		*b			//brush to find
@@ -2542,8 +2664,8 @@ static int	Brush_MostlyOnSide(const Brush *b, const Plane *p)
 }
 
 //Split the original brush by the face passed in returning
-//the brush in front of and the brush behind the 
-//face passed in.  
+//the brush in front of and the brush behind the
+//face passed in.
 //front and back brush pointers should be null on entry
 void	Brush_SplitByFace(Brush	*ogb,	//original brush
 						  Face	*sf,	//split face
@@ -2782,7 +2904,7 @@ void	BrushList_RebuildHollowFaces(BrushList *inList, int mid, Brush_CSGCallback 
 				if(bh)
 				{
 					BrushList_Append(inList, bh);
-					bh->Flags	=b->Flags | BRUSH_SUBTRACT; //make sure this is set 
+					bh->Flags	=b->Flags | BRUSH_SUBTRACT; //make sure this is set
 					bh->Type	=b->Type;
 					bh->ModelId	=b->ModelId;
 					bh->GroupId	=b->GroupId;
@@ -3400,7 +3522,7 @@ void	BrushList_GetBounds(const BrushList *BList, Box3d *pBounds)
 {
 	Box3d	Bounds;
 	Box3d	BrushBounds;
-	Brush	*b;	
+	Brush	*b;
 
 	assert(BList != NULL);
 	assert(pBounds != NULL);
@@ -3495,7 +3617,7 @@ geBoolean	BrushList_Scale (BrushList *pList, float ScaleFactor)
 //MRB END
 }
 
-//MRB BEGIN		
+//MRB BEGIN
 //void	BrushList_Scale3d(BrushList *pList, const geVec3d *trans)
 geBoolean	BrushList_Scale3d(BrushList *pList, const geVec3d *trans)
 {
@@ -3549,6 +3671,66 @@ geBoolean BrushList_Write (BrushList *BList, FILE *ofile)
 	}
 	return GE_TRUE;
 }
+
+// changed QD 11/03
+geBoolean BrushList_ExportTo3dtv1_32 (BrushList *BList, FILE *ofile)
+{
+	Brush *pBrush;
+	BrushIterator bi;
+	int Count;
+
+	Count = BrushList_Count (BList, (BRUSH_COUNT_MULTI | BRUSH_COUNT_LEAF | BRUSH_COUNT_NORECURSE));
+	if (fprintf (ofile, "Brushlist %d\n", Count) < 0) return GE_FALSE;
+
+	pBrush = BrushList_GetFirst (BList, &bi);
+	while (pBrush != NULL)
+	{
+		if (!Brush_ExportTo3dtv1_32(pBrush, ofile)) return GE_FALSE;
+		pBrush = BrushList_GetNext (&bi);
+	}
+	return GE_TRUE;
+}
+
+// changed QD 12/03
+geBoolean BrushList_GetUsedTextures(BrushList *BList, geBoolean *UsedTex, CWadFile * WadFile)
+{
+	Brush *pBrush;
+	BrushIterator bi;
+
+	pBrush = BrushList_GetFirst (BList, &bi);
+	while (pBrush != NULL)
+	{
+		if (!Brush_GetUsedTextures(pBrush, UsedTex, WadFile)) return GE_FALSE;
+
+		pBrush = BrushList_GetNext (&bi);
+	}
+	return GE_TRUE;
+}
+
+geBoolean BrushList_ExportTo3ds (BrushList *BList, FILE *ofile, geBoolean SubBrush)
+{
+	Brush *pBrush;
+	BrushIterator bi;
+
+
+	pBrush = BrushList_GetFirst (BList, &bi);
+	while (pBrush != NULL)
+	{
+		if (!Brush_ExportTo3ds(pBrush, ofile)) return GE_FALSE;
+		pBrush = BrushList_GetNext (&bi);
+
+		if(SubBrush)
+			SubBrushCount++;
+		else
+			BrushCount++;
+	}
+	SubBrushCount=0;
+	if(!SubBrush)
+		BrushCount=0;
+	return GE_TRUE;
+
+}
+// end change
 
 //updates face flags and texinfos in children brushes
 static void	Brush_UpdateChildFacesRecurse(Brush *b, Brush *bp)
@@ -4101,7 +4283,7 @@ Brush	*Brush_CreateHollowFromBrush(const Brush *b)
 		f	=FaceList_GetFace(b->Faces, i);
 		p	=Face_GetPlane(f);
 
-		//reverse plane and move inward by hullsize 
+		//reverse plane and move inward by hullsize
 		//newdist =dot(((normal * -hull) + (normal * dist)), normal)
 		if(Face_IsFixedHull(f))
 		{
@@ -4176,7 +4358,7 @@ void	BrushList_MakeHollowsMulti(BrushList *inList)
 				BrushList_Prepend(inList, cb);
 			}
 			b	=cb;
-		}	
+		}
 	}
 }
 

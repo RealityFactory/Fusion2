@@ -28,6 +28,9 @@
 #include "face.h"
 #include "box3d.h"
 #include "parse3dt.h"
+// changed QD 12/03
+#include "WadFile.h"
+// end change
 
 #ifdef __cplusplus
 extern "C" {
@@ -148,6 +151,12 @@ unsigned long Brush_GetUserFlags (const Brush *b);
 void		Brush_WriteToMap(const Brush *b, FILE *ofile, geBoolean VisDetail);
 void		Brush_WriteToQuakeMap(const Brush *b, FILE *ofile);
 geBoolean	Brush_Write(const Brush *b, FILE *ofile);
+// changed QD 11/03
+geBoolean	Brush_ExportTo3dtv1_32(const Brush *b, FILE *ofile);
+// changed QD 12/03
+geBoolean	Brush_GetUsedTextures(const Brush *b, geBoolean *UsedTex, CWadFile * WadFile);
+geBoolean	Brush_ExportTo3ds(const Brush *b, FILE *ofile);
+// end change
 Brush		*Brush_CreateFromFile(Parse3dt *Parser, int VersionMajor, int VersionMinor, const char **Expected);
 
 //operations
@@ -198,6 +207,13 @@ void BrushList_Remove (BrushList *pList, Brush *pBrush);
 void BrushList_DeleteAll (BrushList *pList);
 void BrushList_GetBounds(const BrushList *BList, Box3d *pBounds);
 geBoolean BrushList_Write (BrushList *BList, FILE *ofile);
+// changed QD 11/03
+geBoolean BrushList_ExportTo3dtv1_32 (BrushList *BList, FILE *ofile);
+// changed QD 12/03
+geBoolean BrushList_GetUsedTextures(BrushList *BList, geBoolean *UsedTex, CWadFile * WadFile);
+geBoolean BrushList_ExportTo3ds (BrushList *BList, FILE *ofile, geBoolean SubBrush);
+// end change
+
 geBoolean BrushList_EnumAll
 	(
 		BrushList const *pList,

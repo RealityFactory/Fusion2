@@ -60,7 +60,13 @@ geBoolean Prefs_SetPreviewPath (Prefs *pPrefs, const char *NewPath);
 
 const char *Prefs_GetHeadersList (const Prefs *pPrefs);
 geBoolean Prefs_SetHeadersList (Prefs *pPrefs, const char *NewList);
+//changed QD Actors
+const char *Prefs_GetActorsList (const Prefs *pPrefs);
+geBoolean Prefs_SetActorsList (Prefs *pPrefs, const char *NewList);
 
+const char *Prefs_GetPawnIni (const Prefs *pPrefs);
+geBoolean Prefs_SetPawnIni (Prefs *pPrefs, const char *NewPath);
+// end change
 const char *Prefs_GetObjectsDir (const Prefs *pPrefs);
 geBoolean Prefs_SetObjectsDir (Prefs *pPrefs, const char *NewDir);
 

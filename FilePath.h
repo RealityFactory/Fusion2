@@ -60,6 +60,10 @@ geBoolean FilePath_SlashTerminate (const char *pPath, char *pDest);
 // pDest may be the same as pPath or pName.
 geBoolean FilePath_AppendName (char const *pPath, char const *pName, char *pDest);
 
+// changed QD 12/03
+geBoolean FilePath_ChangeName (char const *pPath, char const *pName, char *pDest);
+// end change
+
 // Search for a Filename in the semicolon-separated paths specified in SearchPath.
 // If found, returns GE_TRUE and the full path name of the file in FoundPath.
 // Returns GE_FALSE if unsuccessful.

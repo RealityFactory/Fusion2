@@ -22,6 +22,9 @@
 #define FACELIST_H
 
 #include "face.h"
+// changed QD 12/03
+#include "WadFile.h"
+// end change
 
 #ifdef __cplusplus
 	extern "C" {
@@ -64,6 +67,12 @@ void		FaceList_ClipFaceToList(const FaceList *fl, Face **f);
 void		FaceList_CopyFaceInfo(const FaceList *src, FaceList *dst);
 
 geBoolean	FaceList_Write(const FaceList *pList, FILE *f);
+// changed QD 11/03
+geBoolean	FaceList_ExportTo3dtv1_32(const FaceList *pList, FILE *f);
+// changed QD 12/03
+geBoolean	FaceList_GetUsedTextures(const FaceList *pList, geBoolean *WrittenTex, CWadFile * WadFile);
+geBoolean	FaceList_ExportTo3ds(const FaceList *pList, FILE *f, int BrushCount, int SubBrushCount);
+// end change
 FaceList	*FaceList_CreateFromFile(Parse3dt *Parser, int VersionMajor, int VersionMinor, const char **Expected);
 geBoolean	FaceList_WriteToMap(const FaceList *pList, FILE *f);
 geBoolean	FaceList_WriteToQuakeMap(const FaceList *pList, FILE *f);

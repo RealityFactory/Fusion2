@@ -219,20 +219,26 @@ static void TextureFace
 	(
 	  Face *pFace,
 	  int SelId,
-	  char const *Name
+	  char const *Name,
+	  WadFileEntry* pbmp // changed QD 12/03
 	)
 {
 	Face_SetTextureDibId (pFace, SelId);
 	Face_SetTextureName (pFace, Name);
+// changed QD 12/03
+	Face_SetTextureSize (pFace, pbmp->Width, pbmp->Height);
+// end change
 }
 
-static void TextureBrushList(BrushList *pList, int SelId, char const *Name);
+// changed QD 12/03
+static void TextureBrushList(BrushList *pList, int SelId, char const *Name, WadFileEntry* pbmp);
 
 static void TextureBrush
 	(
 	  Brush *pBrush,
 	  int SelId,
-	  char const *Name
+	  char const *Name,
+	  WadFileEntry* pbmp // changed QD 12/03
 	)
 {
 	int j;
@@ -241,7 +247,8 @@ static void TextureBrush
 	
 	if(Brush_IsMulti(pBrush))
 	{
-		TextureBrushList((BrushList *)Brush_GetBrushList(pBrush), SelId, Name);
+		// changed QD 12/03
+		TextureBrushList((BrushList *)Brush_GetBrushList(pBrush), SelId, Name, pbmp);
 	}
 	else
 	{
@@ -250,7 +257,7 @@ static void TextureBrush
 			Face *pFace;
 
 			pFace = Brush_GetFace (pBrush, j);
-			TextureFace (pFace, SelId, Name);
+			TextureFace (pFace, SelId, Name, pbmp); // changed QD 12/03
 		}
 	}
 }
@@ -259,7 +266,8 @@ static void TextureBrushList
 	(
 	  BrushList *pList,
 	  int SelId,
-	  char const *Name
+	  char const *Name,
+	  WadFileEntry* pbmp // changed QD 12/03
 	)
 {
 	Brush *b;
@@ -271,7 +279,7 @@ static void TextureBrushList
 #pragma message ("Change this and the function above to use BrushList_EnumAll")
 	for(b=BrushList_GetFirst(pList, &bi);b;b=BrushList_GetNext(&bi))
 	{
-		TextureBrush(b, SelId, Name);
+		TextureBrush(b, SelId, Name, pbmp); // changed QD 12/03
 	}	
 }
 
@@ -307,7 +315,10 @@ void CTextureDialog::OnApply()
 				Face *pFace;
 				pFace = SelFaceList_GetFace (m_pDoc->pSelFaces, i);
 
-				::TextureFace (pFace, SelId, (LPCSTR)m_CurrentTexture);
+				// changed QD 12/03
+				WadFileEntry* BitmapPtr = m_pDoc->GetDibBitmap( m_CurrentTexture );
+				::TextureFace (pFace, SelId, (LPCSTR)m_CurrentTexture, BitmapPtr);
+				// end change
 			}
 			// have to go through the selected brushes and update their child faces
 			int NumSelBrushes = SelBrushList_GetSize (m_pDoc->pSelBrushes);
@@ -329,13 +340,19 @@ void CTextureDialog::OnApply()
 				for (i = 0; i < NumSelBrushes; ++i)
 				{
 					Brush *pBrush = SelBrushList_GetBrush (m_pDoc->pSelBrushes, i);
-					::TextureBrush (pBrush, SelId, (LPCSTR)m_CurrentTexture);
+					// changed QD 12/03
+					WadFileEntry* BitmapPtr = m_pDoc->GetDibBitmap( m_CurrentTexture );
+					::TextureBrush (pBrush, SelId, (LPCSTR)m_CurrentTexture, BitmapPtr);
+					// end change
 					Brush_UpdateChildFaces (pBrush);
 				}
 			}
 			else
 			{
-				::TextureBrush (m_pDoc->CurBrush, SelId, (LPCSTR)m_CurrentTexture);
+				// changed QD 12/03
+				WadFileEntry* BitmapPtr = m_pDoc->GetDibBitmap( m_CurrentTexture );
+				::TextureBrush (m_pDoc->CurBrush, SelId, (LPCSTR)m_CurrentTexture, BitmapPtr);
+				// end change
 				Brush_UpdateChildFaces (m_pDoc->CurBrush);
 			}
 			break;

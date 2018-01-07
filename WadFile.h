@@ -23,6 +23,7 @@
 
 #include "bitmap.h"
 
+
 struct WadFileEntry
 {
 	geBitmap *bmp;
@@ -45,4 +46,5 @@ public:
 private:
 	DestroyBitmapArray ();
 };
+
 #endif

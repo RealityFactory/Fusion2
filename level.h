@@ -48,8 +48,10 @@
 //#define LEVEL_VERSION_MINOR 28		// Version 1.28 10/27/98 - Ken - Sky texture scale
 //#define LEVEL_VERSION_MINOR 29		// Version 1.29 12/09/98 - Jim - Added sheet brushes
 //#define LEVEL_VERSION_MINOR 30		// Version 1.30 12/22/98 - Jim - Added face transparent flag
-//#define LEVEL_VERSION_MINOR 31			// Version 1.31 01/05/99 - jim - Added headers directory
-#define LEVEL_VERSION_MINOR 32			// Version 1.32 11/04/99 - Brian - Face Info save out Base Vec for Tex Lock
+//#define LEVEL_VERSION_MINOR 31		// Version 1.31 01/05/99 - jim - Added headers directory
+//#define LEVEL_VERSION_MINOR 32		// Version 1.32 11/04/99 - Brian - Face Info save out Base Vec for Tex Lock
+//#define LEVEL_VERSION_MINOR 33		// Version 1.33 08/15/03 - QD - Added ActorsDirectory, PawnIniPath; TexRotation is saved as float
+#define LEVEL_VERSION_MINOR 34			// Version 1.34 11/09/03 - QD - changed Arch template
 
 struct SkyFaceTexture
 {
@@ -104,13 +106,20 @@ typedef struct
 
 typedef struct tag_Level Level;
 
+// changed QD Actors
+Level *Level_Create (const char *DefaultWad, const char *HeadersDir, const char *ActorsDir, const char *PawnIni);
+Level *Level_CreateFromFile (const char *FileName, const char **ErrMsg, const char *DefaultHeadersDir,
+							const char *DefaultActorsDir, const char *DefaultPawnIni);
+// end change
 
-Level *Level_Create (const char *DefaultWad, const char *HeadersDir);
-Level *Level_CreateFromFile (const char *FileName, const char **ErrMsg, const char *DefaultHeadersDir);
 void Level_Destroy (Level **ppLevel);
 
 geBoolean Level_WriteToFile (Level *pLevel, const char *Filename);
-
+// changed QD 11/03
+geBoolean Level_ExportTo3dtv1_32(Level *pLevel, const char *Filename);
+// changed QD 12/03
+geBoolean Level_ExportTo3ds(Level *pLevel, const char *Filename, BrushList *BList, int ExpSelected, geBoolean ExpLights, int GroupID);
+// end change
 
 CEntityArray *Level_GetEntities (Level *pLevel);
 BrushList *Level_GetBrushes (Level *pLevel);
@@ -188,5 +197,14 @@ void Level_SetLightmapScale (Level *pLevel, float Scale);
 geBoolean Level_LoadEntityDefs (Level *pLevel, const char *HeadersDir);
 const char *Level_GetHeadersDirectory (const Level *pLevel);
 const EntityTable *Level_GetEntityDefs (const Level *pLevel);
+// changed QD Actors
+const char *Level_GetActorsDirectory (const Level *pLevel);
+void Level_SetActorsDir(Level *pLevel, const char *NewActorsDir);
 
+const char *Level_GetPawnIniPath (const Level *pLevel);
+void Level_SetPawnIniPath (Level *pLevel, const char *PawnIni);
+
+void Level_SetShowActors(Level *pLevel, geBoolean Show);
+geBoolean Level_GetShowActors(const Level *pLevel);
+// end change
 #endif

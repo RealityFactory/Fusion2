@@ -20,7 +20,7 @@
 /****************************************************************************************/
 #include "FilePath.h"
 
-#pragma warning(disable : 4201 4214 4115 4514)
+#pragma warning(disable : 4201 4214 4115 4514 4711)
 #include <windows.h>
 #pragma warning(default : 4201 4214 4115)
 
@@ -189,6 +189,29 @@ geBoolean FilePath_AppendName
 
 	return GE_TRUE;
 }
+
+// changed QD 12/03
+geBoolean FilePath_ChangeName
+	(
+		char const *pPath,
+		char const *pName,
+		char *pDest
+	)
+{
+	char Drive[_MAX_PATH];
+	char Dir[_MAX_PATH];
+	char Name[_MAX_PATH];
+	char Ext[_MAX_PATH];
+
+	assert (pPath != NULL);
+	assert (pName != NULL);
+	assert (pDest != NULL);
+
+	_splitpath (pPath, Drive, Dir, Name, Ext);
+	_makepath (pDest, Drive, Dir, pName, Ext);
+	return GE_TRUE;
+}
+// end change
 
 // Search for a Filename in the semicolon-separated paths specified in SearchPath.
 // If found, returns GE_TRUE and the full path name of the file in FoundPath.

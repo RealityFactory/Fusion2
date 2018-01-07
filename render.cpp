@@ -21,9 +21,9 @@
 
 /*
 Code fragments from Chris Hecker's texture mapping articles used with
-permission.  http://www.d6.com/users/checker 
+permission.  http://www.d6.com/users/checker
 */
-
+#include <stdafx.h>
 #include "render.h"
 #include "node.h"
 #include "basetype.h"
@@ -95,7 +95,10 @@ typedef struct EdgeTag
 typedef struct RenderFaceTag
 {
 	int32		NumPoints;
-	geVec3d		Points[32];
+// changed QD 11/03
+// cylinders, cones ... can have faces with up to 64 points
+// 64 doesn't seem to be enough, the array must be exceeded somwhere!
+	geVec3d		Points[65];//Points[32];
 } RenderFace;
 
 geFloat Render_ComputeGridDist (const ViewVars *v, int GridType)
@@ -128,7 +131,7 @@ geFloat Render_ComputeGridDist (const ViewVars *v, int GridType)
 			#pragma message ("This function should not be called by non-ortho views.")
 #else
 			assert (0);
-#endif			
+#endif
 			break;
 	}
 
@@ -271,7 +274,7 @@ void	Render_SetViewType(ViewVars *v, const int vt)
 geFloat Render_NormalizeAngle (float Rads)
 {
 	geFloat NewAngle;
-	
+
 	// first make it in the range -2PI..2PI
 	NewAngle = (float)fmod (Rads, 2*M_PI);
 
@@ -280,7 +283,7 @@ geFloat Render_NormalizeAngle (float Rads)
 	{
 		NewAngle += 2*M_PI;
 	}
-	return NewAngle;	
+	return NewAngle;
 }
 
 void	Render_SetPitchRollYaw( ViewVars * v, const geVec3d * pPRY )
@@ -300,7 +303,7 @@ ViewVars	*Render_AllocViewVars(void)
 	ViewVars	*v;
 
 	v	=(ViewVars *) geRam_Allocate(sizeof(ViewVars));
-	
+
 //	if(!v)
 //		ConPrintf("WARNING:  Allocation failure in Render_AllocViewVars()\n");
 
@@ -398,7 +401,7 @@ void	Render_IncrementPitch(ViewVars *v, const geFloat PitchIncr)
 	geFloat NewPitch;
 
 	assert(v);
-	
+
 	//this would be a nice place to put a range validation
 	NewPitch = v->pitch + (v->MaxScreenScaleInv * PitchIncr);
 	if (NewPitch < (M_PI / 2))
@@ -654,7 +657,7 @@ void	Render_SetUpFrustum(ViewVars *v)
 	geVec3d_Normalize(&n);
 	Render_BackRotateVector(v, &n, &v->FrustPlanes[0].Normal);
 	v->FrustPlanes[0].Dist	=geVec3d_DotProduct(&v->CamPos, &v->FrustPlanes[0].Normal)+CLIP_PLANE_EPSILON;
-	
+
 	// Right clip plane
 	n.X	=-s;
 	geVec3d_Normalize(&n);
@@ -672,7 +675,7 @@ void	Render_SetUpFrustum(ViewVars *v)
 	geVec3d_Normalize(&n);
 	Render_BackRotateVector(v, &n, &v->FrustPlanes[2].Normal);
 	v->FrustPlanes[2].Dist	=geVec3d_DotProduct(&v->CamPos, &v->FrustPlanes[2].Normal)+CLIP_PLANE_EPSILON;
-	
+
 	// Top clip plane
 	n.Y	=-s;
 	geVec3d_Normalize(&n);
@@ -682,18 +685,26 @@ void	Render_SetUpFrustum(ViewVars *v)
 
 int ClipToPlane(RenderFace *pin, Plane *pplane, RenderFace *pout)
 {
-	int		i, j, nextvert, curin, nextin;
+	int		i, j, nextvert, curin, nextin, NumPoints; // changed QD 11/03
 	geFloat	curdot, nextdot, scale;
 	geVec3d	*pinvert, *poutvert;
-	
+
+// changed QD 11/03
+	NumPoints = pin->NumPoints;
+
+	if(NumPoints > 64)
+		return 0;
+// end change
 	pinvert	=pin->Points;
 	poutvert=pout->Points;
 	curdot	=geVec3d_DotProduct(&pin->Points[0], &pplane->Normal);
 	curin	=(curdot >= pplane->Dist);
 
-	for(i=0;i < pin->NumPoints;i++)
+// changed QD 11/03
+	for(i=0;i < NumPoints;i++)
 	{
-		nextvert=(i+1) % pin->NumPoints;
+		nextvert=(i+1)%NumPoints;
+// end change
 		if(curin)
 		{
 			geVec3d_Copy(pinvert, poutvert);
@@ -718,7 +729,7 @@ int ClipToPlane(RenderFace *pin, Plane *pplane, RenderFace *pout)
 		pinvert++;
 	}
 	pout->NumPoints=poutvert-pout->Points;
-	if(pout->NumPoints >= 32 || pout->NumPoints < 3)
+	if(pout->NumPoints > 64 || pout->NumPoints < 3) //>=32 // changed QD 11/03
 		return 0;
 	else
 		return 1;
@@ -970,7 +981,7 @@ static void Render_RenderOneBrushFace (ViewVars *Cam, RenderFace *pFace, uint32 
 	{
 		int	k				=(j+1) % pFace->NumPoints;
 
-		Render_Line 
+		Render_Line
 		(
 			Units_Round(Clipped.Points[j].X),
 			Units_Round(Clipped.Points[j].Y),
@@ -1101,7 +1112,7 @@ void	Render_3DTextureZBuffer(ViewVars *Cam, const geVec3d *pos, const geBitmap *
 	}
 	cpos	=Render_XFormVert(Cam, pos);
 	zval	=(uint32)(cpos.Z * FixedScale);
-	
+
 	sx	=(int)((x0 < 0.0f)? 0.0f : (x0 > Cam->Width)? Cam->Width : x0);
 	ex	=(int)((x1 < 0.0f)? 0.0f : (x1 > Cam->Width)? Cam->Width : x1);
 	sy	=(int)((y0 < 0.0f)? 0.0f : (y0 > Cam->Height)? Cam->Height : y0);
@@ -1234,7 +1245,7 @@ void	Render_3DTextureZBufferOutline(ViewVars *Cam, const geVec3d *pos, const geB
 	}
 	cpos	=Render_XFormVert(Cam, pos);
 	zval	=(uint32)(cpos.Z * FixedScale);
-	
+
 	sx	=(int)((x0 < 0.0f)? 0.0f : (x0 > Cam->Width)? Cam->Width : x0);
 	ex	=(int)((x1 < 0.0f)? 0.0f : (x1 > Cam->Width)? Cam->Width : x1);
 	sy	=(int)((y0 < 0.0f)? 0.0f : (y0 > Cam->Height)? Cam->Height : y0);
@@ -1347,7 +1358,7 @@ BOOL Render_PointInFrustum(ViewVars *Cam, geVec3d *v)
 
 geFloat Render_ViewDeltaToRadians
 (
-	const ViewVars *v, 
+	const ViewVars *v,
 	const float dx
 )
 {
@@ -1356,8 +1367,8 @@ geFloat Render_ViewDeltaToRadians
 
 void Render_ViewDeltaToRotation
 	(
-	  const ViewVars *v, 
-	  const float dx, 
+	  const ViewVars *v,
+	  const float dx,
 	  geVec3d *VecRotate
 	)
 {
@@ -1373,7 +1384,7 @@ void Render_ViewDeltaToRotation
 			geVec3d_Set (VecRotate, 0.0f, -RotationRads, 0.0f);
 			break;
 		case VIEWFRONT :  // +dx = negative rotation about Z
-			//disable roll 
+			//disable roll
 			geVec3d_Set (VecRotate, 0.0f, 0.0f, -RotationRads);
 			break;
 		case VIEWSIDE :	// +dx = positive rotation about X
@@ -1457,11 +1468,11 @@ void Render_ViewToWorld(const ViewVars *v, const int x, const int y, geVec3d *wp
 		}
 		default :
 		{
-			geVec3d_Set 
+			geVec3d_Set
 			(
 				wp,
-				-(x -v->XCenter)*(v->MaxScreenScaleInv), 
-				-(y -v->YCenter)*(v->MaxScreenScaleInv), 
+				-(x -v->XCenter)*(v->MaxScreenScaleInv),
+				-(y -v->YCenter)*(v->MaxScreenScaleInv),
 				1.0f
 			);
 			geVec3d_Normalize(wp);
@@ -1529,7 +1540,7 @@ void Render_RenderOrthoGridFromSize(ViewVars *v, geFloat Interval, HDC ViewDC)
 	Render_ViewToWorld(v, Units_Round(-Interval), Units_Round(-Interval), &Delt);
 	Render_ViewToWorld(v, Units_Round(v->Width+Interval), Units_Round(v->Height+Interval), &Delt2);
 
-	Box3d_Set 
+	Box3d_Set
 		(
 		  &ViewBox,
 		  Delt.X, Delt.Y, Delt.Z,
@@ -1695,7 +1706,7 @@ static void	Render_LineZBuffer(int xa, int ya, geFloat za,
 	int		g, r, c, inc1, inc2, f;
 	uint32	zai, dz, *tz;
 	uint16	*td;
-	
+
 	dy	=yb - ya;
 	if(dy==0)
 	{
@@ -2023,7 +2034,7 @@ static void	Render_Line(int xa, int ya,
 	short	pos;
 	int		g, r, c, inc1, inc2, f;
 	uint16	*td;
-	
+
 	dy	=yb - ya;
 	if(dy==0)
 	{
@@ -2394,7 +2405,7 @@ static void AddNodeEdges(Face *NodeFace,	//node face
 		height	=bottomy-topy;
 		if(height==0)
 			continue;	//doesn't cross any scan lines
-		
+
 		if(height < 0)	//leading edge
 		{
 			temp	=topy;
@@ -2405,7 +2416,7 @@ static void AddNodeEdges(Face *NodeFace,	//node face
 			deltax	= sf->Points[i].X -sf->Points[nextvert].X;
 			deltay	= sf->Points[i].Y -sf->Points[nextvert].Y;
 			slope	= deltax/deltay;
-			
+
 			pAvailEdge->xstep=(int)(slope * (geFloat)0x10000);
 			pAvailEdge->x=(int)((sf->Points[nextvert].X +
 				((geFloat)topy - sf->Points[nextvert].Y) * slope) * (geFloat)0x10000);
@@ -2764,7 +2775,7 @@ void SetFPU24(void)
 		fstcw	[OldFPUCW]		; store copy of CW
 		mov		ax, OldFPUCW	; get it in ax
 		and		eax,0xFFFFFCFF
-		mov		[FPUCW],ax		
+		mov		[FPUCW],ax
 		fldcw	[FPUCW]			; load the FPU
 	}
 }
@@ -2821,7 +2832,7 @@ static void DrawSpans(ViewVars *v, HDC ViewDC)
 				left.VOverZ		=sstemp->zinvv00 +
 					sstemp->Grads.dVOverZdX * (geFloat)sstemp->cur->x+
 					sstemp->zinvvstepy * (geFloat)sstemp->cur->y;
-				
+
 				right.OneOverZ	=sstemp->zinv00 +
 					sstemp->Grads.dOneOverZdX * (geFloat)(sstemp->cur->x+sstemp->cur->count)+
 					sstemp->zinvstepy * (geFloat)sstemp->cur->y;
@@ -2958,39 +2969,39 @@ static void DrawScanLineX_ZFill(SizeInfo *pSizeInfo,
 
 /* 11/25/2002 Wendell Buckner
     Create masks for this routine */
-	unsigned short ShiftTest = X;
+	unsigned short ShiftTest = (unsigned short)X;
 
-	ShiftRightCount = 0;
-	ShiftLeftCount = 0;
-	MaskW = X - 1;
+    ShiftRightCount = 0;
+    ShiftLeftCount = 0;
+    MaskW = X - 1;
 
 /* 11/25/2002 Wendell Buckner
  This is normally set to to 0xff because the highest item we could see was 256 this needs to increase because we are seeking higher resolutions... */
-	MaskX = MaskW;
+    MaskX = MaskW;
 
-	MaskY = (MaskW << 16) + 0xffff;
-	MaskZ =  0;
-//	MaskQ =  MaskW << 8;
+    MaskY = (MaskW << 16) + 0xffff;
+    MaskZ =  0;
+//  MaskQ =  MaskW << 8;
 
 
 /* 11/25/2002 Wendell Buckner
     Found out how much to shif left or right. */
 	while(ShiftTest)
 	{
-		ShiftTest <<= 1;
-		ShiftRightCount++;
+	 ShiftTest <<= 1;
+     ShiftRightCount++;
 	}
 
-	ShiftTest = X;
+	ShiftTest = (unsigned short)X;
 	while ( ShiftTest > 1 )
 	{
-		ShiftTest >>= 1;
-		ShiftLeftCount++;
+	 ShiftTest >>= 1;
+     ShiftLeftCount++;
 	}
 
-	MaskX <<= ShiftLeftCount;
+    MaskX <<= ShiftLeftCount;
 	MaskZ = MaskX;
-	MaskZ <<= 16;
+    MaskZ <<= 16;
 
 
 	eesi = 0;
@@ -3146,10 +3157,10 @@ SpanLoop256_ZFill:
 
 /* 11/25/2002 Wendell Buckner
     Use generic shift right count
-		shr		eax,8                          */
+	    shr		eax,8                          */
 		push	ecx
-		mov		ecx, [ShiftRightCount]
-		shr		eax, cl
+        mov     ecx, [ShiftRightCount]
+        shr     eax, cl
 		pop		ecx
 
 		mov		esi,pTex
@@ -3159,7 +3170,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		eax,0000ff00h     */
-		and		eax, [MaskX]
+        and		eax, [MaskX]
 
 		mov		ecx,[DeltaU]
 		mov		edx,[VFixed]
@@ -3169,7 +3180,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     Use generic masks
 		and		ebx,0ffh      */
-		and		ebx,[MaskW]
+        and     ebx,[MaskW]
 
 		mov		eax,[DeltaV]
 
@@ -3200,47 +3211,47 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi, 8                                                                 */
-		push	ecx
-		mov		ecx,  [ShiftLeftCount]
-		shld	eesi, esi, cl
-		shl		esi,  cl
-		pop		ecx
+        push    ecx
+		mov     ecx,  [ShiftLeftCount]
+		shld    eesi, esi, cl
+		shl     esi,  cl
+        pop     ecx
 
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh  */
-		and		ebx, [MaskY]
+		and     ebx, [MaskY]
 
 /* 11/25/2002 Wendell Buckner
     Use generic masks w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
 		and		esi,0ff000000h                                                        */
-		push	ecx
-		mov		ecx,  eesi
-		and		ecx,  dword ptr MaskZ[4]
-		mov		eesi, ecx
-		and		esi,  dword ptr MaskZ[0]
-		pop		ecx
+        push    ecx
+		mov     ecx,  eesi
+        and     ecx,  dword ptr MaskZ[4]
+		mov     eesi, ecx
+        and     esi,  dword ptr MaskZ[0]
+        pop     ecx
 
 /* 11/25/2002 Wendell Buckner
     Add registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
         add		esi,  ebx */
-		push	ecx
-		mov		ecx,  0
+		push    ecx
+		mov     ecx,  0
 		add		esi,  ebx
-		adc		eesi, ecx
-		pop		ecx
+		adc     eesi, ecx
+        pop     ecx
 
 		mov		[edi+0], ax				;write pixel
 
 /* 11/25/2002 Wendell Buckner
     Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
 		shr		esi,16                                                                     */
-		mov		eax,  eesi
-		mov		eesi, esi
+        mov     eax,  eesi
+		mov     eesi, esi
 		shrd	esi,  eax, 16
-		xchg	eesi, eax
-		shrd	eesi,  eax, 16
-		and		eesi, 0xffff
+		xchg    eesi, eax
+        shrd	eesi,  eax, 16
+        and     eesi, 0xffff
 
 		mov		eax, [DeltaW]
 
@@ -3260,18 +3271,18 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh  */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+2],ax				;write pixel
 
 /* 11/25/2002 Wendell Buckner
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi, 8                                                                 */
-		push	ecx
-		mov		ecx,  [ShiftLeftCount]
-		shld	eesi, esi, cl
-		shl		esi,  cl
-		pop		ecx
+        push    ecx
+		mov     ecx,  [ShiftLeftCount]
+        shld    eesi, esi, cl
+		shl     esi,  cl
+		pop     ecx
 
 		mov		eax, [DeltaW]
 
@@ -3281,12 +3292,12 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And /w registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
 		and		esi,0ff000000h                                                              */
-		push	ecx
-		mov		ecx,  eesi
-		and		ecx,  dword ptr MaskZ[4]
-		mov		eesi, ecx
-		and		esi,  dword ptr MaskZ[0]
-		pop		ecx
+        push    ecx
+		mov     ecx,  eesi
+        and     ecx,  dword ptr MaskZ[4]
+		mov     eesi, ecx
+        and     esi,  dword ptr MaskZ[0]
+        pop     ecx
 
 		mov		[ebp+8],eax
 
@@ -3296,12 +3307,12 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
 		shr		esi,16                                                                     */
-		mov		eax,  eesi
-		mov		eesi, esi
+        mov     eax,  eesi
+		mov     eesi, esi
 		shrd	esi,  eax, 16
-		xchg	eesi, eax
-		shrd	eesi,  eax, 16
-		and		eesi, 0xffff
+		xchg    eesi, eax
+        shrd	eesi,  eax, 16
+        and     eesi, 0xffff
 
 		add		ebx,ecx
 		add		esi,pTex
@@ -3313,17 +3324,17 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 		mov		[edi+4],ax				;write pixel
 
 /* 11/25/2002 Wendell Buckner
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi, 8                                                                 */
-		push	ecx
-		mov		ecx,  [ShiftLeftCount]
-		shld	eesi, esi, cl
-		shl		esi,  cl
-		pop		ecx
+        push    ecx
+		mov     ecx,  [ShiftLeftCount]
+        shld    eesi, esi, cl
+		shl     esi,  cl
+		pop     ecx
 
 		mov		eax, [DeltaW]
 
@@ -3372,7 +3383,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+6],ax				;write pixel
 
@@ -3381,7 +3392,7 @@ SpanLoop256_ZFill:
 		shl		esi,8                                                                   */
 		push	ecx
 		mov		ecx,  [ShiftLeftCount]
-		shld	eesi, esi, cl
+        shld    eesi, esi, cl
 		shl		esi,  cl
 		pop		ecx
 
@@ -3397,7 +3408,7 @@ SpanLoop256_ZFill:
 		mov		ecx,  eesi
 		and		ecx,  dword ptr MaskZ[4]
 		mov		eesi, ecx
-		and		esi,  dword ptr MaskZ[0]
+        and		esi,  dword ptr MaskZ[0]
 		pop		ecx
 
 		mov		[ebp+16],eax
@@ -3432,7 +3443,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+8],ax				;write pixel
 
@@ -3441,7 +3452,7 @@ SpanLoop256_ZFill:
 		shl		esi,8                                                                  */
 		push	ecx
 		mov		ecx,  [ShiftLeftCount]
-		shld	eesi, esi, cl
+        shld    eesi, esi, cl
 		shl		esi,  cl
 		pop		ecx
 
@@ -3492,7 +3503,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+10],ax				;write pixel
 
@@ -3500,9 +3511,9 @@ SpanLoop256_ZFill:
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi,8                                                                  */
 		push	ecx
-		mov		ecx,  [ShiftLeftCount]
+		mov     ecx,  [ShiftLeftCount]
 		shld	eesi, esi, cl
-		shl		esi,  cl
+        shl     esi,  cl
 		pop		ecx
 
 		mov		eax, [DeltaW]
@@ -3552,17 +3563,17 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+12],ax				;write pixel
 
 /* 11/25/2002 Wendell Buckner
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi,8                                                                  */
-		push	ecx
-		mov		ecx,  [ShiftLeftCount]
+        push	ecx
+    	mov     ecx,  [ShiftLeftCount]
 		shld	eesi, esi, cl
-		shl		esi,  cl
+		shl     esi,  cl
 		pop		ecx
 
 		mov		eax, [DeltaW]
@@ -3612,7 +3623,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+14],ax				;write pixel
 
@@ -3622,7 +3633,7 @@ SpanLoop256_ZFill:
 		push	ecx
 		mov     ecx,  [ShiftLeftCount]
 		shld	eesi, esi, cl
-		shl		esi,  cl
+        shl     esi,  cl
 		pop		ecx
 
 		mov		eax, [DeltaW]
@@ -3672,7 +3683,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+16],ax				;write pixel
 
@@ -3680,9 +3691,9 @@ SpanLoop256_ZFill:
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi,8                                                                  */
 		push	ecx
-		mov		ecx,  [ShiftLeftCount]
-		shld	eesi, esi, cl
-		shl		esi,  cl
+        mov     ecx,  [ShiftLeftCount]
+		shld    eesi, esi, cl
+		shl     esi,  cl
 		pop		ecx
 
 		mov		eax, [DeltaW]
@@ -3732,7 +3743,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+18],ax				;write pixel
 
@@ -3740,7 +3751,7 @@ SpanLoop256_ZFill:
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi,8                                                                  */
 		push	ecx
-		mov		ecx,  [ShiftLeftCount]
+        mov     ecx,  [ShiftLeftCount]
 		shld	eesi, esi, cl
 		shl     esi,  cl
 		pop		ecx
@@ -3776,7 +3787,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
 		shr		esi,16                                                                     */
-		mov		eax,  eesi
+        mov		eax,  eesi
 		mov		eesi, esi
 		shrd	esi,  eax, 16
 		xchg	eesi, eax
@@ -3792,7 +3803,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+20],ax				;write pixel
 
@@ -3800,9 +3811,9 @@ SpanLoop256_ZFill:
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi,8                                                                  */
 		push	ecx
-		mov		ecx,  [ShiftLeftCount]
+        mov     ecx,  [ShiftLeftCount]
 		shld	eesi, esi, cl
-		shl		esi,  cl
+		shl     esi,  cl
 		pop		ecx
 
 		mov		eax, [DeltaW]
@@ -3837,7 +3848,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
 		shr		esi,16                                                                      */
-		mov		eax,  eesi
+        mov		eax,  eesi
 		mov		eesi, esi
 		shrd	esi,  eax, 16
 		xchg	eesi, eax
@@ -3853,7 +3864,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+22],ax				;write pixel
 
@@ -3861,9 +3872,9 @@ SpanLoop256_ZFill:
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi,8                                                                  */
 		push	ecx
-		mov		ecx,  [ShiftLeftCount]
+		mov     ecx,  [ShiftLeftCount]
 		shld	eesi, esi, cl
-		shl		esi,  cl
+        shl     esi,  cl
 		pop		ecx
 
 		mov		eax, [DeltaW]
@@ -3897,7 +3908,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
 		shr		esi,16                                                                     */
-		mov		eax,  eesi
+        mov		eax,  eesi
 		mov		eesi, esi
 		shrd	esi,  eax, 16
 		xchg	eesi, eax
@@ -3913,7 +3924,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+24],ax				;write pixel
 
@@ -3921,9 +3932,9 @@ SpanLoop256_ZFill:
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi,8                                                                  */
 		push	ecx
-		mov		ecx,  [ShiftLeftCount]
+		mov     ecx,  [ShiftLeftCount]
 		shld	eesi, esi, cl
-		shl		esi,  cl
+        shl     esi,  cl
 		pop		ecx
 
 		mov		eax, [DeltaW]
@@ -3957,7 +3968,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
 		shr		esi,16                                                                     */
-		mov		eax,  eesi
+        mov		eax,  eesi
 		mov		eesi, esi
 		shrd	esi,  eax, 16
 		xchg	eesi, eax
@@ -3973,7 +3984,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+26],ax				;write pixel
 
@@ -3981,9 +3992,9 @@ SpanLoop256_ZFill:
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi,8                                                                   */
 		push	ecx
-		mov		ecx,  [ShiftLeftCount]
+		mov     ecx,  [ShiftLeftCount]
 		shld	eesi, esi, cl
-		shl		esi,  cl
+        shl     esi,  cl
 		pop		ecx
 
 		mov		eax, [DeltaW]
@@ -4017,7 +4028,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
 		shr		esi,16                                                                     */
-		mov		eax,  eesi
+        mov		eax,  eesi
 		mov		eesi, esi
 		shrd	esi,  eax, 16
 		xchg	eesi, eax
@@ -4033,7 +4044,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     And w/ generic masks
 		and		ebx,00ffffffh */
-		and		ebx, [MaskY]
+        and     ebx, [MaskY]
 
 		mov		[edi+28],ax				;write pixel
 
@@ -4041,9 +4052,9 @@ SpanLoop256_ZFill:
     Use generic left count w/ extended 64 psuedo register - 32-bit variable + register
 		shl		esi,8                                                                  */
 		push	ecx
-		mov		ecx,  [ShiftLeftCount]
+		mov     ecx,  [ShiftLeftCount]
 		shld	eesi, esi, cl
-		shl		esi,  cl
+        shl     esi,  cl
 		pop		ecx
 
 		mov		eax, [DeltaW]
@@ -4075,7 +4086,7 @@ SpanLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     Shift right registers  w/ a 64-bit psuedo register - 32-bit variable + 32-bit register
 		shr		esi,16                                                                     */
-		mov		eax,  eesi
+        mov		eax,  eesi
 		mov		eesi, esi
 		shrd	esi,  eax, 16
 		xchg	eesi, eax
@@ -4157,7 +4168,7 @@ HandleLeftoverPixels256_ZFill:
 		fxch	st(1)						; VR   UR   inv. inv. inv. dU   VL
 		fsubr	st(6),st					; VR   UR   inv. inv. inv. dU   dV
 		fxch	st(6)						; dV   UR   inv. inv. inv. dU   VR
-		fidiv	[RemainingCount]			; dv   UR   inv. inv. inv. dU   VR
+		fidiv   [RemainingCount]			; dv   UR   inv. inv. inv. dU   VR
 		fmul	[FixedScale]				; dv16 UR   inv. inv. inv. dU   VR
 		fistp	[DeltaV]					; UR   inv. inv. inv. dU   VR
 		fxch	st(4)						; dU   inv. inv. inv. UR   VR
@@ -4184,8 +4195,8 @@ LeftoverLoop256_ZFill:
     Use generic shift right count
 		shr		eax,8              */
 		push	ecx
-		mov		ecx, [ShiftRightCount]
-		shr		eax, cl
+		mov     ecx, [ShiftRightCount]
+        shr     eax, cl
 		pop		ecx
 
 		add		ebp,[WLeft]
@@ -4204,7 +4215,7 @@ LeftoverLoop256_ZFill:
 /* 11/25/2002 Wendell Buckner
     Use generic masks
 		and		edx,0ffh      */
-		and		edx, [MaskW]
+        and     edx, [MaskW]
 
 		add		eax,edx
 
@@ -4250,35 +4261,35 @@ void DrawScanLine256(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax,pSizeInfo
-		mov		esi,[eax]SizeInfo.ScreenData	
-		mov		ebx,pLeft				
-		mov		eax,[ebx]EdgeAsm.X		
-		mov		ecx,pRight				
-		mov		ecx,[ecx]EdgeAsm.X		
-		sub		ecx,eax					
-		jle		Return256				
+		mov		esi,[eax]SizeInfo.ScreenData
+		mov		ebx,pLeft
+		mov		eax,[ebx]EdgeAsm.X
+		mov		ecx,pRight
+		mov		ecx,[ecx]EdgeAsm.X
+		sub		ecx,eax
+		jle		Return256
 
 		mov		eax,pSizeInfo
 		mov		edi,[eax]SizeInfo.TexData
 		shr		edi, 1					; keep texture >>1
 		mov		pTex,edi
-		mov		edi,esi					
+		mov		edi,esi
 		mov		esi,[eax]SizeInfo.ScreenWidth
-		mov		edx,[ebx]EdgeAsm.Y		
+		mov		edx,[ebx]EdgeAsm.Y
 		shl		esi,1
-		imul	edx,esi					
+		imul	edx,esi
 		mov		eax,[ebx]EdgeAsm.X
 		shl		eax,1
-		add		edi,edx					
+		add		edi,edx
 		add		edi,eax
 
-		
-		mov		eax,ecx					
-		shr		ecx,4					
-		and		eax,15					
+
+		mov		eax,ecx
+		shr		ecx,4
+		and		eax,15
 		_emit 75h
 		_emit 06h						; short jump emit
-		dec		ecx						
+		dec		ecx
 		mov		eax,16
 
 		mov		[NumASpans],ecx
@@ -4292,13 +4303,13 @@ void DrawScanLine256(SizeInfo *pSizeInfo,
 
 										; st0  st1  st2  st3  st4  st5  st6  st7
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
-		fld		st						; ZL   ZL   1/ZL U/ZL V/ZL 
-		fmul	st,st(4)				; VL   ZL   1/ZL U/ZL V/ZL 
-		fxch	st(1)					; ZL   VL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
+		fld		st						; ZL   ZL   1/ZL U/ZL V/ZL
+		fmul	st,st(4)				; VL   ZL   1/ZL U/ZL V/ZL
+		fxch	st(1)					; ZL   VL   1/ZL U/ZL V/ZL
 		fmul	st,st(3)				; UL   VL   1/ZL U/ZL V/ZL
 
 		fstp	st(5)					; VL   1/ZL U/ZL V/ZL UL
@@ -4317,7 +4328,7 @@ void DrawScanLine256(SizeInfo *pSizeInfo,
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jz		HandleLeftoverPixels256
 
 SpanLoop256:
@@ -4386,7 +4397,7 @@ SpanLoop256:
 		and		esi,0ff000000h
 
 		add		esi,ebx
-		mov		[edi+0],ax				
+		mov		[edi+0],ax
 
 		shr		esi,16
 		add		edx,ebp
@@ -4398,7 +4409,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+2],ax				
+		mov		[edi+2],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4415,7 +4426,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+4],ax				
+		mov		[edi+4],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4432,7 +4443,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+6],ax				
+		mov		[edi+6],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4449,7 +4460,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+8],ax				
+		mov		[edi+8],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4466,7 +4477,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+10],ax				
+		mov		[edi+10],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4483,7 +4494,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+12],ax				
+		mov		[edi+12],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4500,7 +4511,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+14],ax				
+		mov		[edi+14],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4517,7 +4528,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+16],ax				
+		mov		[edi+16],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4534,7 +4545,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+18],ax				
+		mov		[edi+18],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4551,7 +4562,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+20],ax				
+		mov		[edi+20],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4568,7 +4579,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+22],ax				
+		mov		[edi+22],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4585,7 +4596,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+24],ax				
+		mov		[edi+24],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4602,7 +4613,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+26],ax				
+		mov		[edi+26],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4619,7 +4630,7 @@ SpanLoop256:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+28],ax				
+		mov		[edi+28],ax
 
 		shl		esi,8
 		add		edx,ebp
@@ -4636,26 +4647,26 @@ SpanLoop256:
 		mov		esi,edx
 
 		pop     ebp						; restore access to stack frame
-		mov		[edi+30],ax				
+		mov		[edi+30],ax
 
 		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(2)				; VR   ZR   V/ZR 1/ZR U/ZR UL   VL
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		add		edi,32					
-		dec		[NumASpans]			
-		jnz		SpanLoop256				
+		add		edi,32
+		dec		[NumASpans]
+		jnz		SpanLoop256
 
 HandleLeftoverPixels256:
 
 		mov		esi,pTex
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn256			
+		cmp		[RemainingCount],0
+		jz		FPUReturn256
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -4664,8 +4675,8 @@ HandleLeftoverPixels256:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan256			
+		dec		[RemainingCount]
+		jz		OnePixelSpan256
 
 		fstp	[geFloatTemp]				; inv. inv. inv. inv. UL   VL
 		fstp	[geFloatTemp]				; inv. inv. inv. UL   VL
@@ -4695,27 +4706,27 @@ HandleLeftoverPixels256:
 		fld		st(2)					; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan256:
-		mov		ebx,[UFixed]			
-		mov		ecx,[VFixed]			
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 
 LeftoverLoop256:
-		mov		eax,ecx					
-		sar		eax,8					
+		mov		eax,ecx
+		sar		eax,8
 		mov		edx,ebx
 		and		eax,0ff00h
-		sar		edx,16					
+		sar		edx,16
 		and		edx,0ffh
-		add		eax,edx					
+		add		eax,edx
 		add		eax,esi
-		mov		ax,[2*eax]				
-		mov		[edi],ax				
-		add		ebx,DeltaU				
+		mov		ax,[2*eax]
+		mov		[edi],ax
+		add		ebx,DeltaU
 		add		edi,2
-		add		ecx,DeltaV				
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop256			
+		dec		[RemainingCount]
+		jge		LeftoverLoop256
 
 FPUReturn256:
 		ffree	st(0)
@@ -4727,7 +4738,7 @@ FPUReturn256:
 		ffree	st(6)
 
 Return256:
-	}		
+	}
 }
 
 void DrawScanLine128(SizeInfo *pSizeInfo,
@@ -4738,34 +4749,34 @@ void DrawScanLine128(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax,pSizeInfo
-		mov		esi,[eax]SizeInfo.ScreenData	
-		mov		ebx,pLeft				
-		mov		eax,[ebx]EdgeAsm.X		
-		mov		ecx,pRight				
-		mov		ecx,[ecx]EdgeAsm.X		
-		sub		ecx,eax					
-		jle		Return128				
+		mov		esi,[eax]SizeInfo.ScreenData
+		mov		ebx,pLeft
+		mov		eax,[ebx]EdgeAsm.X
+		mov		ecx,pRight
+		mov		ecx,[ecx]EdgeAsm.X
+		sub		ecx,eax
+		jle		Return128
 
 		mov		eax,pSizeInfo
 		mov		edi,[eax]SizeInfo.TexData
 		shr		edi, 1					; keep texture >>1
 		mov		pTex,edi
-		mov		edi,esi					
+		mov		edi,esi
 		mov		esi,[eax]SizeInfo.ScreenWidth
-		mov		edx,[ebx]EdgeAsm.Y		
+		mov		edx,[ebx]EdgeAsm.Y
 		shl		esi,1
-		imul	edx,esi					
+		imul	edx,esi
 		mov		eax,[ebx]EdgeAsm.X
 		shl		eax,1
-		add		edi,edx					
+		add		edi,edx
 		add		edi,eax
 
-		mov		eax,ecx					
-		shr		ecx,4					
-		and		eax,15					
+		mov		eax,ecx
+		shr		ecx,4
+		and		eax,15
 		_emit 75h
 		_emit 06h						; short jump emit
-		dec		ecx						
+		dec		ecx
 		mov		eax,16
 
 		mov		[NumASpans],ecx
@@ -4778,13 +4789,13 @@ void DrawScanLine128(SizeInfo *pSizeInfo,
 		mov		edx,pGradients
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
-		fld		st						; ZL   ZL   1/ZL U/ZL V/ZL 
-		fmul	st,st(4)				; VL   ZL   1/ZL U/ZL V/ZL 
-		fxch	st(1)					; ZL   VL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
+		fld		st						; ZL   ZL   1/ZL U/ZL V/ZL
+		fmul	st,st(4)				; VL   ZL   1/ZL U/ZL V/ZL
+		fxch	st(1)					; ZL   VL   1/ZL U/ZL V/ZL
 		fmul	st,st(3)				; UL   VL   1/ZL U/ZL V/ZL
 
 		fstp	st(5)					; VL   1/ZL U/ZL V/ZL UL
@@ -4803,7 +4814,7 @@ void DrawScanLine128(SizeInfo *pSizeInfo,
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jz		HandleLeftoverPixels128
 
 SpanLoop128:
@@ -4872,7 +4883,7 @@ SpanLoop128:
 		and		esi,03f800000h
 
 		add		esi,ebx
-		mov		[edi+0],ax				
+		mov		[edi+0],ax
 
 		shr		esi,16
 		add		edx,ebp
@@ -4884,7 +4895,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+2],ax				
+		mov		[edi+2],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -4901,7 +4912,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+4],ax				
+		mov		[edi+4],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -4918,7 +4929,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+6],ax				
+		mov		[edi+6],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -4935,7 +4946,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+8],ax				
+		mov		[edi+8],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -4952,7 +4963,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+10],ax				
+		mov		[edi+10],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -4969,7 +4980,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+12],ax				
+		mov		[edi+12],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -4986,7 +4997,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+14],ax				
+		mov		[edi+14],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -5003,7 +5014,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+16],ax				
+		mov		[edi+16],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -5020,7 +5031,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+18],ax				
+		mov		[edi+18],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -5037,7 +5048,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+20],ax				
+		mov		[edi+20],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -5054,7 +5065,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+22],ax				
+		mov		[edi+22],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -5071,7 +5082,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+24],ax				
+		mov		[edi+24],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -5088,7 +5099,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+26],ax				
+		mov		[edi+26],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -5105,7 +5116,7 @@ SpanLoop128:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+28],ax				
+		mov		[edi+28],ax
 
 		shl		esi,7
 		add		edx,ebp
@@ -5122,26 +5133,26 @@ SpanLoop128:
 		mov		esi,edx
 
 		pop     ebp						; restore access to stack frame
-		mov		[edi+30],ax				
+		mov		[edi+30],ax
 
 		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(2)				; VR   ZR   V/ZR 1/ZR U/ZR UL   VL
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		add		edi,32					
-		dec		[NumASpans]			
-		jnz		SpanLoop128				
+		add		edi,32
+		dec		[NumASpans]
+		jnz		SpanLoop128
 
 HandleLeftoverPixels128:
 
 		mov		esi,pTex
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn128			
+		cmp		[RemainingCount],0
+		jz		FPUReturn128
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -5150,8 +5161,8 @@ HandleLeftoverPixels128:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan128			
+		dec		[RemainingCount]
+		jz		OnePixelSpan128
 
 		fstp	[geFloatTemp]				; inv. inv. inv. inv. UL   VL
 		fstp	[geFloatTemp]				; inv. inv. inv. UL   VL
@@ -5181,26 +5192,26 @@ HandleLeftoverPixels128:
 		fld		st(2)					; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan128:
-		mov		ebx,[UFixed]			
-		mov		ecx,[VFixed]			
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop128:
-		mov		eax,ecx					
-		shr		eax,9					
+		mov		eax,ecx
+		shr		eax,9
 		mov		edx,ebx
 		and		eax,03f80h
-		shr		edx,16					
+		shr		edx,16
 		and		edx,07fh
-		add		eax,edx					
+		add		eax,edx
 		add		eax,esi
-		mov		ax,[2*eax]				
-		mov		[edi],ax				
-		add		ebx,DeltaU				
+		mov		ax,[2*eax]
+		mov		[edi],ax
+		add		ebx,DeltaU
 		add		edi,2
-		add		ecx,DeltaV				
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop128			
+		dec		[RemainingCount]
+		jge		LeftoverLoop128
 
 FPUReturn128:
 		ffree	st(0)
@@ -5212,7 +5223,7 @@ FPUReturn128:
 		ffree	st(6)
 
 Return128:
-	}		
+	}
 }
 
 void DrawScanLine64(SizeInfo *pSizeInfo,
@@ -5223,34 +5234,34 @@ void DrawScanLine64(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax,pSizeInfo
-		mov		esi,[eax]SizeInfo.ScreenData	
-		mov		ebx,pLeft				
-		mov		eax,[ebx]EdgeAsm.X		
-		mov		ecx,pRight				
-		mov		ecx,[ecx]EdgeAsm.X		
-		sub		ecx,eax					
-		jle		Return64				
+		mov		esi,[eax]SizeInfo.ScreenData
+		mov		ebx,pLeft
+		mov		eax,[ebx]EdgeAsm.X
+		mov		ecx,pRight
+		mov		ecx,[ecx]EdgeAsm.X
+		sub		ecx,eax
+		jle		Return64
 
 		mov		eax,pSizeInfo
 		mov		edi,[eax]SizeInfo.TexData
 		shr		edi, 1					; keep texture >>1
 		mov		pTex,edi
-		mov		edi,esi					
+		mov		edi,esi
 		mov		esi,[eax]SizeInfo.ScreenWidth
-		mov		edx,[ebx]EdgeAsm.Y		
+		mov		edx,[ebx]EdgeAsm.Y
 		shl		esi,1
-		imul	edx,esi					
+		imul	edx,esi
 		mov		eax,[ebx]EdgeAsm.X
 		shl		eax,1
-		add		edi,edx					
+		add		edi,edx
 		add		edi,eax
 
-		mov		eax,ecx					
-		shr		ecx,4					
-		and		eax,15					
+		mov		eax,ecx
+		shr		ecx,4
+		and		eax,15
 		_emit 75h
 		_emit 06h						; short jump emit
-		dec		ecx						
+		dec		ecx
 		mov		eax,16
 
 		mov		[NumASpans],ecx
@@ -5263,13 +5274,13 @@ void DrawScanLine64(SizeInfo *pSizeInfo,
 		mov		edx,pGradients
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
-		fld		st						; ZL   ZL   1/ZL U/ZL V/ZL 
-		fmul	st,st(4)				; VL   ZL   1/ZL U/ZL V/ZL 
-		fxch	st(1)					; ZL   VL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
+		fld		st						; ZL   ZL   1/ZL U/ZL V/ZL
+		fmul	st,st(4)				; VL   ZL   1/ZL U/ZL V/ZL
+		fxch	st(1)					; ZL   VL   1/ZL U/ZL V/ZL
 		fmul	st,st(3)				; UL   VL   1/ZL U/ZL V/ZL
 
 		fstp	st(5)					; VL   1/ZL U/ZL V/ZL UL
@@ -5288,7 +5299,7 @@ void DrawScanLine64(SizeInfo *pSizeInfo,
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jz		HandleLeftoverPixels64
 
 SpanLoop64:
@@ -5346,7 +5357,7 @@ SpanLoop64:
 		mov		ebp,eax
 
 		add		edx,ebp
-		mov		ax,[2*esi]				
+		mov		ax,[2*esi]
 
 		mov		esi,edx
 		add		ebx,ecx
@@ -5357,7 +5368,7 @@ SpanLoop64:
 		and		esi,00fc00000h
 
 		add		esi,ebx
-		mov		[edi+0],ax				
+		mov		[edi+0],ax
 
 		shr		esi,16
 		add		edx,ebp
@@ -5369,24 +5380,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+2],ax				
-
-		shl		esi,6
-		add		edx,ebp
-
-		and		esi,00fc00000h
-
-		add		esi,ebx
-		shr		esi,16
-
-		add		ebx,ecx
-		add		esi,pTex
-
-		mov		ax,[2*esi]
-		mov		esi,edx
-
-		and		ebx,003fffffh
-		mov		[edi+4],ax				
+		mov		[edi+2],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5403,7 +5397,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+6],ax				
+		mov		[edi+4],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5420,7 +5414,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+8],ax				
+		mov		[edi+6],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5437,7 +5431,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+10],ax				
+		mov		[edi+8],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5454,7 +5448,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+12],ax				
+		mov		[edi+10],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5471,7 +5465,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+14],ax				
+		mov		[edi+12],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5488,7 +5482,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+16],ax				
+		mov		[edi+14],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5505,7 +5499,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+18],ax				
+		mov		[edi+16],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5522,7 +5516,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+20],ax				
+		mov		[edi+18],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5539,7 +5533,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+22],ax				
+		mov		[edi+20],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5556,7 +5550,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+24],ax				
+		mov		[edi+22],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5573,7 +5567,7 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+26],ax				
+		mov		[edi+24],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5590,7 +5584,24 @@ SpanLoop64:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+28],ax				
+		mov		[edi+26],ax
+
+		shl		esi,6
+		add		edx,ebp
+
+		and		esi,00fc00000h
+
+		add		esi,ebx
+		shr		esi,16
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]
+		mov		esi,edx
+
+		and		ebx,003fffffh
+		mov		[edi+28],ax
 
 		shl		esi,6
 		add		edx,ebp
@@ -5607,27 +5618,27 @@ SpanLoop64:
 		mov		esi,edx
 
 		pop     ebp						; restore access to stack frame
-		mov		[edi+30],ax				
+		mov		[edi+30],ax
 
 		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(2)				; VR   ZR   V/ZR 1/ZR U/ZR UL   VL
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		add		edi,32					
-		dec		[NumASpans]			
-		jnz		SpanLoop64				
+		add		edi,32
+		dec		[NumASpans]
+		jnz		SpanLoop64
 
 HandleLeftoverPixels64:
 
 		mov		esi,pTex
 
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn64			
+		cmp		[RemainingCount],0
+		jz		FPUReturn64
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -5636,8 +5647,8 @@ HandleLeftoverPixels64:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan64			
+		dec		[RemainingCount]
+		jz		OnePixelSpan64
 
 		fstp	[geFloatTemp]				; inv. inv. inv. inv. UL   VL
 		fstp	[geFloatTemp]				; inv. inv. inv. UL   VL
@@ -5667,26 +5678,26 @@ HandleLeftoverPixels64:
 		fld		st(2)					; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan64:
-		mov		ebx,[UFixed]			
-		mov		ecx,[VFixed]			
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop64:
-		mov		eax,ecx					
-		shr		eax,10					
+		mov		eax,ecx
+		shr		eax,10
 		mov		edx,ebx
 		and		eax,00fc0h
-		shr		edx,16					
+		shr		edx,16
 		and		edx,03fh
-		add		eax,edx					
+		add		eax,edx
 		add		eax,esi
-		mov		ax,[2*eax]				
-		mov		[edi],ax				
-		add		ebx,DeltaU				
+		mov		ax,[2*eax]
+		mov		[edi],ax
+		add		ebx,DeltaU
 		add		edi,2
-		add		ecx,DeltaV				
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop64			
+		dec		[RemainingCount]
+		jge		LeftoverLoop64
 
 FPUReturn64:
 		ffree	st(0)
@@ -5698,7 +5709,7 @@ FPUReturn64:
 		ffree	st(6)
 
 Return64:
-	}		
+	}
 }
 
 void DrawScanLine32(SizeInfo *pSizeInfo,
@@ -5709,34 +5720,34 @@ void DrawScanLine32(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax,pSizeInfo
-		mov		esi,[eax]SizeInfo.ScreenData	
-		mov		ebx,pLeft				
-		mov		eax,[ebx]EdgeAsm.X		
-		mov		ecx,pRight				
-		mov		ecx,[ecx]EdgeAsm.X		
-		sub		ecx,eax					
-		jle		Return32				
+		mov		esi,[eax]SizeInfo.ScreenData
+		mov		ebx,pLeft
+		mov		eax,[ebx]EdgeAsm.X
+		mov		ecx,pRight
+		mov		ecx,[ecx]EdgeAsm.X
+		sub		ecx,eax
+		jle		Return32
 
 		mov		eax,pSizeInfo
 		mov		edi,[eax]SizeInfo.TexData
 		shr		edi, 1					; keep texture >>1
 		mov		pTex,edi
-		mov		edi,esi					
+		mov		edi,esi
 		mov		esi,[eax]SizeInfo.ScreenWidth
-		mov		edx,[ebx]EdgeAsm.Y		
+		mov		edx,[ebx]EdgeAsm.Y
 		shl		esi,1
-		imul	edx,esi					
+		imul	edx,esi
 		mov		eax,[ebx]EdgeAsm.X
 		shl		eax,1
-		add		edi,edx					
+		add		edi,edx
 		add		edi,eax
 
-		mov		eax,ecx					
-		shr		ecx,4					
-		and		eax,15					
+		mov		eax,ecx
+		shr		ecx,4
+		and		eax,15
 		_emit 75h
 		_emit 06h						; short jump emit
-		dec		ecx						
+		dec		ecx
 		mov		eax,16
 
 		mov		[NumASpans],ecx
@@ -5749,13 +5760,13 @@ void DrawScanLine32(SizeInfo *pSizeInfo,
 		mov		edx,pGradients
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
-		fld		st						; ZL   ZL   1/ZL U/ZL V/ZL 
-		fmul	st,st(4)				; VL   ZL   1/ZL U/ZL V/ZL 
-		fxch	st(1)					; ZL   VL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
+		fld		st						; ZL   ZL   1/ZL U/ZL V/ZL
+		fmul	st,st(4)				; VL   ZL   1/ZL U/ZL V/ZL
+		fxch	st(1)					; ZL   VL   1/ZL U/ZL V/ZL
 		fmul	st,st(3)				; UL   VL   1/ZL U/ZL V/ZL
 
 		fstp	st(5)					; VL   1/ZL U/ZL V/ZL UL
@@ -5774,7 +5785,7 @@ void DrawScanLine32(SizeInfo *pSizeInfo,
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jz		HandleLeftoverPixels32
 
 SpanLoop32:
@@ -5832,7 +5843,7 @@ SpanLoop32:
 		mov		ebp,eax
 
 		add		edx,ebp
-		mov		ax,[2*esi]				
+		mov		ax,[2*esi]
 
 		mov		esi,edx
 		add		ebx,ecx
@@ -5843,7 +5854,7 @@ SpanLoop32:
 		and		esi,003e00000h
 
 		add		esi,ebx
-		mov		[edi+0],ax				
+		mov		[edi+0],ax
 
 		shr		esi,16
 		add		edx,ebp
@@ -5855,24 +5866,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+2],ax				
-
-		shl		esi,5
-		add		edx,ebp
-
-		and		esi,003e00000h
-
-		add		esi,ebx
-		shr		esi,16
-
-		add		ebx,ecx
-		add		esi,pTex
-
-		mov		ax,[2*esi]
-		mov		esi,edx
-
-		and		ebx,001fffffh
-		mov		[edi+4],ax				
+		mov		[edi+2],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -5889,7 +5883,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+6],ax				
+		mov		[edi+4],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -5906,7 +5900,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+8],ax				
+		mov		[edi+6],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -5923,7 +5917,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+10],ax				
+		mov		[edi+8],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -5940,7 +5934,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+12],ax				
+		mov		[edi+10],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -5957,7 +5951,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+14],ax				
+		mov		[edi+12],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -5974,7 +5968,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+16],ax				
+		mov		[edi+14],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -5991,7 +5985,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+18],ax				
+		mov		[edi+16],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -6008,7 +6002,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+20],ax				
+		mov		[edi+18],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -6025,7 +6019,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+22],ax				
+		mov		[edi+20],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -6042,7 +6036,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+24],ax				
+		mov		[edi+22],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -6059,7 +6053,7 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+26],ax				
+		mov		[edi+24],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -6076,7 +6070,24 @@ SpanLoop32:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+28],ax				
+		mov		[edi+26],ax
+
+		shl		esi,5
+		add		edx,ebp
+
+		and		esi,003e00000h
+
+		add		esi,ebx
+		shr		esi,16
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]
+		mov		esi,edx
+
+		and		ebx,001fffffh
+		mov		[edi+28],ax
 
 		shl		esi,5
 		add		edx,ebp
@@ -6093,26 +6104,26 @@ SpanLoop32:
 		mov		esi,edx
 
 		pop     ebp						; restore access to stack frame
-		mov		[edi+30],ax				
+		mov		[edi+30],ax
 
 		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(2)				; VR   ZR   V/ZR 1/ZR U/ZR UL   VL
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		add		edi,32					
-		dec		[NumASpans]			
-		jnz		SpanLoop32				
+		add		edi,32
+		dec		[NumASpans]
+		jnz		SpanLoop32
 
 HandleLeftoverPixels32:
 
 		mov		esi,pTex
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn32			
+		cmp		[RemainingCount],0
+		jz		FPUReturn32
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -6121,8 +6132,8 @@ HandleLeftoverPixels32:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan32			
+		dec		[RemainingCount]
+		jz		OnePixelSpan32
 
 		fstp	[geFloatTemp]				; inv. inv. inv. inv. UL   VL
 		fstp	[geFloatTemp]				; inv. inv. inv. UL   VL
@@ -6152,26 +6163,26 @@ HandleLeftoverPixels32:
 		fld		st(2)					; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan32:
-		mov		ebx,[UFixed]			
-		mov		ecx,[VFixed]			
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop32:
-		mov		eax,ecx					
-		shr		eax,11					
+		mov		eax,ecx
+		shr		eax,11
 		mov		edx,ebx
 		and		eax,003e0h
-		shr		edx,16					
+		shr		edx,16
 		and		edx,01fh
-		add		eax,edx					
+		add		eax,edx
 		add		eax,esi
-		mov		ax,[2*eax]				
-		mov		[edi],ax				
-		add		ebx,DeltaU				
+		mov		ax,[2*eax]
+		mov		[edi],ax
+		add		ebx,DeltaU
 		add		edi,2
-		add		ecx,DeltaV				
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop32			
+		dec		[RemainingCount]
+		jge		LeftoverLoop32
 
 FPUReturn32:
 		ffree	st(0)
@@ -6183,7 +6194,7 @@ FPUReturn32:
 		ffree	st(6)
 
 Return32:
-	}		
+	}
 }
 
 void DrawScanLine16(SizeInfo *pSizeInfo,
@@ -6194,34 +6205,34 @@ void DrawScanLine16(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax,pSizeInfo
-		mov		esi,[eax]SizeInfo.ScreenData	
-		mov		ebx,pLeft				
-		mov		eax,[ebx]EdgeAsm.X		
-		mov		ecx,pRight				
-		mov		ecx,[ecx]EdgeAsm.X		
-		sub		ecx,eax					
-		jle		Return16				
+		mov		esi,[eax]SizeInfo.ScreenData
+		mov		ebx,pLeft
+		mov		eax,[ebx]EdgeAsm.X
+		mov		ecx,pRight
+		mov		ecx,[ecx]EdgeAsm.X
+		sub		ecx,eax
+		jle		Return16
 
 		mov		eax,pSizeInfo
 		mov		edi,[eax]SizeInfo.TexData
 		shr		edi, 1					; keep texture >>1
 		mov		pTex,edi
-		mov		edi,esi					
+		mov		edi,esi
 		mov		esi,[eax]SizeInfo.ScreenWidth
-		mov		edx,[ebx]EdgeAsm.Y		
+		mov		edx,[ebx]EdgeAsm.Y
 		shl		esi,1
-		imul	edx,esi					
+		imul	edx,esi
 		mov		eax,[ebx]EdgeAsm.X
 		shl		eax,1
-		add		edi,edx					
+		add		edi,edx
 		add		edi,eax
 
-		mov		eax,ecx					
-		shr		ecx,4					
-		and		eax,15					
+		mov		eax,ecx
+		shr		ecx,4
+		and		eax,15
 		_emit 75h
 		_emit 06h						; short jump emit
-		dec		ecx						
+		dec		ecx
 		mov		eax,16
 
 		mov		[NumASpans],ecx
@@ -6234,13 +6245,13 @@ void DrawScanLine16(SizeInfo *pSizeInfo,
 		mov		edx,pGradients
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
-		fld		st						; ZL   ZL   1/ZL U/ZL V/ZL 
-		fmul	st,st(4)				; VL   ZL   1/ZL U/ZL V/ZL 
-		fxch	st(1)					; ZL   VL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
+		fld		st						; ZL   ZL   1/ZL U/ZL V/ZL
+		fmul	st,st(4)				; VL   ZL   1/ZL U/ZL V/ZL
+		fxch	st(1)					; ZL   VL   1/ZL U/ZL V/ZL
 		fmul	st,st(3)				; UL   VL   1/ZL U/ZL V/ZL
 
 		fstp	st(5)					; VL   1/ZL U/ZL V/ZL UL
@@ -6259,7 +6270,7 @@ void DrawScanLine16(SizeInfo *pSizeInfo,
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jz		HandleLeftoverPixels16
 
 SpanLoop16:
@@ -6317,7 +6328,7 @@ SpanLoop16:
 		mov		ebp,eax
 
 		add		edx,ebp
-		mov		ax,[2*esi]				
+		mov		ax,[2*esi]
 
 		mov		esi,edx
 		add		ebx,ecx
@@ -6328,7 +6339,7 @@ SpanLoop16:
 		and		esi,00f00000h
 
 		add		esi,ebx
-		mov		[edi+0],ax				
+		mov		[edi+0],ax
 
 		shr		esi,16
 		add		edx,ebp
@@ -6340,24 +6351,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+2],ax				
-
-		shl		esi,4
-		add		edx,ebp
-
-		and		esi,00f00000h
-
-		add		esi,ebx
-		shr		esi,16
-
-		add		ebx,ecx
-		add		esi,pTex
-
-		mov		ax,[2*esi]
-		mov		esi,edx
-
-		and		ebx,000fffffh
-		mov		[edi+4],ax				
+		mov		[edi+2],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6374,7 +6368,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+6],ax				
+		mov		[edi+4],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6391,7 +6385,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+8],ax				
+		mov		[edi+6],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6408,7 +6402,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+10],ax				
+		mov		[edi+8],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6425,7 +6419,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+12],ax				
+		mov		[edi+10],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6442,7 +6436,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+14],ax				
+		mov		[edi+12],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6459,7 +6453,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+16],ax				
+		mov		[edi+14],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6476,7 +6470,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+18],ax				
+		mov		[edi+16],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6493,7 +6487,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+20],ax				
+		mov		[edi+18],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6510,7 +6504,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+22],ax				
+		mov		[edi+20],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6527,7 +6521,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+24],ax				
+		mov		[edi+22],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6544,7 +6538,7 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+26],ax				
+		mov		[edi+24],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6561,7 +6555,24 @@ SpanLoop16:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+28],ax				
+		mov		[edi+26],ax
+
+		shl		esi,4
+		add		edx,ebp
+
+		and		esi,00f00000h
+
+		add		esi,ebx
+		shr		esi,16
+
+		add		ebx,ecx
+		add		esi,pTex
+
+		mov		ax,[2*esi]
+		mov		esi,edx
+
+		and		ebx,000fffffh
+		mov		[edi+28],ax
 
 		shl		esi,4
 		add		edx,ebp
@@ -6578,26 +6589,26 @@ SpanLoop16:
 		mov		esi,edx
 
 		pop     ebp						; restore access to stack frame
-		mov		[edi+30],ax				
+		mov		[edi+30],ax
 
 		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(2)				; VR   ZR   V/ZR 1/ZR U/ZR UL   VL
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		add		edi,32					
-		dec		[NumASpans]			
-		jnz		SpanLoop16				
+		add		edi,32
+		dec		[NumASpans]
+		jnz		SpanLoop16
 
 HandleLeftoverPixels16:
 
 		mov		esi,pTex
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn16			
+		cmp		[RemainingCount],0
+		jz		FPUReturn16
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -6606,8 +6617,8 @@ HandleLeftoverPixels16:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan16			
+		dec		[RemainingCount]
+		jz		OnePixelSpan16
 
 		fstp	[geFloatTemp]				; inv. inv. inv. inv. UL   VL
 		fstp	[geFloatTemp]				; inv. inv. inv. UL   VL
@@ -6637,26 +6648,26 @@ HandleLeftoverPixels16:
 		fld		st(2)					; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan16:
-		mov		ebx,[UFixed]			
-		mov		ecx,[VFixed]			
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop16:
-		mov		eax,ecx					
-		shr		eax,12					
+		mov		eax,ecx
+		shr		eax,12
 		mov		edx,ebx
 		and		eax,0f0h
-		shr		edx,16					
+		shr		edx,16
 		and		edx,0fh
-		add		eax,edx					
+		add		eax,edx
 		add		eax,esi
-		mov		ax,[2*eax]				
-		mov		[edi],ax				
-		add		ebx,DeltaU				
+		mov		ax,[2*eax]
+		mov		[edi],ax
+		add		ebx,DeltaU
 		add		edi,2
-		add		ecx,DeltaV				
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop16			
+		dec		[RemainingCount]
+		jge		LeftoverLoop16
 
 FPUReturn16:
 		ffree	st(0)
@@ -6668,7 +6679,7 @@ FPUReturn16:
 		ffree	st(6)
 
 Return16:
-	}		
+	}
 }
 
 static void DrawScanLine256_ZFill(SizeInfo *pSizeInfo,
@@ -6679,26 +6690,26 @@ static void DrawScanLine256_ZFill(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax, pSizeInfo
-		mov		esi, [eax]SizeInfo.ScreenData	
-		mov		ebx, pLeft						
-		mov		eax, [ebx]EdgeAsm.X				
-		mov		ecx, pRight						
-		mov		ecx, [ecx]EdgeAsm.X				
-		sub		ecx, eax						
-		jle		Return256_ZFill						
+		mov		esi, [eax]SizeInfo.ScreenData
+		mov		ebx, pLeft
+		mov		eax, [ebx]EdgeAsm.X
+		mov		ecx, pRight
+		mov		ecx, [ecx]EdgeAsm.X
+		sub		ecx, eax
+		jle		Return256_ZFill
 
 		mov		eax, pSizeInfo
 		mov		edi, [eax]SizeInfo.TexData		; current texture
 		shr		edi, 1
 		mov		pTex, edi
-		mov		edi, esi						
+		mov		edi, esi
 		mov		esi, [eax]SizeInfo.ScreenWidth
-		mov		edx, [ebx]EdgeAsm.Y				
+		mov		edx, [ebx]EdgeAsm.Y
 		shl		esi, 1
 		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
-		imul	edx, esi						
+		imul	edx, esi
 		mov		ebx, [ebx]EdgeAsm.X
-		add		edi, edx						
+		add		edi, edx
 		shl		ebx, 1
 		add		edx, ebx
 		add		edi, ebx						; add in x start offset
@@ -6707,22 +6718,22 @@ static void DrawScanLine256_ZFill(SizeInfo *pSizeInfo,
 		mov		pZBuf, edx
 
 
-		mov		eax, ecx						
-		shr		ecx, 4							
-		and		eax, 15							
+		mov		eax, ecx
+		shr		ecx, 4
+		and		eax, 15
 		_emit 75h								; short jump 6 bytes
 		_emit 06h								; jnz any leftover?
-		dec		ecx								
+		dec		ecx
 		mov		eax, 16
 
 		mov		ebx, pLeft
 												; start first fdiv cooking
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
 
 		mov		[NumASpans],ecx
 		mov		[RemainingCount],eax
@@ -6764,9 +6775,9 @@ static void DrawScanLine256_ZFill(SizeInfo *pSizeInfo,
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jnz		SpanLoop256_ZFill		; grab wleft for leftover loop
-										
+
 
 //		fld		st(3)					; 1/ZL UR   VR   V/ZR 1/ZR U/ZR UL   VL
 //		fmul	[FixedScale16]			; W32  UR   VR   V/ZR 1/ZR U/ZR UL   VL
@@ -6847,7 +6858,7 @@ SpanLoop256_ZFill:
 
 		mov		[ebp+0],eax
 
-		mov		ax,[2*esi]				
+		mov		ax,[2*esi]
 
 		mov		esi,edx
 		add		ebx,ecx
@@ -6858,7 +6869,7 @@ SpanLoop256_ZFill:
 		and		esi,0ff000000h
 
 		add		esi,ebx
-		mov		[edi+0],ax				
+		mov		[edi+0],ax
 
 		shr		esi,16
 		mov		eax, [DeltaW]
@@ -6877,7 +6888,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+2],ax				
+		mov		[edi+2],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -6900,7 +6911,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+4],ax				
+		mov		[edi+4],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -6923,7 +6934,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+6],ax				
+		mov		[edi+6],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -6946,7 +6957,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+8],ax				
+		mov		[edi+8],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -6969,7 +6980,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+10],ax				
+		mov		[edi+10],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -6992,7 +7003,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+12],ax				
+		mov		[edi+12],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -7015,7 +7026,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+14],ax				
+		mov		[edi+14],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -7038,7 +7049,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+16],ax				
+		mov		[edi+16],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -7061,7 +7072,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+18],ax				
+		mov		[edi+18],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -7084,7 +7095,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+20],ax				
+		mov		[edi+20],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -7107,7 +7118,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+22],ax				
+		mov		[edi+22],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -7130,7 +7141,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+24],ax				
+		mov		[edi+24],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -7153,7 +7164,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+26],ax				
+		mov		[edi+26],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -7176,7 +7187,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		and		ebx,00ffffffh
-		mov		[edi+28],ax				
+		mov		[edi+28],ax
 
 		shl		esi,8
 		mov		eax, [DeltaW]
@@ -7199,7 +7210,7 @@ SpanLoop256_ZFill:
 		mov		esi,edx
 
 		pop     ebp						; restore access to stack frame
-		mov		[edi+30],ax				
+		mov		[edi+30],ax
 
 		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
 
@@ -7217,22 +7228,22 @@ SpanLoop256_ZFill:
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 		mov		ecx,pZBuf
-		add		edi,32					
+		add		edi,32
 
 		add		ecx,64
 		mov		pZBuf,ecx
-		dec		[NumASpans]			
-		jnz		SpanLoop256_ZFill		
+		dec		[NumASpans]
+		jnz		SpanLoop256_ZFill
 
 HandleLeftoverPixels256_ZFill:
 
 		mov		esi,pTex
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn256_ZFill			
+		cmp		[RemainingCount],0
+		jz		FPUReturn256_ZFill
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -7241,8 +7252,8 @@ HandleLeftoverPixels256_ZFill:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan256_ZFill			
+		dec		[RemainingCount]
+		jz		OnePixelSpan256_ZFill
 
 		mov		eax,[WRight]
 		sub		eax,[WLeft]
@@ -7277,34 +7288,34 @@ HandleLeftoverPixels256_ZFill:
 		fld		st(2)						; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan256_ZFill:
-		mov		ebx,[UFixed]				
-		mov		ecx,[VFixed]				
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop256_ZFill:
 		push	ebp
-		mov		eax,ecx					
+		mov		eax,ecx
 
 		mov		ebp,[DeltaW]
 
-		shr		eax,8					
+		shr		eax,8
 		add		ebp,[WLeft]
 
 		mov		edx,ebx
 		and		eax,0ff00h
 
-		shr		edx,16					
+		shr		edx,16
 		mov		[WLeft],ebp
 
 		and		edx,0ffh
-		add		eax,edx					
+		add		eax,edx
 
 		add		eax,esi
 
 		mov		edx,pZBuf
-		mov		ax,[2*eax]			
+		mov		ax,[2*eax]
 
 		mov		[edx],ebp
-		mov		[edi],ax				
+		mov		[edi],ax
 
 		pop		ebp
 		add		edx,4
@@ -7312,11 +7323,11 @@ LeftoverLoop256_ZFill:
 		add		edi,2
 		mov		pZBuf,edx
 
-		add		ebx,DeltaU				
-		add		ecx,DeltaV				
+		add		ebx,DeltaU
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop256_ZFill			
+		dec		[RemainingCount]
+		jge		LeftoverLoop256_ZFill
 
 FPUReturn256_ZFill:
 		ffree	st(0)
@@ -7328,7 +7339,7 @@ FPUReturn256_ZFill:
 		ffree	st(6)
 
 Return256_ZFill:
-	}		
+	}
 }
 
 static void DrawScanLine128_ZFill(SizeInfo *pSizeInfo,
@@ -7339,26 +7350,26 @@ static void DrawScanLine128_ZFill(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax,pSizeInfo
-		mov		esi,[eax]SizeInfo.ScreenData	
-		mov		ebx,pLeft				
-		mov		eax,[ebx]EdgeAsm.X		
-		mov		ecx,pRight				
-		mov		ecx,[ecx]EdgeAsm.X		
-		sub		ecx,eax					
-		jle		Return128_ZFill			
+		mov		esi,[eax]SizeInfo.ScreenData
+		mov		ebx,pLeft
+		mov		eax,[ebx]EdgeAsm.X
+		mov		ecx,pRight
+		mov		ecx,[ecx]EdgeAsm.X
+		sub		ecx,eax
+		jle		Return128_ZFill
 
 		mov		eax, pSizeInfo
 		mov		edi, [eax]SizeInfo.TexData		; current texture
 		shr		edi, 1
 		mov		pTex, edi
-		mov		edi, esi						
+		mov		edi, esi
 		mov		esi, [eax]SizeInfo.ScreenWidth
-		mov		edx, [ebx]EdgeAsm.Y				
+		mov		edx, [ebx]EdgeAsm.Y
 		shl		esi, 1
 		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
-		imul	edx, esi						
+		imul	edx, esi
 		mov		ebx, [ebx]EdgeAsm.X
-		add		edi, edx						
+		add		edi, edx
 		shl		ebx, 1
 		add		edx, ebx
 		add		edi, ebx						; add in x start offset
@@ -7366,21 +7377,21 @@ static void DrawScanLine128_ZFill(SizeInfo *pSizeInfo,
 		add		edx, eax
 		mov		pZBuf, edx
 
-		mov		eax,ecx					
-		shr		ecx,4					
-		and		eax,15					
+		mov		eax,ecx
+		shr		ecx,4
+		and		eax,15
 		_emit 75h
 		_emit 06h						; short jump emit
-		dec		ecx						
+		dec		ecx
 		mov		eax,16
 
 		mov		ebx, pLeft
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
 
 		mov		[NumASpans],ecx
 		mov		[RemainingCount],eax
@@ -7418,9 +7429,9 @@ static void DrawScanLine128_ZFill(SizeInfo *pSizeInfo,
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jnz		SpanLoop128_ZFill		; grab wleft for leftover loop
-										
+
 		jmp		HandleLeftoverPixels128_ZFill
 
 SpanLoop128_ZFill:
@@ -7493,7 +7504,7 @@ SpanLoop128_ZFill:
 
 		mov		[ebp+0], eax
 
-		mov		ax,[2*esi]				
+		mov		ax,[2*esi]
 
 		mov		esi,edx
 		add		ebx,ecx
@@ -7504,7 +7515,7 @@ SpanLoop128_ZFill:
 		and		esi,03f800000h
 
 		add		esi,ebx
-		mov		[edi+0],ax				
+		mov		[edi+0],ax
 
 		shr		esi,16
 		mov		eax, [DeltaW]
@@ -7523,7 +7534,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+2],ax				
+		mov		[edi+2],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7546,7 +7557,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+4],ax				
+		mov		[edi+4],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7569,7 +7580,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+6],ax				
+		mov		[edi+6],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7592,7 +7603,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+8],ax				
+		mov		[edi+8],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7615,7 +7626,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+10],ax				
+		mov		[edi+10],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7638,7 +7649,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+12],ax				
+		mov		[edi+12],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7661,7 +7672,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+14],ax				
+		mov		[edi+14],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7684,7 +7695,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+16],ax				
+		mov		[edi+16],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7707,7 +7718,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+18],ax				
+		mov		[edi+18],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7730,7 +7741,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+20],ax				
+		mov		[edi+20],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7753,7 +7764,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+22],ax				
+		mov		[edi+22],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7776,7 +7787,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+24],ax				
+		mov		[edi+24],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7799,7 +7810,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+26],ax				
+		mov		[edi+26],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7822,7 +7833,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		and		ebx,007fffffh
-		mov		[edi+28],ax				
+		mov		[edi+28],ax
 
 		shl		esi,7
 		mov		eax, [DeltaW]
@@ -7845,7 +7856,7 @@ SpanLoop128_ZFill:
 		mov		esi,edx
 
 		pop     ebp						; restore access to stack frame
-		mov		[edi+30],ax				
+		mov		[edi+30],ax
 
 		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
 
@@ -7863,22 +7874,22 @@ SpanLoop128_ZFill:
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 		mov		ecx,pZBuf
-		add		edi,32					
+		add		edi,32
 
 		add		ecx,64
 		mov		pZBuf,ecx
-		dec		[NumASpans]			
-		jnz		SpanLoop128_ZFill				
+		dec		[NumASpans]
+		jnz		SpanLoop128_ZFill
 
 HandleLeftoverPixels128_ZFill:
 
 		mov		esi,pTex
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn128_ZFill		
+		cmp		[RemainingCount],0
+		jz		FPUReturn128_ZFill
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -7887,8 +7898,8 @@ HandleLeftoverPixels128_ZFill:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan128_ZFill	
+		dec		[RemainingCount]
+		jz		OnePixelSpan128_ZFill
 
 		mov		eax,[WRight]
 		sub		eax,[WLeft]
@@ -7923,34 +7934,34 @@ HandleLeftoverPixels128_ZFill:
 		fld		st(2)						; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan128_ZFill:
-		mov		ebx,[UFixed]				
-		mov		ecx,[VFixed]				
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop128_ZFill:
 		push	ebp
-		mov		eax,ecx					
+		mov		eax,ecx
 
 		mov		ebp,[DeltaW]
 
-		shr		eax,9					
+		shr		eax,9
 		add		ebp,[WLeft]
 
 		mov		edx,ebx
 		and		eax,03f80h
 
-		shr		edx,16					
+		shr		edx,16
 		mov		[WLeft],ebp
 
 		and		edx,07fh
-		add		eax,edx					
+		add		eax,edx
 
 		add		eax,esi
 
 		mov		edx,pZBuf
-		mov		ax,[2*eax]			
+		mov		ax,[2*eax]
 
 		mov		[edx],ebp
-		mov		[edi],ax				
+		mov		[edi],ax
 
 		pop		ebp
 		add		edx,4
@@ -7958,11 +7969,11 @@ LeftoverLoop128_ZFill:
 		add		edi,2
 		mov		pZBuf,edx
 
-		add		ebx,DeltaU				
-		add		ecx,DeltaV				
+		add		ebx,DeltaU
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop128_ZFill	
+		dec		[RemainingCount]
+		jge		LeftoverLoop128_ZFill
 
 FPUReturn128_ZFill:
 		ffree	st(0)
@@ -7974,7 +7985,7 @@ FPUReturn128_ZFill:
 		ffree	st(6)
 
 Return128_ZFill:
-	}		
+	}
 }
 
 static void DrawScanLine64_ZFill(SizeInfo *pSizeInfo,
@@ -7985,26 +7996,26 @@ static void DrawScanLine64_ZFill(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax,pSizeInfo
-		mov		esi,[eax]SizeInfo.ScreenData	
-		mov		ebx,pLeft				
-		mov		eax,[ebx]EdgeAsm.X		
-		mov		ecx,pRight				
-		mov		ecx,[ecx]EdgeAsm.X		
-		sub		ecx,eax					
-		jle		Return64_ZFill				
+		mov		esi,[eax]SizeInfo.ScreenData
+		mov		ebx,pLeft
+		mov		eax,[ebx]EdgeAsm.X
+		mov		ecx,pRight
+		mov		ecx,[ecx]EdgeAsm.X
+		sub		ecx,eax
+		jle		Return64_ZFill
 
 		mov		eax, pSizeInfo
 		mov		edi, [eax]SizeInfo.TexData		; current texture
 		shr		edi, 1
 		mov		pTex, edi
-		mov		edi, esi						
+		mov		edi, esi
 		mov		esi, [eax]SizeInfo.ScreenWidth
-		mov		edx, [ebx]EdgeAsm.Y				
+		mov		edx, [ebx]EdgeAsm.Y
 		shl		esi, 1
 		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
-		imul	edx, esi						
+		imul	edx, esi
 		mov		ebx, [ebx]EdgeAsm.X
-		add		edi, edx						
+		add		edi, edx
 		shl		ebx, 1
 		add		edx, ebx
 		add		edi, ebx						; add in x start offset
@@ -8012,22 +8023,22 @@ static void DrawScanLine64_ZFill(SizeInfo *pSizeInfo,
 		add		edx, eax
 		mov		pZBuf, edx
 
-		mov		eax,ecx					
-		shr		ecx,4					
-		and		eax,15					
+		mov		eax,ecx
+		shr		ecx,4
+		and		eax,15
 		_emit 75h
 		_emit 06h						; jnz @f any leftover?
-		dec		ecx						
-		mov		eax,16					
+		dec		ecx
+		mov		eax,16
 
 		mov		ebx, pLeft
 												; start first fdiv cooking
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
 
 		mov		[NumASpans],ecx
 		mov		[RemainingCount],eax
@@ -8065,9 +8076,9 @@ static void DrawScanLine64_ZFill(SizeInfo *pSizeInfo,
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jnz		SpanLoop64_ZFill		; grab wleft for leftover loop
-										
+
 		jmp		HandleLeftoverPixels64_ZFill
 
 SpanLoop64_ZFill:
@@ -8139,7 +8150,7 @@ SpanLoop64_ZFill:
 
 		mov		[ebp+0],eax
 
-		mov		ax,[2*esi]				
+		mov		ax,[2*esi]
 
 		mov		esi,edx
 		add		ebx,ecx
@@ -8150,7 +8161,7 @@ SpanLoop64_ZFill:
 		and		esi,00fc00000h
 
 		add		esi,ebx
-		mov		[edi+0],ax				
+		mov		[edi+0],ax
 
 		shr		esi,16
 		mov		eax, [DeltaW]
@@ -8169,7 +8180,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+2],ax				
+		mov		[edi+2],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8192,7 +8203,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+4],ax				
+		mov		[edi+4],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8215,7 +8226,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+6],ax				
+		mov		[edi+6],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8238,7 +8249,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+8],ax				
+		mov		[edi+8],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8261,7 +8272,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+10],ax				
+		mov		[edi+10],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8284,7 +8295,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+12],ax				
+		mov		[edi+12],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8307,7 +8318,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+14],ax				
+		mov		[edi+14],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8330,7 +8341,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+16],ax				
+		mov		[edi+16],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8353,7 +8364,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+18],ax				
+		mov		[edi+18],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8376,7 +8387,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+20],ax				
+		mov		[edi+20],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8399,7 +8410,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+22],ax				
+		mov		[edi+22],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8422,7 +8433,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+24],ax				
+		mov		[edi+24],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8445,7 +8456,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+26],ax				
+		mov		[edi+26],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8468,7 +8479,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		and		ebx,003fffffh
-		mov		[edi+28],ax				
+		mov		[edi+28],ax
 
 		shl		esi,6
 		mov		eax, [DeltaW]
@@ -8491,7 +8502,7 @@ SpanLoop64_ZFill:
 		mov		esi,edx
 
 		pop     ebp						; restore access to stack frame
-		mov		[edi+30],ax				
+		mov		[edi+30],ax
 
 		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
 
@@ -8509,22 +8520,22 @@ SpanLoop64_ZFill:
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 		mov		ecx,pZBuf
-		add		edi,32					
+		add		edi,32
 
 		add		ecx,64
 		mov		pZBuf,ecx
-		dec		[NumASpans]			
-		jnz		SpanLoop64_ZFill				
+		dec		[NumASpans]
+		jnz		SpanLoop64_ZFill
 
 HandleLeftoverPixels64_ZFill:
 
 		mov		esi,pTex
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn64_ZFill			
+		cmp		[RemainingCount],0
+		jz		FPUReturn64_ZFill
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -8533,8 +8544,8 @@ HandleLeftoverPixels64_ZFill:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan64_ZFill			
+		dec		[RemainingCount]
+		jz		OnePixelSpan64_ZFill
 
 		mov		eax,[WRight]
 		sub		eax,[WLeft]
@@ -8569,34 +8580,34 @@ HandleLeftoverPixels64_ZFill:
 		fld		st(2)					; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan64_ZFill:
-		mov		ebx,[UFixed]			
-		mov		ecx,[VFixed]			
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop64_ZFill:
 		push	ebp
-		mov		eax,ecx					
+		mov		eax,ecx
 
 		mov		ebp,[DeltaW]
 
-		shr		eax,10					
+		shr		eax,10
 		add		ebp,[WLeft]
 
 		mov		edx,ebx
 		and		eax,00fc0h
 
-		shr		edx,16					
+		shr		edx,16
 		mov		[WLeft],ebp
 
 		and		edx,03fh
-		add		eax,edx					
+		add		eax,edx
 
 		add		eax,esi
 
 		mov		edx,pZBuf
-		mov		ax,[2*eax]			
+		mov		ax,[2*eax]
 
 		mov		[edx],ebp
-		mov		[edi],ax				
+		mov		[edi],ax
 
 		pop		ebp
 		add		edx,4
@@ -8604,11 +8615,11 @@ LeftoverLoop64_ZFill:
 		add		edi,2
 		mov		pZBuf,edx
 
-		add		ebx,DeltaU				
-		add		ecx,DeltaV				
+		add		ebx,DeltaU
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop64_ZFill			
+		dec		[RemainingCount]
+		jge		LeftoverLoop64_ZFill
 
 FPUReturn64_ZFill:
 		ffree	st(0)
@@ -8620,7 +8631,7 @@ FPUReturn64_ZFill:
 		ffree	st(6)
 
 Return64_ZFill:
-	}		
+	}
 }
 
 static void DrawScanLine32_ZFill(SizeInfo *pSizeInfo,
@@ -8631,26 +8642,26 @@ static void DrawScanLine32_ZFill(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax,pSizeInfo
-		mov		esi,[eax]SizeInfo.ScreenData	
-		mov		ebx,pLeft				
-		mov		eax,[ebx]EdgeAsm.X		
-		mov		ecx,pRight				
-		mov		ecx,[ecx]EdgeAsm.X		
-		sub		ecx,eax					
-		jle		Return32_ZFill				
+		mov		esi,[eax]SizeInfo.ScreenData
+		mov		ebx,pLeft
+		mov		eax,[ebx]EdgeAsm.X
+		mov		ecx,pRight
+		mov		ecx,[ecx]EdgeAsm.X
+		sub		ecx,eax
+		jle		Return32_ZFill
 
 		mov		eax, pSizeInfo
 		mov		edi, [eax]SizeInfo.TexData		; current texture
 		shr		edi, 1
 		mov		pTex, edi
-		mov		edi, esi						
+		mov		edi, esi
 		mov		esi, [eax]SizeInfo.ScreenWidth
-		mov		edx, [ebx]EdgeAsm.Y				
+		mov		edx, [ebx]EdgeAsm.Y
 		shl		esi, 1
 		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
-		imul	edx, esi						
+		imul	edx, esi
 		mov		ebx, [ebx]EdgeAsm.X
-		add		edi, edx						
+		add		edi, edx
 		shl		ebx, 1
 		add		edx, ebx
 		add		edi, ebx						; add in x start offset
@@ -8658,22 +8669,22 @@ static void DrawScanLine32_ZFill(SizeInfo *pSizeInfo,
 		add		edx, eax
 		mov		pZBuf, edx
 
-		mov		eax,ecx					
-		shr		ecx,4					
-		and		eax,15					
+		mov		eax,ecx
+		shr		ecx,4
+		and		eax,15
 		_emit 75h
 		_emit 06h						; jnz @f any leftover?
-		dec		ecx						
-		mov		eax,16					
+		dec		ecx
+		mov		eax,16
 
 		mov		ebx, pLeft
 												; start first fdiv cooking
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
 
 		mov		[NumASpans],ecx
 		mov		[RemainingCount],eax
@@ -8711,7 +8722,7 @@ static void DrawScanLine32_ZFill(SizeInfo *pSizeInfo,
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jnz		SpanLoop32_ZFill		; grab wleft for leftover loop
 		jmp		HandleLeftoverPixels32_ZFill
 
@@ -8785,7 +8796,7 @@ SpanLoop32_ZFill:
 
 		mov		[ebp+0],eax
 
-		mov		ax,[2*esi]				
+		mov		ax,[2*esi]
 
 		mov		esi,edx
 		add		ebx,ecx
@@ -8796,7 +8807,7 @@ SpanLoop32_ZFill:
 		and		esi,003e00000h
 
 		add		esi,ebx
-		mov		[edi+0],ax				
+		mov		[edi+0],ax
 
 		shr		esi,16
 		mov		eax, [DeltaW]
@@ -8815,7 +8826,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+2],ax				
+		mov		[edi+2],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -8838,7 +8849,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+4],ax				
+		mov		[edi+4],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -8861,7 +8872,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+6],ax				
+		mov		[edi+6],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -8884,7 +8895,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+8],ax				
+		mov		[edi+8],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -8907,7 +8918,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+10],ax				
+		mov		[edi+10],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -8930,7 +8941,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+12],ax				
+		mov		[edi+12],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -8953,7 +8964,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+14],ax				
+		mov		[edi+14],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -8976,7 +8987,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+16],ax				
+		mov		[edi+16],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -8999,7 +9010,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+18],ax				
+		mov		[edi+18],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -9022,7 +9033,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+20],ax				
+		mov		[edi+20],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -9045,7 +9056,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+22],ax				
+		mov		[edi+22],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -9068,7 +9079,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+24],ax				
+		mov		[edi+24],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -9091,7 +9102,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+26],ax				
+		mov		[edi+26],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -9114,7 +9125,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		and		ebx,001fffffh
-		mov		[edi+28],ax				
+		mov		[edi+28],ax
 
 		shl		esi,5
 		mov		eax, [DeltaW]
@@ -9137,7 +9148,7 @@ SpanLoop32_ZFill:
 		mov		esi,edx
 
 		pop     ebp						; restore access to stack frame
-		mov		[edi+30],ax				
+		mov		[edi+30],ax
 
 		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
 
@@ -9155,23 +9166,23 @@ SpanLoop32_ZFill:
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 		mov		ecx,pZBuf
-		add		edi,32					
+		add		edi,32
 
 		add		ecx,64
 		mov		pZBuf,ecx
-		dec		[NumASpans]			
-		jnz		SpanLoop32_ZFill				
+		dec		[NumASpans]
+		jnz		SpanLoop32_ZFill
 
 HandleLeftoverPixels32_ZFill:
 
 		mov		esi,pTex
 
-		
-		cmp		[RemainingCount],0		
-		jz		FPUReturn32_ZFill			
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		cmp		[RemainingCount],0
+		jz		FPUReturn32_ZFill
+
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -9180,8 +9191,8 @@ HandleLeftoverPixels32_ZFill:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan32_ZFill			
+		dec		[RemainingCount]
+		jz		OnePixelSpan32_ZFill
 
 		mov		eax,[WRight]
 		sub		eax,[WLeft]
@@ -9216,34 +9227,34 @@ HandleLeftoverPixels32_ZFill:
 		fld		st(2)					; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan32_ZFill:
-		mov		ebx,[UFixed]			
-		mov		ecx,[VFixed]			
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop32_ZFill:
 		push	ebp
-		mov		eax,ecx					
+		mov		eax,ecx
 
 		mov		ebp,[DeltaW]
 
-		shr		eax,11					
+		shr		eax,11
 		add		ebp,[WLeft]
 
 		mov		edx,ebx
 		and		eax,003e0h
 
-		shr		edx,16					
+		shr		edx,16
 		mov		[WLeft],ebp
 
 		and		edx,01fh
-		add		eax,edx					
+		add		eax,edx
 
 		add		eax,esi
 
 		mov		edx,pZBuf
-		mov		ax,[2*eax]			
+		mov		ax,[2*eax]
 
 		mov		[edx],ebp
-		mov		[edi],ax				
+		mov		[edi],ax
 
 		pop		ebp
 		add		edx,4
@@ -9251,11 +9262,11 @@ LeftoverLoop32_ZFill:
 		add		edi,2
 		mov		pZBuf,edx
 
-		add		ebx,DeltaU				
-		add		ecx,DeltaV				
+		add		ebx,DeltaU
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop32_ZFill			
+		dec		[RemainingCount]
+		jge		LeftoverLoop32_ZFill
 
 FPUReturn32_ZFill:
 		ffree	st(0)
@@ -9267,7 +9278,7 @@ FPUReturn32_ZFill:
 		ffree	st(6)
 
 Return32_ZFill:
-	}		
+	}
 }
 
 static void DrawScanLine16_ZFill(SizeInfo *pSizeInfo,
@@ -9278,26 +9289,26 @@ static void DrawScanLine16_ZFill(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax,pSizeInfo
-		mov		esi,[eax]SizeInfo.ScreenData	
-		mov		ebx,pLeft				
-		mov		eax,[ebx]EdgeAsm.X		
-		mov		ecx,pRight				
-		mov		ecx,[ecx]EdgeAsm.X		
-		sub		ecx,eax					
-		jle		Return16_ZFill				
+		mov		esi,[eax]SizeInfo.ScreenData
+		mov		ebx,pLeft
+		mov		eax,[ebx]EdgeAsm.X
+		mov		ecx,pRight
+		mov		ecx,[ecx]EdgeAsm.X
+		sub		ecx,eax
+		jle		Return16_ZFill
 
 		mov		eax, pSizeInfo
 		mov		edi, [eax]SizeInfo.TexData		; current texture
 		shr		edi, 1
 		mov		pTex, edi
-		mov		edi, esi						
+		mov		edi, esi
 		mov		esi, [eax]SizeInfo.ScreenWidth
-		mov		edx, [ebx]EdgeAsm.Y				
+		mov		edx, [ebx]EdgeAsm.Y
 		shl		esi, 1
 		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
-		imul	edx, esi						
+		imul	edx, esi
 		mov		ebx, [ebx]EdgeAsm.X
-		add		edi, edx						
+		add		edi, edx
 		shl		ebx, 1
 		add		edx, ebx
 		add		edi, ebx						; add in x start offset
@@ -9305,22 +9316,22 @@ static void DrawScanLine16_ZFill(SizeInfo *pSizeInfo,
 		add		edx, eax
 		mov		pZBuf, edx
 
-		mov		eax,ecx					
-		shr		ecx,4					
-		and		eax,15					
+		mov		eax,ecx
+		shr		ecx,4
+		and		eax,15
 		_emit 75h
 		_emit 06h						; jnz @f any leftover?
-		dec		ecx						
-		mov		eax,16					
+		dec		ecx
+		mov		eax,16
 
 		mov		ebx, pLeft
 												; start first fdiv cooking
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
 
 		mov		[NumASpans],ecx
 		mov		[RemainingCount],eax
@@ -9358,7 +9369,7 @@ static void DrawScanLine16_ZFill(SizeInfo *pSizeInfo,
 		fxch	st(1)					; ZR   VR   V/ZR 1/ZR U/ZR UL   VL
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jnz		SpanLoop16_ZFill		; grab wleft for leftover loop
 		jmp		HandleLeftoverPixels16_ZFill
 
@@ -9432,7 +9443,7 @@ SpanLoop16_ZFill:
 
 		mov		[ebp+0],eax
 
-		mov		ax,[2*esi]				
+		mov		ax,[2*esi]
 
 		mov		esi,edx
 		add		ebx,ecx
@@ -9443,7 +9454,7 @@ SpanLoop16_ZFill:
 		and		esi,00f00000h
 
 		add		esi,ebx
-		mov		[edi+0],ax				
+		mov		[edi+0],ax
 
 		shr		esi,16
 		mov		eax, [DeltaW]
@@ -9462,7 +9473,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+2],ax				
+		mov		[edi+2],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9485,7 +9496,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+4],ax				
+		mov		[edi+4],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9508,7 +9519,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+6],ax				
+		mov		[edi+6],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9531,7 +9542,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+8],ax				
+		mov		[edi+8],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9554,7 +9565,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+10],ax				
+		mov		[edi+10],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9577,7 +9588,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+12],ax				
+		mov		[edi+12],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9600,7 +9611,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+14],ax				
+		mov		[edi+14],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9623,7 +9634,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+16],ax				
+		mov		[edi+16],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9646,7 +9657,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+18],ax				
+		mov		[edi+18],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9669,7 +9680,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+20],ax				
+		mov		[edi+20],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9692,7 +9703,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+22],ax				
+		mov		[edi+22],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9715,7 +9726,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+24],ax				
+		mov		[edi+24],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9738,7 +9749,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+26],ax				
+		mov		[edi+26],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9761,7 +9772,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		and		ebx,000fffffh
-		mov		[edi+28],ax				
+		mov		[edi+28],ax
 
 		shl		esi,4
 		mov		eax, [DeltaW]
@@ -9784,7 +9795,7 @@ SpanLoop16_ZFill:
 		mov		esi,edx
 
 		pop     ebp						; restore access to stack frame
-		mov		[edi+30],ax				
+		mov		[edi+30],ax
 
 		fld		st						; ZR   ZR   V/ZR 1/ZR U/ZR UL   VL
 
@@ -9802,22 +9813,22 @@ SpanLoop16_ZFill:
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 		mov		ecx,pZBuf
-		add		edi,32					
+		add		edi,32
 
 		add		ecx,64
 		mov		pZBuf,ecx
-		dec		[NumASpans]			
-		jnz		SpanLoop16_ZFill				
+		dec		[NumASpans]
+		jnz		SpanLoop16_ZFill
 
 HandleLeftoverPixels16_ZFill:
 
 		mov		esi,pTex
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn16_ZFill			
+		cmp		[RemainingCount],0
+		jz		FPUReturn16_ZFill
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -9826,8 +9837,8 @@ HandleLeftoverPixels16_ZFill:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan16_ZFill			
+		dec		[RemainingCount]
+		jz		OnePixelSpan16_ZFill
 
 		mov		eax,[WRight]
 		sub		eax,[WLeft]
@@ -9862,34 +9873,34 @@ HandleLeftoverPixels16_ZFill:
 		fld		st(2)					; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan16_ZFill:
-		mov		ebx,[UFixed]			
-		mov		ecx,[VFixed]			
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop16_ZFill:
 		push	ebp
-		mov		eax,ecx					
+		mov		eax,ecx
 
 		mov		ebp,[DeltaW]
 
-		shr		eax,12					
+		shr		eax,12
 		add		ebp,[WLeft]
 
 		mov		edx,ebx
 		and		eax,0f0h
 
-		shr		edx,16					
+		shr		edx,16
 		mov		[WLeft],ebp
 
 		and		edx,0fh
-		add		eax,edx					
+		add		eax,edx
 
 		add		eax,esi
 
 		mov		edx,pZBuf
-		mov		ax,[2*eax]			
+		mov		ax,[2*eax]
 
 		mov		[edx],ebp
-		mov		[edi],ax				
+		mov		[edi],ax
 
 		pop		ebp
 		add		edx,4
@@ -9897,11 +9908,11 @@ LeftoverLoop16_ZFill:
 		add		edi,2
 		mov		pZBuf,edx
 
-		add		ebx,DeltaU				
-		add		ecx,DeltaV				
+		add		ebx,DeltaU
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop16_ZFill			
+		dec		[RemainingCount]
+		jge		LeftoverLoop16_ZFill
 
 FPUReturn16_ZFill:
 		ffree	st(0)
@@ -9913,7 +9924,7 @@ FPUReturn16_ZFill:
 		ffree	st(6)
 
 Return16_ZFill:
-	}		
+	}
 }
 
 static void DrawScanLine256_ZBuf(SizeInfo *pSizeInfo,
@@ -9926,26 +9937,26 @@ static void DrawScanLine256_ZBuf(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax, pSizeInfo
-		mov		esi, [eax]SizeInfo.ScreenData	
-		mov		ebx, pLeft						
-		mov		eax, [ebx]EdgeAsm.X				
-		mov		ecx, pRight						
-		mov		ecx, [ecx]EdgeAsm.X				
-		sub		ecx, eax						
-		jle		Return256_ZBuf						
+		mov		esi, [eax]SizeInfo.ScreenData
+		mov		ebx, pLeft
+		mov		eax, [ebx]EdgeAsm.X
+		mov		ecx, pRight
+		mov		ecx, [ecx]EdgeAsm.X
+		sub		ecx, eax
+		jle		Return256_ZBuf
 
 		mov		eax, pSizeInfo
 		mov		edi, [eax]SizeInfo.TexData		; current texture
 		shr		edi, 1
 		mov		pTex, edi
-		mov		edi, esi						
+		mov		edi, esi
 		mov		esi, [eax]SizeInfo.ScreenWidth
-		mov		edx, [ebx]EdgeAsm.Y				
+		mov		edx, [ebx]EdgeAsm.Y
 		shl		esi, 1
 		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
-		imul	edx, esi						
+		imul	edx, esi
 		mov		ebx, [ebx]EdgeAsm.X
-		add		edi, edx						
+		add		edi, edx
 		shl		ebx, 1
 		add		edx, ebx
 		add		edi, ebx						; add in x start offset
@@ -9953,22 +9964,22 @@ static void DrawScanLine256_ZBuf(SizeInfo *pSizeInfo,
 		add		edx, eax
 		mov		pZBuf, edx
 
-		mov		eax, ecx						
-		shr		ecx, 4							
-		and		eax, 15							
+		mov		eax, ecx
+		shr		ecx, 4
+		and		eax, 15
 		_emit 75h								; short jump 6 bytes
 		_emit 06h								; jnz any leftover?
-		dec		ecx								
-		mov		eax, 16							
+		dec		ecx
+		mov		eax, 16
 
 		mov		ebx, pLeft
 												; start first fdiv cooking
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
 
 		mov		[NumASpans],ecx
 		mov		[RemainingCount],eax
@@ -10017,9 +10028,9 @@ static void DrawScanLine256_ZBuf(SizeInfo *pSizeInfo,
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jnz		SpanLoop256_ZBuf		; grab wleft for leftover loop
-										
+
 
 //		fld		st(3)					; 1/ZL UR   VR   V/ZR 1/ZR U/ZR UL   VL
 //		fmul	[FixedScale16]			; W32  UR   VR   V/ZR 1/ZR U/ZR UL   VL
@@ -10598,21 +10609,21 @@ SpanLoop256_ZBuf:
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 		add		[SCan+4],32
-		add		edi,32					
+		add		edi,32
 		add		[SCanZ+4],64
-		dec		[NumASpans]			
-		jnz		SpanLoop256_ZBuf		
+		dec		[NumASpans]
+		jnz		SpanLoop256_ZBuf
 
 HandleLeftoverPixels256_ZBuf:
 
 		mov		esi,pTex
 		mov		[SCan+4],edi
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn256_ZBuf			
+		cmp		[RemainingCount],0
+		jz		FPUReturn256_ZBuf
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -10621,8 +10632,8 @@ HandleLeftoverPixels256_ZBuf:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan256_ZBuf			
+		dec		[RemainingCount]
+		jz		OnePixelSpan256_ZBuf
 
 		mov		eax,[WRight]
 		sub		eax,[WLeft]
@@ -10657,8 +10668,8 @@ HandleLeftoverPixels256_ZBuf:
 		fld		st(2)						; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan256_ZBuf:
-		mov		ebx,[UFixed]				
-		mov		ecx,[VFixed]				
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop256_ZBuf:
 		push	ebp
@@ -10676,21 +10687,21 @@ LeftoverLoop256_ZBuf:
 		mov		ebp,dword ptr[4*edx+SCanZ+4]	;grab zbuf or zcanz
 		mov		[ebp],eax						;write to zbuf or zcan
 
-		mov		eax,ecx					
+		mov		eax,ecx
 		mov		ebp,dword ptr[4*edx+SCan+4]		;grab screen or zcan
 
-		shr		eax,8					
+		shr		eax,8
 		mov		edx,ebx
 
 		and		eax,0ff00h
 
-		shr		edx,16					
+		shr		edx,16
 		and		edx,0ffh
 
-		add		eax,edx					
+		add		eax,edx
 		add		eax,esi
 
-		mov		ax,[2*eax]				
+		mov		ax,[2*eax]
 
 		mov		[ebp],ax				;write pixel
 		add		[SCan+4],2
@@ -10700,11 +10711,11 @@ LeftoverLoop256_ZBuf:
 
 		pop		ebp
 
-		add		ebx,DeltaU				
-		add		ecx,DeltaV				
+		add		ebx,DeltaU
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop256_ZBuf			
+		dec		[RemainingCount]
+		jge		LeftoverLoop256_ZBuf
 
 FPUReturn256_ZBuf:
 		ffree	st(0)
@@ -10716,7 +10727,7 @@ FPUReturn256_ZBuf:
 		ffree	st(6)
 
 Return256_ZBuf:
-	}		
+	}
 }
 
 static void DrawScanLine128_ZBuf(SizeInfo *pSizeInfo,
@@ -10729,26 +10740,26 @@ static void DrawScanLine128_ZBuf(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax, pSizeInfo
-		mov		esi, [eax]SizeInfo.ScreenData	
-		mov		ebx, pLeft						
-		mov		eax, [ebx]EdgeAsm.X				
-		mov		ecx, pRight						
-		mov		ecx, [ecx]EdgeAsm.X				
-		sub		ecx, eax						
-		jle		Return128_ZBuf					
+		mov		esi, [eax]SizeInfo.ScreenData
+		mov		ebx, pLeft
+		mov		eax, [ebx]EdgeAsm.X
+		mov		ecx, pRight
+		mov		ecx, [ecx]EdgeAsm.X
+		sub		ecx, eax
+		jle		Return128_ZBuf
 
 		mov		eax, pSizeInfo
 		mov		edi, [eax]SizeInfo.TexData		; current texture
 		shr		edi, 1
 		mov		pTex, edi
-		mov		edi, esi						
+		mov		edi, esi
 		mov		esi, [eax]SizeInfo.ScreenWidth
-		mov		edx, [ebx]EdgeAsm.Y				
+		mov		edx, [ebx]EdgeAsm.Y
 		shl		esi, 1
 		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
-		imul	edx, esi						
+		imul	edx, esi
 		mov		ebx, [ebx]EdgeAsm.X
-		add		edi, edx						
+		add		edi, edx
 		shl		ebx, 1
 		add		edx, ebx
 		add		edi, ebx						; add in x start offset
@@ -10756,22 +10767,22 @@ static void DrawScanLine128_ZBuf(SizeInfo *pSizeInfo,
 		add		edx, eax
 		mov		pZBuf, edx
 
-		mov		eax, ecx						
-		shr		ecx, 4							
-		and		eax, 15							
+		mov		eax, ecx
+		shr		ecx, 4
+		and		eax, 15
 		_emit 75h								; short jump 6 bytes
 		_emit 06h								; jnz any leftover?
-		dec		ecx								
-		mov		eax, 16							
+		dec		ecx
+		mov		eax, 16
 
 		mov		ebx, pLeft
 												; start first fdiv cooking
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
 
 		mov		[NumASpans],ecx
 		mov		[RemainingCount],eax
@@ -10816,9 +10827,9 @@ static void DrawScanLine128_ZBuf(SizeInfo *pSizeInfo,
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jnz		SpanLoop128_ZBuf		; grab wleft for leftover loop
-										
+
 		jmp		HandleLeftoverPixels128_ZBuf
 
 SpanLoop128_ZBuf:
@@ -11390,21 +11401,21 @@ SpanLoop128_ZBuf:
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 		add		[SCan+4],32
-		add		edi,32					
+		add		edi,32
 		add		[SCanZ+4],64
-		dec		[NumASpans]			
-		jnz		SpanLoop128_ZBuf		
+		dec		[NumASpans]
+		jnz		SpanLoop128_ZBuf
 
 HandleLeftoverPixels128_ZBuf:
 
 		mov		esi,pTex
 		mov		[SCan+4],edi
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn128_ZBuf			
+		cmp		[RemainingCount],0
+		jz		FPUReturn128_ZBuf
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -11413,8 +11424,8 @@ HandleLeftoverPixels128_ZBuf:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan128_ZBuf	
+		dec		[RemainingCount]
+		jz		OnePixelSpan128_ZBuf
 
 		mov		eax,[WRight]
 		sub		eax,[WLeft]
@@ -11449,8 +11460,8 @@ HandleLeftoverPixels128_ZBuf:
 		fld		st(2)						; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan128_ZBuf:
-		mov		ebx,[UFixed]				
-		mov		ecx,[VFixed]				
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop128_ZBuf:
 		push	ebp
@@ -11468,21 +11479,21 @@ LeftoverLoop128_ZBuf:
 		mov		ebp,dword ptr[4*edx+SCanZ+4]	;grab zbuf or zcanz
 		mov		[ebp],eax						;write to zbuf or zcan
 
-		mov		eax,ecx					
+		mov		eax,ecx
 		mov		ebp,dword ptr[4*edx+SCan+4]		;grab screen or zcan
 
-		shr		eax,9					
+		shr		eax,9
 		mov		edx,ebx
 
 		and		eax,03f80h
 
-		shr		edx,16					
+		shr		edx,16
 		and		edx,07fh
 
-		add		eax,edx					
+		add		eax,edx
 		add		eax,esi
 
-		mov		ax,[2*eax]				
+		mov		ax,[2*eax]
 
 		mov		[ebp],ax				;write pixel
 		add		[SCan+4],2
@@ -11492,11 +11503,11 @@ LeftoverLoop128_ZBuf:
 
 		pop		ebp
 
-		add		ebx,DeltaU				
-		add		ecx,DeltaV				
+		add		ebx,DeltaU
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop128_ZBuf			
+		dec		[RemainingCount]
+		jge		LeftoverLoop128_ZBuf
 
 FPUReturn128_ZBuf:
 		ffree	st(0)
@@ -11508,7 +11519,7 @@ FPUReturn128_ZBuf:
 		ffree	st(6)
 
 Return128_ZBuf:
-	}		
+	}
 }
 
 static void DrawScanLine64_ZBuf(SizeInfo *pSizeInfo,
@@ -11521,26 +11532,26 @@ static void DrawScanLine64_ZBuf(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax, pSizeInfo
-		mov		esi, [eax]SizeInfo.ScreenData	
-		mov		ebx, pLeft						
-		mov		eax, [ebx]EdgeAsm.X				
-		mov		ecx, pRight						
-		mov		ecx, [ecx]EdgeAsm.X				
-		sub		ecx, eax						
-		jle		Return64_ZBuf					
+		mov		esi, [eax]SizeInfo.ScreenData
+		mov		ebx, pLeft
+		mov		eax, [ebx]EdgeAsm.X
+		mov		ecx, pRight
+		mov		ecx, [ecx]EdgeAsm.X
+		sub		ecx, eax
+		jle		Return64_ZBuf
 
 		mov		eax, pSizeInfo
 		mov		edi, [eax]SizeInfo.TexData		; current texture
 		shr		edi, 1
 		mov		pTex, edi
-		mov		edi, esi						
+		mov		edi, esi
 		mov		esi, [eax]SizeInfo.ScreenWidth
-		mov		edx, [ebx]EdgeAsm.Y				
+		mov		edx, [ebx]EdgeAsm.Y
 		shl		esi, 1
 		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
-		imul	edx, esi						
+		imul	edx, esi
 		mov		ebx, [ebx]EdgeAsm.X
-		add		edi, edx						
+		add		edi, edx
 		shl		ebx, 1
 		add		edx, ebx
 		add		edi, ebx						; add in x start offset
@@ -11548,22 +11559,22 @@ static void DrawScanLine64_ZBuf(SizeInfo *pSizeInfo,
 		add		edx, eax
 		mov		pZBuf, edx
 
-		mov		eax, ecx						
-		shr		ecx, 4							
-		and		eax, 15							
+		mov		eax, ecx
+		shr		ecx, 4
+		and		eax, 15
 		_emit 75h								; short jump 6 bytes
 		_emit 06h								; jnz any leftover?
-		dec		ecx								
-		mov		eax, 16							
+		dec		ecx
+		mov		eax, 16
 
 		mov		ebx, pLeft
 												; start first fdiv cooking
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
 
 		mov		[NumASpans],ecx
 		mov		[RemainingCount],eax
@@ -11608,9 +11619,9 @@ static void DrawScanLine64_ZBuf(SizeInfo *pSizeInfo,
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jnz		SpanLoop64_ZBuf			; grab wleft for leftover loop
-										
+
 		jmp		HandleLeftoverPixels64_ZBuf
 
 SpanLoop64_ZBuf:
@@ -12182,21 +12193,21 @@ SpanLoop64_ZBuf:
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 		add		[SCan+4],32
-		add		edi,32					
+		add		edi,32
 		add		[SCanZ+4],64
-		dec		[NumASpans]			
-		jnz		SpanLoop64_ZBuf		
+		dec		[NumASpans]
+		jnz		SpanLoop64_ZBuf
 
 HandleLeftoverPixels64_ZBuf:
 
 		mov		esi,pTex
 		mov		[SCan+4],edi
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn64_ZBuf			
+		cmp		[RemainingCount],0
+		jz		FPUReturn64_ZBuf
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -12205,8 +12216,8 @@ HandleLeftoverPixels64_ZBuf:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan64_ZBuf	
+		dec		[RemainingCount]
+		jz		OnePixelSpan64_ZBuf
 
 		mov		eax,[WRight]
 		sub		eax,[WLeft]
@@ -12241,8 +12252,8 @@ HandleLeftoverPixels64_ZBuf:
 		fld		st(2)						; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan64_ZBuf:
-		mov		ebx,[UFixed]				
-		mov		ecx,[VFixed]				
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop64_ZBuf:
 		push	ebp
@@ -12260,21 +12271,21 @@ LeftoverLoop64_ZBuf:
 		mov		ebp,dword ptr[4*edx+SCanZ+4]	;grab zbuf or zcanz
 		mov		[ebp],eax						;write to zbuf or zcan
 
-		mov		eax,ecx					
+		mov		eax,ecx
 		mov		ebp,dword ptr[4*edx+SCan+4]		;grab screen or zcan
 
-		shr		eax,10					
+		shr		eax,10
 		mov		edx,ebx
 
 		and		eax,00fc0h
 
-		shr		edx,16					
+		shr		edx,16
 		and		edx,03fh
 
-		add		eax,edx					
+		add		eax,edx
 		add		eax,esi
 
-		mov		ax,[2*eax]				
+		mov		ax,[2*eax]
 
 		mov		[ebp],ax				;write pixel
 		add		[SCan+4],2
@@ -12284,11 +12295,11 @@ LeftoverLoop64_ZBuf:
 
 		pop		ebp
 
-		add		ebx,DeltaU				
-		add		ecx,DeltaV				
+		add		ebx,DeltaU
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop64_ZBuf			
+		dec		[RemainingCount]
+		jge		LeftoverLoop64_ZBuf
 
 FPUReturn64_ZBuf:
 		ffree	st(0)
@@ -12300,7 +12311,7 @@ FPUReturn64_ZBuf:
 		ffree	st(6)
 
 Return64_ZBuf:
-	}		
+	}
 }
 
 static void DrawScanLine32_ZBuf(SizeInfo *pSizeInfo,
@@ -12313,26 +12324,26 @@ static void DrawScanLine32_ZBuf(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax, pSizeInfo
-		mov		esi, [eax]SizeInfo.ScreenData	
-		mov		ebx, pLeft						
-		mov		eax, [ebx]EdgeAsm.X				
-		mov		ecx, pRight						
-		mov		ecx, [ecx]EdgeAsm.X				
-		sub		ecx, eax						
-		jle		Return32_ZBuf					
+		mov		esi, [eax]SizeInfo.ScreenData
+		mov		ebx, pLeft
+		mov		eax, [ebx]EdgeAsm.X
+		mov		ecx, pRight
+		mov		ecx, [ecx]EdgeAsm.X
+		sub		ecx, eax
+		jle		Return32_ZBuf
 
 		mov		eax, pSizeInfo
 		mov		edi, [eax]SizeInfo.TexData		; current texture
 		shr		edi, 1
 		mov		pTex, edi
-		mov		edi, esi						
+		mov		edi, esi
 		mov		esi, [eax]SizeInfo.ScreenWidth
-		mov		edx, [ebx]EdgeAsm.Y				
+		mov		edx, [ebx]EdgeAsm.Y
 		shl		esi, 1
 		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
-		imul	edx, esi						
+		imul	edx, esi
 		mov		ebx, [ebx]EdgeAsm.X
-		add		edi, edx						
+		add		edi, edx
 		shl		ebx, 1
 		add		edx, ebx
 		shl		edx, 1							; 32 bit zbuffer
@@ -12340,22 +12351,22 @@ static void DrawScanLine32_ZBuf(SizeInfo *pSizeInfo,
 		add		edx, eax
 		mov		pZBuf, edx
 
-		mov		eax, ecx						
-		shr		ecx, 4							
-		and		eax, 15							
+		mov		eax, ecx
+		shr		ecx, 4
+		and		eax, 15
 		_emit 75h								; short jump 6 bytes
 		_emit 06h								; jnz any leftover?
-		dec		ecx								
-		mov		eax, 16							
+		dec		ecx
+		mov		eax, 16
 
 		mov		ebx, pLeft
 												; start first fdiv cooking
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
 
 		mov		[NumASpans],ecx
 		mov		[RemainingCount],eax
@@ -12400,9 +12411,9 @@ static void DrawScanLine32_ZBuf(SizeInfo *pSizeInfo,
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jnz		SpanLoop32_ZBuf		; grab wleft for leftover loop
-										
+
 		jmp		HandleLeftoverPixels32_ZBuf
 
 SpanLoop32_ZBuf:
@@ -12974,21 +12985,21 @@ SpanLoop32_ZBuf:
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 		add		[SCan+4],32
-		add		edi,32					
+		add		edi,32
 		add		[SCanZ+4],64
-		dec		[NumASpans]			
-		jnz		SpanLoop32_ZBuf		
+		dec		[NumASpans]
+		jnz		SpanLoop32_ZBuf
 
 HandleLeftoverPixels32_ZBuf:
 
 		mov		esi,pTex
 		mov		[SCan+4],edi
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn32_ZBuf			
+		cmp		[RemainingCount],0
+		jz		FPUReturn32_ZBuf
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -12997,8 +13008,8 @@ HandleLeftoverPixels32_ZBuf:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan32_ZBuf	
+		dec		[RemainingCount]
+		jz		OnePixelSpan32_ZBuf
 
 		mov		eax,[WRight]
 		sub		eax,[WLeft]
@@ -13033,8 +13044,8 @@ HandleLeftoverPixels32_ZBuf:
 		fld		st(2)						; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan32_ZBuf:
-		mov		ebx,[UFixed]				
-		mov		ecx,[VFixed]				
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop32_ZBuf:
 		push	ebp
@@ -13052,21 +13063,21 @@ LeftoverLoop32_ZBuf:
 		mov		ebp,dword ptr[4*edx+SCanZ+4]	;grab zbuf or zcanz
 		mov		[ebp],eax						;write to zbuf or zcan
 
-		mov		eax,ecx					
+		mov		eax,ecx
 		mov		ebp,dword ptr[4*edx+SCan+4]		;grab screen or zcan
 
-		shr		eax,11					
+		shr		eax,11
 		mov		edx,ebx
 
 		and		eax,003e0h
 
-		shr		edx,16					
+		shr		edx,16
 		and		edx,01fh
 
-		add		eax,edx					
+		add		eax,edx
 		add		eax,esi
 
-		mov		ax,[2*eax]				
+		mov		ax,[2*eax]
 
 		mov		[ebp],ax				;write pixel
 		add		[SCan+4],2
@@ -13076,11 +13087,11 @@ LeftoverLoop32_ZBuf:
 
 		pop		ebp
 
-		add		ebx,DeltaU				
-		add		ecx,DeltaV				
+		add		ebx,DeltaU
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop32_ZBuf			
+		dec		[RemainingCount]
+		jge		LeftoverLoop32_ZBuf
 
 FPUReturn32_ZBuf:
 		ffree	st(0)
@@ -13092,7 +13103,7 @@ FPUReturn32_ZBuf:
 		ffree	st(6)
 
 Return32_ZBuf:
-	}		
+	}
 }
 
 static void DrawScanLine16_ZBuf(SizeInfo *pSizeInfo,
@@ -13105,26 +13116,26 @@ static void DrawScanLine16_ZBuf(SizeInfo *pSizeInfo,
 	_asm
 	{
 		mov		eax, pSizeInfo
-		mov		esi, [eax]SizeInfo.ScreenData	
-		mov		ebx, pLeft						
-		mov		eax, [ebx]EdgeAsm.X				
-		mov		ecx, pRight						
-		mov		ecx, [ecx]EdgeAsm.X				
-		sub		ecx, eax						
-		jle		Return16_ZBuf					
+		mov		esi, [eax]SizeInfo.ScreenData
+		mov		ebx, pLeft
+		mov		eax, [ebx]EdgeAsm.X
+		mov		ecx, pRight
+		mov		ecx, [ecx]EdgeAsm.X
+		sub		ecx, eax
+		jle		Return16_ZBuf
 
 		mov		eax, pSizeInfo
 		mov		edi, [eax]SizeInfo.TexData		; current texture
 		shr		edi, 1
 		mov		pTex, edi
-		mov		edi, esi						
+		mov		edi, esi
 		mov		esi, [eax]SizeInfo.ScreenWidth
-		mov		edx, [ebx]EdgeAsm.Y				
+		mov		edx, [ebx]EdgeAsm.Y
 		shl		esi, 1
 		mov		eax, [eax]SizeInfo.ZData		; zbuffer pointer
-		imul	edx, esi						
+		imul	edx, esi
 		mov		ebx, [ebx]EdgeAsm.X
-		add		edi, edx						
+		add		edi, edx
 		shl		ebx, 1
 		add		edx, ebx
 		add		edi, ebx						; add in x start offset
@@ -13132,23 +13143,23 @@ static void DrawScanLine16_ZBuf(SizeInfo *pSizeInfo,
 		add		edx, eax
 		mov		pZBuf, edx
 
-		
-		mov		eax, ecx						
-		shr		ecx, 4							
-		and		eax, 15							
+
+		mov		eax, ecx
+		shr		ecx, 4
+		and		eax, 15
 		_emit 75h								; short jump 6 bytes
 		_emit 06h								; jnz any leftover?
-		dec		ecx								
-		mov		eax, 16							
+		dec		ecx
+		mov		eax, 16
 
 		mov		ebx, pLeft
 												; start first fdiv cooking
 
 		fld		[ebx]EdgeAsm.VOverZ		; V/ZL
-		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL 
-		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL 
-		fld1							; 1    1/ZL U/ZL V/ZL 
-		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL 
+		fld		[ebx]EdgeAsm.UOverZ		; U/ZL V/ZL
+		fld		[ebx]EdgeAsm.OneOverZ	; 1/ZL U/ZL V/ZL
+		fld1							; 1    1/ZL U/ZL V/ZL
+		fdiv	st,st(1)				; ZL   1/ZL U/ZL V/ZL
 
 		mov		[NumASpans],ecx
 		mov		[RemainingCount],eax
@@ -13193,9 +13204,9 @@ static void DrawScanLine16_ZBuf(SizeInfo *pSizeInfo,
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 
-		test	ecx,ecx					
+		test	ecx,ecx
 		jnz		SpanLoop16_ZBuf			; grab wleft for leftover loop
-										
+
 		jmp		HandleLeftoverPixels16_ZBuf
 
 SpanLoop16_ZBuf:
@@ -13767,21 +13778,21 @@ SpanLoop16_ZBuf:
 		fmul	st,st(4)				; UR   VR   V/ZR 1/ZR U/ZR UL   VL
 
 		add		[SCan+4],32
-		add		edi,32					
+		add		edi,32
 		add		[SCanZ+4],64
-		dec		[NumASpans]			
-		jnz		SpanLoop16_ZBuf		
+		dec		[NumASpans]
+		jnz		SpanLoop16_ZBuf
 
 HandleLeftoverPixels16_ZBuf:
 
 		mov		esi,pTex
 		mov		[SCan+4],edi
 
-		cmp		[RemainingCount],0		
-		jz		FPUReturn16_ZBuf			
+		cmp		[RemainingCount],0
+		jz		FPUReturn16_ZBuf
 
-		mov		ebx,pRight				
-		mov		edx,pGradients			
+		mov		ebx,pRight
+		mov		edx,pGradients
 
 		fld		st(5)					; UL   inv. inv. inv. inv. inv. UL   VL
 		fmul	[FixedScale]			; UL16 inv. inv. inv. inv. inv. UL   VL
@@ -13790,8 +13801,8 @@ HandleLeftoverPixels16_ZBuf:
 		fmul	[FixedScale]			; VL16 inv. inv. inv. inv. inv. UL   VL
 		fistp	[VFixed]				; inv. inv. inv. inv. inv. UL   VL
 
-		dec		[RemainingCount]		
-		jz		OnePixelSpan16_ZBuf	
+		dec		[RemainingCount]
+		jz		OnePixelSpan16_ZBuf
 
 		mov		eax,[WRight]
 		sub		eax,[WLeft]
@@ -13826,8 +13837,8 @@ HandleLeftoverPixels16_ZBuf:
 		fld		st(2)						; inv. inv. inv. inv. inv. UR   VR
 
 OnePixelSpan16_ZBuf:
-		mov		ebx,[UFixed]				
-		mov		ecx,[VFixed]				
+		mov		ebx,[UFixed]
+		mov		ecx,[VFixed]
 
 LeftoverLoop16_ZBuf:
 		push	ebp
@@ -13845,21 +13856,21 @@ LeftoverLoop16_ZBuf:
 		mov		ebp,dword ptr[4*edx+SCanZ+4]	;grab zbuf or zcanz
 		mov		[ebp],eax						;write to zbuf or zcan
 
-		mov		eax,ecx					
+		mov		eax,ecx
 		mov		ebp,dword ptr[4*edx+SCan+4]		;grab screen or zcan
 
-		shr		eax,12					
+		shr		eax,12
 		mov		edx,ebx
 
 		and		eax,000f0h
 
-		shr		edx,16					
+		shr		edx,16
 		and		edx,0fh
 
-		add		eax,edx					
+		add		eax,edx
 		add		eax,esi
 
-		mov		ax,[2*eax]				
+		mov		ax,[2*eax]
 
 		mov		[ebp],ax				;write pixel
 		add		[SCan+4],2
@@ -13869,11 +13880,11 @@ LeftoverLoop16_ZBuf:
 
 		pop		ebp
 
-		add		ebx,DeltaU				
-		add		ecx,DeltaV				
+		add		ebx,DeltaU
+		add		ecx,DeltaV
 
-		dec		[RemainingCount]		
-		jge		LeftoverLoop16_ZBuf			
+		dec		[RemainingCount]
+		jge		LeftoverLoop16_ZBuf
 
 FPUReturn16_ZBuf:
 		ffree	st(0)
@@ -13885,5 +13896,5 @@ FPUReturn16_ZBuf:
 		ffree	st(6)
 
 Return16_ZBuf:
-	}		
+	}
 }

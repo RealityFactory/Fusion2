@@ -169,6 +169,14 @@ void CFusionApp::ResolvePreferencesPaths (void)
 	
 	::FilePath_ResolveRelativePath (Prefs_GetProjectDir (pPrefs), Work);
 	::Prefs_SetProjectDir (pResolvedPrefs, Work);
+
+// changed QD Actors
+	::FilePath_ResolveRelativePathList (Prefs_GetActorsList (pPrefs), Work);
+	::Prefs_SetActorsList (pResolvedPrefs, Work);
+
+	::FilePath_ResolveRelativePathList (Prefs_GetPawnIni (pPrefs), Work);
+	::Prefs_SetPawnIni (pResolvedPrefs, Work);
+// end change
 }
 
 BOOL CFusionApp::InitInstance()
@@ -674,7 +682,10 @@ void CFusionApp::ClearClipboard()
 
 	if (CopiedEntities)
 	{
-		for (i=0;i<NumCopiedBrushes;i++) {
+// changed QD
+//		for (i=0;i<NumCopiedBrushes;i++) {
+		for (i=0;i<NumCopiedEntities;i++) {
+// end change
 			if (CopiedEntities[i])
 				delete (CopiedEntities[i]);
 		}

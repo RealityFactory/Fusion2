@@ -44,6 +44,15 @@ CCreateArchDialog::CCreateArchDialog(CWnd* pParent /*=NULL*/)
 	m_EndAngle	=180.0f;
 	m_StartAngle=0.0f;
 	m_TCut = FALSE;
+// changed QD
+	m_Height = 0.0f;
+	m_Radius2 = 64.0f;
+	m_Massive = FALSE;
+	m_Shape = 0;
+	m_Sides = 3;
+	m_Steps = FALSE;
+	m_CW = 0;
+// end change
 	//}}AFX_DATA_INIT
 }
 
@@ -59,7 +68,7 @@ void CCreateArchDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_WIDTH, m_Width);
 	DDV_MinMaxFloat(pDX, m_Width, 1.f, 4000.f);
 	DDX_Text(pDX, IDC_RADIUS, m_Radius);
-	DDV_MinMaxFloat(pDX, m_Radius, 1.f, 10000.f);
+	DDV_MinMaxFloat(pDX, m_Radius, 0.f, 10000.f);
 	DDX_Text(pDX, IDC_WALLSIZE, m_WallSize);
 	DDV_MinMaxFloat(pDX, m_WallSize, 1.f, 4000.f);
 	DDX_Radio(pDX, IDC_SOLID, m_Style);
@@ -68,6 +77,16 @@ void CCreateArchDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_STARTANGLE, m_StartAngle);
 	DDV_MinMaxDouble(pDX, m_StartAngle, -360., 360.);
 	DDX_Check(pDX, IDC_TCUT, m_TCut);
+	DDX_Text(pDX, IDC_HEIGHT, m_Height);
+	DDV_MinMaxFloat(pDX, m_Height, 0.f, 4000.f);
+	DDX_Text(pDX, IDC_RADIUS2, m_Radius2);
+	DDV_MinMaxFloat(pDX, m_Radius2, 1.f, 4000.f);
+	DDX_Check(pDX, IDC_MASSIVE, m_Massive);
+	DDX_Radio(pDX, IDC_RECTANGULAR, m_Shape);
+	DDX_Text(pDX, IDC_SIDES, m_Sides);
+	DDV_MinMaxInt(pDX, m_Sides, 3, 64);
+	DDX_Check(pDX, IDC_STEPS, m_Steps);
+	DDX_Radio(pDX, IDC_CCW, m_CW);
 	//}}AFX_DATA_MAP
 }
 
@@ -98,7 +117,15 @@ int	CCreateArchDialog::DoModal(geBoolean ConvertToMetric, BrushTemplate_Arch *pA
 	m_EndAngle	= pArchTemplate->EndAngle;
 	m_StartAngle = pArchTemplate->StartAngle;
 	m_TCut		= pArchTemplate->TCut;
-
+// changed QD 11/03
+	m_Sides		= pArchTemplate->Sides;
+	m_CW		= pArchTemplate->CW;
+	m_Shape		= pArchTemplate->Shape;
+	m_Radius2	= pArchTemplate->Radius2;
+	m_Height	= pArchTemplate->Height;
+	m_Massive	= pArchTemplate->Massive;
+	m_Steps		= pArchTemplate->Steps;
+// end change
 
 	if(m_ConvertToMetric)
 	{
@@ -114,6 +141,9 @@ void	CCreateArchDialog::dlgFieldsToTexels(void)
 	m_Width		=Units_CentimetersToEngine(m_Width);
 	m_Radius	=Units_CentimetersToEngine(m_Radius);
 	m_WallSize	=Units_CentimetersToEngine(m_WallSize);
+// changed QD 11/03
+	m_Radius2	=Units_CentimetersToEngine(m_Radius2);
+	m_Height	=Units_CentimetersToEngine(m_Height);
 }
 
 void	CCreateArchDialog::dlgFieldsToCentimeters(void)
@@ -122,6 +152,9 @@ void	CCreateArchDialog::dlgFieldsToCentimeters(void)
 	m_Width		=Units_FRound(Units_EngineToCentimeters(m_Width));
 	m_Radius	=Units_FRound(Units_EngineToCentimeters(m_Radius));
 	m_WallSize	=Units_FRound(Units_EngineToCentimeters(m_WallSize));
+// changed QD 11/03
+	m_Radius2	=Units_FRound(Units_EngineToCentimeters(m_Radius2));
+	m_Height	=Units_FRound(Units_EngineToCentimeters(m_Height));
 }
 
 
@@ -135,6 +168,15 @@ void CCreateArchDialog::OnDefaults()
 	m_Radius = 200;
 	m_WallSize = 16;
 	m_Style = 0;
+// changed QD 11/03
+	m_Sides = 3;
+	m_CW = 0;
+	m_Shape = 0;
+	m_Radius2 = 64;
+	m_Height = 0;
+	m_Massive	= FALSE;
+	m_Steps		= FALSE;
+// end change
 	UpdateData( FALSE );
 }
 
@@ -168,6 +210,15 @@ void CCreateArchDialog::OnOK()
 	m_pArchTemplate->EndAngle	= m_EndAngle;
 	m_pArchTemplate->StartAngle	= m_StartAngle;
 	m_pArchTemplate->TCut		= m_TCut;
+// changed QD 11/03
+	m_pArchTemplate->Sides		= m_Sides;
+	m_pArchTemplate->CW			= m_CW;
+	m_pArchTemplate->Shape		= m_Shape;
+	m_pArchTemplate->Radius2	= m_Radius2;
+	m_pArchTemplate->Height		= m_Height;
+	m_pArchTemplate->Massive	= m_Massive;
+	m_pArchTemplate->Steps		= m_Steps;
+// end change
 	
 	CDialog::OnOK();
 }

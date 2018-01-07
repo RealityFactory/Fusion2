@@ -233,6 +233,9 @@ public:
 	void RenderOrthoView(ViewVars *, CDC *);
 	int AreBrushesSelected();
 	void UpdateEntityOrigins();
+// changed QD Actors
+	void UpdateEntityActors();
+// end change
 	int CanRedo();
 	void SaveBrushUndo();
 	int CanUndo();
@@ -293,6 +296,11 @@ public:
 
 	void ExportWorldFile(const char *FileName);
 	void ExportMapFile(const char *FileName);
+// changed QD 11/03
+	void ExportTo3dtv1_32(const char *FileName);
+// changed QD 12/03
+	void ExportTo3ds(const char *FileName, int ExpSelected, geBoolean ExpLights, geBoolean ExpFiles);
+// end change
 
 	const char* ReturnThingUnderPoint(CPoint point, ViewVars *v);
 	const char* GetObjectName3D(CPoint point, ViewVars *v);
@@ -431,6 +439,10 @@ protected:
 	afx_msg void OnUpdateLinkviewports(CCmdUI* pCmdUI);
 	afx_msg void OnTemplateSunlight();
 	afx_msg void OnUpdateTemplateSunlight(CCmdUI* pCmdUI);
+// changed QD Actors
+	afx_msg void OnViewShowActors();
+	afx_msg void OnUpdateViewShowActors(CCmdUI* pCmdUI);
+// end change
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:
@@ -442,7 +454,9 @@ private:
 	UndoStack	*pUndoStack;
 	char		LastPath[MAX_PATH];  //no cstrings for dialog action
 
-	geBoolean	bShowClipBrushes, bShowDetailBrushes, bShowHintBrushes;
+// changed QD Actors
+	geBoolean	bShowClipBrushes, bShowDetailBrushes, bShowHintBrushes, bShowActors;
+// end change
 
 //	CEntity *pCameraEntity;
 

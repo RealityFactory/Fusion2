@@ -69,6 +69,9 @@ geFloat					Face_GetTextureRotate(const Face *f);
 const TexInfo_Vectors	*Face_GetTextureVecs(const Face *f);
 int						Face_GetTextureDibId(const Face *f);
 char const				*Face_GetTextureName(const Face *f);
+// changed QD 12/03
+void					Face_GetTextureSize(const Face *f, int *ptxSize, int *ptySize);
+// end change
 geFloat					Face_GetMipMapBias(const Face *f);
 geFloat					Face_GetTranslucency(const Face *f);
 geFloat					Face_GetReflectivity(const Face *f);
@@ -142,6 +145,9 @@ void	Face_MostlyOnSide(const Face *f, const Plane *p, geFloat *max, int *side);
 void	Face_WriteToMap(const Face *f, FILE *wf);
 void	Face_WriteToQuakeMap(const Face *f, FILE *wf);
 geBoolean Face_Write(const Face *f, FILE *wf);
+// changed QD 11/03
+geBoolean Face_ExportTo3dtv1_32(const Face *f, FILE *wf);
+// end change
 Face	*Face_CreateFromFile(Parse3dt *Parser, int VersionMajor, int VersionMinor, const char **Expected);
 
 #ifdef __cplusplus

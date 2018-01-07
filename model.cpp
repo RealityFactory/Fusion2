@@ -18,6 +18,7 @@
 /*  Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved           */
 /*                                                                                      */
 /****************************************************************************************/
+#pragma warning(disable : 4514 4711)
 #include "model.h"
 #include <assert.h>
 #include <stddef.h>
@@ -1814,11 +1815,11 @@ geBoolean ModelList_WriteToMap
 	Model *m;
 	ListIterator li;
 
-	m = List_GetFirst ((List *)pList, &li);
+	m = (Model *)List_GetFirst ((List *)pList, &li);
 	while (m != NULL)
 	{
 		Model_WriteToMap (m, f, ppBList, SuppressHidden, VisDetail);
-		m = List_GetNext ((List *)pList, &li);
+		m = (Model *)List_GetNext ((List *)pList, &li);
 	}
 	return GE_TRUE;;
 }
@@ -1835,11 +1836,11 @@ void ModelList_ScaleAll
 	assert (pList != NULL);
 	assert (ScaleFactor > 0.0f);
 
-	m = List_GetFirst (pList, &li);
+	m = (Model *)List_GetFirst (pList, &li);
 	while (m != NULL)
 	{
 		Model_Scale (m, ScaleFactor);
-		m = List_GetNext (pList, &li);
+		m = (Model *)List_GetNext (pList, &li);
 	}
 }
 

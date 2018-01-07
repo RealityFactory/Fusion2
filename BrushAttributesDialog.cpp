@@ -288,7 +288,8 @@ void CBrushAttributesDialog::AssignCurrentToValues()
 
 		pName = Brush_GetName (pBrush);	
 		// Flags for the Types (RB's) are always up to date.
-		if( strcmp( pName, m_Name ) )
+		// changed QD 11/03
+		if( strcmp( pName, m_Name ) && !strstr(pName, ".act"))
 		{
 			Brush_SetName (pBrush, m_Name);
 		}
@@ -696,7 +697,10 @@ void CBrushAttributesDialog::OnBrushwavy()
 static geBoolean SetName (Brush *pBrush, void *lParam)
 {
 	CString *pName = (CString *)lParam;
-
+// changed QD 11/03
+	if (strstr(Brush_GetName(pBrush),".act")!=NULL)
+		return GE_TRUE;
+// end change
 	Brush_SetName (pBrush, *pName);
 	return GE_TRUE;
 }
@@ -706,8 +710,17 @@ void CBrushAttributesDialog::OnKillfocusName()
 	CFusionDoc *pDoc = m_pMainFrame->GetCurrentDoc();
 	if (pDoc)
 	{
+// changed QD 11/03
+		CString	lastValue = m_Name;
 		if (UpdateData (TRUE))
 		{
+			if ((strstr(lastValue,".act")!=NULL) || (strstr(m_Name,".act")!=NULL))
+			{
+				m_Name = lastValue;
+				UpdateData (FALSE);
+				return;
+			}
+// end change
 			pDoc->SetModifiedFlag();
 			SelBrushList_Enum (pDoc->pSelBrushes, ::SetName, &m_Name);
 			AssignCurrentToViews ();
